@@ -55,34 +55,9 @@ Create a `src` directory in the root directory and add the following files:
 - `index.ts`
 - `database.ts`
 - `migrations.ts`
-- `seeds.ts`
-- `models.ts`
-- `config.ts`
 - `server.ts`
-- `routes.ts`
-- `controllers.ts`
 - `middlewares.ts`
 - `utils.ts`
-- `types.ts`
-- `services.ts`
-- `repositories.ts`
-- `helpers.ts`
-- `constants.ts`
-- `app.ts`
-- `auth.ts`
-- `validation.ts`
-- `error.ts`
-- `logger.ts`
-- `test.ts`
-- `testUtils.ts`
-- `testHelpers.ts`
-- `testConstants.ts`
-- `testData.ts`
-- `testMocks.ts`
-- `testServices.ts`
-- `testRepositories.ts`
-- `testControllers.ts`
-- `testMiddlewares.ts`
 
 ```typescript
 async function nameSalute(name: string) {
