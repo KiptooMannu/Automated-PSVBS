@@ -5,7 +5,7 @@ import {cors} from "hono/cors";
 
 
 //routes
-
+// analytics, reports etc
 const app = new Hono();
 
 app.use('*',cors());
