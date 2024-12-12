@@ -15,6 +15,9 @@ export const userTable = pgTable("userTable", {
     created_at: timestamp("created_at").defaultNow(),
     updated_at: timestamp("updated_at").defaultNow(),
 });
+// infer types from schema
+
+
 //Bookings == payment
 //vehicle
 //tickets
