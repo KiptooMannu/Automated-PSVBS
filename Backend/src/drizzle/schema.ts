@@ -9,8 +9,6 @@ export const userTable = pgTable("userTable", {
     email: varchar("email").notNull().unique(),
     password: varchar("password").notNull(),
     phone_number: varchar("phone_number"),
-    address: varchar("address"),
-    city: varchar("city"),
     user_type: roleEnum("user_type").default('user'),
     image_url: varchar("image_url", { length: 255 }),
     isVerified: boolean("isVerified").default(false),
