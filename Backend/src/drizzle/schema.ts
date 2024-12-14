@@ -18,12 +18,13 @@ export const userTable = pgTable("userTable", {
 // infer types from schema
 
 
-//Bookings == payment
+//Bookings 
 export const bookingTable = pgTable("bookingTable", {
     booking_id: serial("booking_id").primaryKey(),
-    user_id: integer("user_id").notNull(),
-    vehicle_id: integer("vehicle_id").notNull(),
-    ticket_id: integer("ticket_id").notNull(),
+    user_id: integer("user_id").notNull().references(() => userTable.user_id),
+    // vehicle_id: integer("vehicle_id").notNull().references(() => vehiclesTable.vehicle_id),
+    // ticket_id: integer("ticket_id").notNull().references(() => ticketsTable.ticket_id),
+
     // Destination Details
     departure: varchar("departure").notNull(),
     destination: varchar("destination").notNull(),
