@@ -35,7 +35,7 @@ export const bookingTable = pgTable("bookingTable", {
     // Seat and Fare Details
     seat_number: varchar("seat_number").notNull(),
     price: decimal("price").notNull(),
-    discount: decimal("discount").default(0),
+    discount: decimal("discount").default("0"),  // Corrected here, "0" as a string
     total_price: decimal("total_price").notNull(),
     booking_status: varchar("booking_status").default('pending'),
     
