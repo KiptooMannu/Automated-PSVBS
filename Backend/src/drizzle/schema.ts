@@ -4,6 +4,7 @@ import { pgTable, pgEnum, serial, varchar, timestamp, boolean, text, integer, de
 export const roleEnum = pgEnum("user_type", ["user", "admin", "super_admin", "disabled"]);
 export const bookingStatusEnum = pgEnum("booking_status", ["pending", "confirmed", "completed", "cancelled"]);
 export const ticketStatusEnum = pgEnum("ticket_status", ["open", "in_progress", "closed"]);
+export const paymentStatusEnum = pgEnum("payment_status", ["pending", "completed", "failed", "refunded"]);
 
 // Users Table
 export const userTable = pgTable("users", {
@@ -41,11 +42,11 @@ export const seatTable = pgTable("seats", {
     seat_id: serial("seat_id").primaryKey(),
     vehicle_id: integer("vehicle_id")
         .notNull()
-        .references(() => vehicleTable.vehicle_id, { onDelete: "cascade" }), // Use lowercase "cascade"
+        .references(() => vehicleTable.vehicle_id, { onDelete: "cascade" }),
     seat_number: varchar("seat_number").notNull(),
     is_available: boolean("is_available").default(true),
     seat_type: varchar("seat_type").default("regular"),
-    price: decimal("price").notNull(), // Removed `.check` here
+    price: decimal("price").notNull(),
     created_at: timestamp("created_at").defaultNow(),
     updated_at: timestamp("updated_at").defaultNow(),
 });
@@ -61,10 +62,25 @@ export const bookingTable = pgTable("bookings", {
     departure_date: timestamp("departure_date").notNull(),
     departure_time: varchar("departure_time").notNull(),
     estimated_arrival: varchar("estimated_arrival").notNull(),
-    price: decimal("price").notNull(), // Removed `.check` here
-    total_price: decimal("total_price").notNull(), // Removed `.check` here
+    price: decimal("price").notNull(),
+    total_price: decimal("total_price").notNull(),
     booking_status: bookingStatusEnum("booking_status").default("pending"),
     booking_date: timestamp("booking_date").defaultNow(),
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+});
+
+// Payments Table
+export const paymentTable = pgTable("payments", {
+    payment_id: serial("payment_id").primaryKey(),
+    booking_id: integer("booking_id")
+        .notNull()
+        .references(() => bookingTable.booking_id, { onDelete: "cascade" }),
+    amount: decimal("amount").notNull(),
+    payment_method: varchar("payment_method", { length: 50 }).notNull(),
+    payment_status: paymentStatusEnum("payment_status").default("pending"),
+    transaction_reference: varchar("transaction_reference", { length: 100 }).notNull().unique(),
+    payment_date: timestamp("payment_date").defaultNow(),
     created_at: timestamp("created_at").defaultNow(),
     updated_at: timestamp("updated_at").defaultNow(),
 });
@@ -95,3 +111,6 @@ export type TSVehicles = typeof vehicleTable.$inferSelect;
 
 export type TITickets = typeof ticketTable.$inferInsert;
 export type TSTickets = typeof ticketTable.$inferSelect;
+
+export type TIPayments = typeof paymentTable.$inferInsert;
+export type TSPayments = typeof paymentTable.$inferSelect;
