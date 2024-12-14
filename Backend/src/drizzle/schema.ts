@@ -3,7 +3,7 @@ import { pgTable, pgEnum, serial, varchar, timestamp, boolean, text, integer, de
 // Enums
 export const roleEnum = pgEnum("user_type", ["user", "admin", "super_admin", "disabled"]);
 export const bookingStatusEnum = pgEnum("booking_status", ["pending", "confirmed", "completed", "cancelled"]);
-export const ticketStatusEnum = pgEnum("ticket_status", ["open", "in_progress", "closed"]);
+export const ticketStatusEnum = pgEnum("ticket_status", ["paid", "failed", "refunded"]);
 export const paymentStatusEnum = pgEnum("payment_status", ["pending", "completed", "failed", "refunded"]);
 
 // Users Table
@@ -72,7 +72,7 @@ export const bookingTable = pgTable("bookings", {
 
 
 // Payments Table
-export const paymentTable = pgTable("payments", {
+export const paymentsTable = pgTable("payments", {
     payment_id: serial("payment_id").primaryKey(),
     booking_id: integer("booking_id")
         .notNull()
@@ -82,6 +82,8 @@ export const paymentTable = pgTable("payments", {
     payment_status: paymentStatusEnum("payment_status").default("pending"),
     transaction_reference: varchar("transaction_reference", { length: 100 }).notNull().unique(),
     payment_date: timestamp("payment_date").defaultNow(),
+    ticket_id: integer("ticket_id")
+        .references(() => ticketTable.ticket_id, { onDelete: "cascade" }), // Linking payment to a ticket
     created_at: timestamp("created_at").defaultNow(),
     updated_at: timestamp("updated_at").defaultNow(),
 });
@@ -92,7 +94,7 @@ export const ticketTable = pgTable("tickets", {
     user_id: integer("user_id").notNull().references(() => userTable.user_id, { onDelete: "cascade" }),
     subject: varchar("subject").notNull(),
     description: text("description").notNull(),
-    status: ticketStatusEnum("ticket_status").default("open"),
+    status: ticketStatusEnum("ticket_status").default("paid"), // Default status 'paid' (ticket confirmation after payment)
     created_at: timestamp("created_at").defaultNow(),
     updated_at: timestamp("updated_at").defaultNow(),
 });
@@ -114,5 +116,5 @@ export type TSVehicles = typeof vehicleTable.$inferSelect;
 export type TITickets = typeof ticketTable.$inferInsert;
 export type TSTickets = typeof ticketTable.$inferSelect;
 
-export type TIPayments = typeof paymentTable.$inferInsert;
-export type TSPayments = typeof paymentTable.$inferSelect;
+export type TIPayments = typeof paymentsTable.$inferInsert;
+export type TSPayments = typeof paymentsTable.$inferSelect;

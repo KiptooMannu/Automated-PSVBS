@@ -1,7 +1,7 @@
 <<<<<<< HEAD
 // booking.service.ts
 import  db  from "../drizzle/db";
-import { TIBookings, bookingTable } from "../drizzle/schema";  // Assuming TBooking type and BookingTable schema
+import { TIBookings, bookingTable ,seatTable } from "../drizzle/schema";  // Assuming TBooking type and BookingTable schema
 import { eq } from "drizzle-orm";
 
 // Get all bookings
@@ -19,8 +19,24 @@ export const getBookingByIdService = async (booking_id: number): Promise<TIBooki
 };
 
 // Create booking
+// booking.service.ts
+
+// Check if the seat is available before creating a booking
 export const createBookingService = async (booking: TIBookings): Promise<string> => {
+    const seat = await db.query.seatTable.findFirst({
+        where: eq(seatTable.seat_id, booking.seat_id),
+    });
+
+    if (!seat || !seat.is_available) {
+        throw new Error("Seat not available");
+    }
+
+    // Proceed with creating the booking
     await db.insert(bookingTable).values(booking);
+
+    // Mark the seat as unavailable after booking
+    await db.update(seatTable).set({ is_available: false }).where(eq(seatTable.seat_id, booking.seat_id));
+
     return "Booking created successfully";
 };
 
