@@ -6,7 +6,7 @@ import {
     createBookingService,
     updateBookingService,
     deleteBookingService
-} from "./booking.services";
+} from "./booking.service";
 
 // Get all bookings
 export const getAllBookingsController = async (c: Context) => {

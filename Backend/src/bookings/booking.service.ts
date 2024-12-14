@@ -34,3 +34,4 @@ export const deleteBookingService = async (booking_id: number): Promise<string> 
     await db.delete(bookingTable).where(eq(bookingTable.booking_id, booking_id));
     return "Booking deleted successfully";
 };
+
