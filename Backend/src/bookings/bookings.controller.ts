@@ -89,3 +89,18 @@ export const deleteBookingController = async (c: Context) => {
         return c.json({ error: error?.message }, 500);
     }
 };
+
+
+
+// export const cancelBooking = async (c: Context) => {
+//     const bookingId = parseInt(c.req.param("booking_id"));
+//     try{
+//         if(isNaN(bookingId)) return c.text("Invalid booking id", 400);
+//         // cancel booking by id
+//         const cancelledBooking = await cancelBookingService(bookingId);
+//         if(cancelledBooking===undefined) return c.json({message: "No booking found with this id"},404);
+//         return c.json({message: "Booking cancelled successfully", booking: cancelledBooking}, 200);
+//     } catch(error: any){
+//         return c.text(error?.message, 400);
+//     }
+// }
