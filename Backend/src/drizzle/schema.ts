@@ -69,7 +69,17 @@ export const bookingTable = pgTable("bookings", {
     created_at: timestamp("created_at").defaultNow(),
     updated_at: timestamp("updated_at").defaultNow(),
 });
-<<<<<<< HEAD
+
+// Tickets Table
+export const ticketTable = pgTable("tickets", {
+    ticket_id: serial("ticket_id").primaryKey(),
+    user_id: integer("user_id").notNull().references(() => userTable.user_id, { onDelete: "cascade" }),
+    subject: varchar("subject").notNull(),
+    description: text("description").notNull(),
+    status: ticketStatusEnum("ticket_status").default("paid"), // Default status 'paid' (ticket confirmation after payment)
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+});
 
 // Payments Table
 export const paymentsTable = pgTable("payments", {
@@ -88,24 +98,9 @@ export const paymentsTable = pgTable("payments", {
     updated_at: timestamp("updated_at").defaultNow(),
 });
 
-// Tickets Table
-export const ticketTable = pgTable("tickets", {
-    ticket_id: serial("ticket_id").primaryKey(),
-    user_id: integer("user_id").notNull().references(() => userTable.user_id, { onDelete: "cascade" }),
-    subject: varchar("subject").notNull(),
-    description: text("description").notNull(),
-    status: ticketStatusEnum("ticket_status").default("paid"), // Default status 'paid' (ticket confirmation after payment)
-    created_at: timestamp("created_at").defaultNow(),
-    updated_at: timestamp("updated_at").defaultNow(),
-});
-
-// Types for Insert and Select
-=======
-//vehicle
-//tickets
 
 // Define types for insertion and selection
->>>>>>> d68585f9c88dc1520fad873c9ee7e1fb0613f77e
+
 export type TIUsers = typeof userTable.$inferInsert;
 export type TSUsers = typeof userTable.$inferSelect;
 
