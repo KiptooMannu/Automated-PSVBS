@@ -69,7 +69,7 @@ export const bookingTable = pgTable("bookings", {
     created_at: timestamp("created_at").defaultNow(),
     updated_at: timestamp("updated_at").defaultNow(),
 });
-<<<<<<< HEAD
+
 
 // Payments Table
 export const paymentTable = pgTable("payments", {
@@ -97,13 +97,8 @@ export const ticketTable = pgTable("tickets", {
     updated_at: timestamp("updated_at").defaultNow(),
 });
 
-// Types for Insert and Select
-=======
-//vehicle
-//tickets
 
-// Define types for insertion and selection
->>>>>>> d68585f9c88dc1520fad873c9ee7e1fb0613f77e
+
 export type TIUsers = typeof userTable.$inferInsert;
 export type TSUsers = typeof userTable.$inferSelect;
 
