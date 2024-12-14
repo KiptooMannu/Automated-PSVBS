@@ -1,6 +1,7 @@
 //users schemas
 import { pgTable, pgEnum, serial, varchar, timestamp, boolean,text, integer,decimal} from "drizzle-orm/pg-core";
 import { jsonb } from "drizzle-orm/pg-core";
+
 export const roleEnum = pgEnum("user_type", ['user', 'admin', 'super_admin', 'disabled']);
 export const userTable = pgTable("userTable", {
     user_id: serial("user_id").primaryKey(),
@@ -54,3 +55,6 @@ export const bookingTable = pgTable("bookingTable", {
 });
 //vehicle
 //tickets
+// Define types for insertion and selection
+export type TIUsers = typeof userTable.$inferInsert;
+export type TSUsers = typeof userTable.$inferSelect;
