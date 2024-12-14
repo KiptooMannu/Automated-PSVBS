@@ -81,7 +81,6 @@ export const bookingTable = pgTable("bookings", {
     updated_at: timestamp("updated_at").defaultNow(),
 });
 
-
 // Payments Table
 export const paymentsTable = pgTable("payments", {
     payment_id: serial("payment_id").primaryKey(),
@@ -99,10 +98,7 @@ export const paymentsTable = pgTable("payments", {
     updated_at: timestamp("updated_at").defaultNow(),
 });
 
-
-
-
-
+// Define types for insertion and selection
 export type TIUsers = typeof userTable.$inferInsert;
 export type TSUsers = typeof userTable.$inferSelect;
 

@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 // booking.service.ts
 import  db  from "../drizzle/db";
 import { TIBookings, bookingTable ,seatTable } from "../drizzle/schema";  // Assuming TBooking type and BookingTable schema
@@ -52,6 +53,8 @@ export const deleteBookingService = async (booking_id: number): Promise<string> 
     return "Booking deleted successfully";
 };
 =======
+=======
+>>>>>>> main
 import db from "../drizzle/db";
 import { eq, sql } from "drizzle-orm";
 import { bookingTable } from "../drizzle/schema";
@@ -81,5 +84,9 @@ export const deleteBookingService = async (bookingId: number) => {
 //Cancel a booking===cancel by user id
 export const cancelBookingService = async (bookingId: number) => {
     return await db.update(bookingTable).set({booking_status: "cancelled",is_active:false}).where(eq(bookingTable.booking_id, bookingId)).execute();
+<<<<<<< HEAD
 }
 >>>>>>> d68585f9c88dc1520fad873c9ee7e1fb0613f77e
+=======
+}
+>>>>>>> main

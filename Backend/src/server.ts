@@ -1,26 +1,31 @@
-import {Hono} from 'hono';
+import { Hono } from 'hono';
 import "dotenv/config";
-import {serve} from "@hono/node-server";
-import {cors} from "hono/cors";
+import { serve } from "@hono/node-server";
+import { cors } from "hono/cors";
 import { userAuthRouter } from './auth/auth.router';
-import bookingRouter from './bookings/booking.routes'
+import { paymentRouter } from './payments/Payment.Router';  // from main
+import TicketingRouter from './Ticketing/Ticketing.Router';  // from main
+import bookingRouter from './bookings/booking.router';  // decide the correct file name
 
 // analytics, reports etc
 const app = new Hono();
 
-app.use('*',cors());
-//all routes
-app.route('/',userAuthRouter);
-app.route('/',bookingRouter);
+app.use('*', cors());
 
-app.get('/',async(c)=>{
+// All routes
+app.route('/', userAuthRouter);
+app.route('/', bookingRouter);  // Ensure this is correct (check file name or structure)
+app.route('/', paymentRouter);  // from main
+app.route('/', TicketingRouter);  // from main
+
+app.get('/', async (c) => {
     return c.json({ message: '🌟 Welcome to my API! 🚀' });
-
 });
 
 serve({
     fetch: app.fetch,
     port: Number(process.env.PORT)
-})
+});
 
-console.log(`Server is running🚀 on http://localhost:${process.env.PORT} 🌍🎉`)
+console.log('Routes registered:', app.routes);
+console.log(`Server is running🚀 on http://localhost:${process.env.PORT} 🌍🎉`);

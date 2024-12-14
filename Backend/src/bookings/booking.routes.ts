@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 // booking.router.ts
 import { Hono } from "hono";
 import { getAllBookingsController, getBookingByIdController, createBookingController, updateBookingController, deleteBookingController } from "./bookings.controllers";
@@ -16,6 +17,8 @@ app.delete("/bookings/:id", deleteBookingController); // Route to delete a booki
 // Export the app
 export default app;
 =======
+=======
+>>>>>>> main
 import { Context, Hono, Next } from "hono";
 import { createBooking, getAllBookings, getBookingsByUserId, cancelBooking } from "./booking.controllers";
 import { userRoleAuth,adminRoleAuth } from "../middleware/bearAuth";
@@ -47,5 +50,9 @@ export const bookingRoutes = new Hono();
     // get all booking for a user by id
     bookingRoutes.get("/booking/:user_id", roleAuthChain(adminRoleAuth,userRoleAuth), getBookingsByUserId);
     // cancel booking by id
+<<<<<<< HEAD
     bookingRoutes.delete("/booking/:booking_id", roleAuthChain(adminRoleAuth,userRoleAuth), cancelBooking);
 >>>>>>> d68585f9c88dc1520fad873c9ee7e1fb0613f77e
+=======
+    bookingRoutes.delete("/booking/:booking_id", roleAuthChain(adminRoleAuth,userRoleAuth), cancelBooking);
+>>>>>>> main

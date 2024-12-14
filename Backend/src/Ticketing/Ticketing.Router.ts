@@ -1,12 +1,19 @@
 import { Hono } from 'hono';
-import { getAllTickets, getTicketById, createTicket, updateTicket, deleteTicket } from './Ticketing.controller';
+import { 
+  getAllTickets, 
+  getTicketById, 
+  createTicket, 
+  updateTicket, 
+  deleteTicket 
+} from './Ticketing.controller';
 
-const app = new Hono();
+export const TicketingRouter = new Hono();
 
-app.get('/tickets', getAllTickets);
-app.get('/tickets/:id', getTicketById);
-app.post('/tickets', createTicket);
-app.put('/tickets/:id', updateTicket);
-app.delete('/tickets/:id', deleteTicket);
+TicketingRouter
+  .get('/tickets', getAllTickets)
+  .get('/tickets/:id', getTicketById)
+  .post('/tickets', createTicket)
+  .put('/tickets/:id', updateTicket)
+  .delete('/tickets/:id', deleteTicket);
 
-export default app;
+export default TicketingRouter;
