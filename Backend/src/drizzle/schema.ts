@@ -1,6 +1,7 @@
 //users schemas
 import { pgTable, pgEnum, serial, varchar, timestamp, boolean,text, integer,decimal} from "drizzle-orm/pg-core";
 import { jsonb } from "drizzle-orm/pg-core";
+
 export const roleEnum = pgEnum("user_type", ['user', 'admin', 'super_admin', 'disabled']);
 export const userTable = pgTable("userTable", {
     user_id: serial("user_id").primaryKey(),
@@ -34,7 +35,7 @@ export const bookingTable = pgTable("bookingTable", {
     // Seat and Fare Details
     seat_number: varchar("seat_number").notNull(),
     price: decimal("price").notNull(),
-    // discount: decimal("discount").default(0),
+    discount: decimal("discount").default("0"),
     total_price: decimal("total_price").notNull(),
     booking_status: varchar("booking_status").default('pending'),
     
@@ -54,3 +55,6 @@ export const bookingTable = pgTable("bookingTable", {
 });
 //vehicle
 //tickets
+// Define types for insertion and selection
+export type TIUsers = typeof userTable.$inferInsert;
+export type TSUsers = typeof userTable.$inferSelect;

@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import jwt from 'jsonwebtoken';
 import { registerSchema,loginSchema} from "../validators/user.validator";
+import { TIUsers, TSUsers } from "../drizzle/schema";
 
 
 type User ={
