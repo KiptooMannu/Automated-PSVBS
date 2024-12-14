@@ -55,6 +55,7 @@ export const bookingTable = pgTable("bookingTable", {
 });
 //vehicle
 //tickets
+
 // Define types for insertion and selection
 export type TIUsers = typeof userTable.$inferInsert;
 export type TSUsers = typeof userTable.$inferSelect;

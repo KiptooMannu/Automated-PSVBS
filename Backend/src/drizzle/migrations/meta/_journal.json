@@ -8,6 +8,13 @@
       "when": 1734010302392,
       "tag": "0000_shiny_pyro",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1734172889281,
+      "tag": "0001_shallow_metal_master",
+      "breakpoints": true
     }
   ]
 }
