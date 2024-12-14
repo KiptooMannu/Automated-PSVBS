@@ -51,6 +51,17 @@ export const seatTable = pgTable("seats", {
     updated_at: timestamp("updated_at").defaultNow(),
 });
 
+// Tickets Table
+export const ticketTable = pgTable("tickets", {
+    ticket_id: serial("ticket_id").primaryKey(),
+    user_id: integer("user_id").notNull().references(() => userTable.user_id, { onDelete: "cascade" }),
+    subject: varchar("subject").notNull(),
+    description: text("description").notNull(),
+    status: ticketStatusEnum("ticket_status").default("paid"), // Default status 'paid' (ticket confirmation after payment)
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+});
+
 // Bookings Table
 export const bookingTable = pgTable("bookings", {
     booking_id: serial("booking_id").primaryKey(),
@@ -88,16 +99,7 @@ export const paymentsTable = pgTable("payments", {
     updated_at: timestamp("updated_at").defaultNow(),
 });
 
-// Tickets Table
-export const ticketTable = pgTable("tickets", {
-    ticket_id: serial("ticket_id").primaryKey(),
-    user_id: integer("user_id").notNull().references(() => userTable.user_id, { onDelete: "cascade" }),
-    subject: varchar("subject").notNull(),
-    description: text("description").notNull(),
-    status: ticketStatusEnum("ticket_status").default("paid"), // Default status 'paid' (ticket confirmation after payment)
-    created_at: timestamp("created_at").defaultNow(),
-    updated_at: timestamp("updated_at").defaultNow(),
-});
+
 
 
 
