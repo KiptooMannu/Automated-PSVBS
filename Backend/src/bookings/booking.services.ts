@@ -19,7 +19,6 @@ return await db.query.bookingTable.findFirst({
 }
 // update booking=====
 
-
 export const deleteBookingService = async (bookingId: number) => {
     await db.delete(bookingTable).where(eq(bookingTable.booking_id, bookingId));
     return "Booking cancelled successfully";
