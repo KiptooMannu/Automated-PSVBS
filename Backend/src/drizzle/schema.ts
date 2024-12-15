@@ -24,7 +24,7 @@ export const userTable = pgTable("users", {
 
 // Vehicles Table
 export const vehicleTable = pgTable("vehicles", {
-    vehicle_id: serial("vehicle_id").primaryKey(),
+    registration_number: varchar("registration_number").primaryKey(),
     vehicle_name: varchar("vehicle_name", { length: 100 }).notNull(),
     license_plate: varchar("license_plate", { length: 20 }).notNull().unique(),
     capacity: integer("capacity").notNull(),
@@ -42,7 +42,7 @@ export const seatTable = pgTable("seats", {
     seat_id: serial("seat_id").primaryKey(),
     vehicle_id: integer("vehicle_id")
         .notNull()
-        .references(() => vehicleTable.vehicle_id, { onDelete: "cascade" }),
+        .references(() => vehicleTable.registration_number, { onDelete: "cascade" }),
     seat_number: varchar("seat_number").notNull(),
     is_available: boolean("is_available").default(true),
     seat_type: varchar("seat_type").default("regular"),
@@ -55,7 +55,7 @@ export const seatTable = pgTable("seats", {
 export const bookingTable = pgTable("bookings", {
     booking_id: serial("booking_id").primaryKey(),
     user_id: integer("user_id").notNull().references(() => userTable.user_id, { onDelete: "cascade" }),
-    vehicle_id: integer("vehicle_id").notNull().references(() => vehicleTable.vehicle_id, { onDelete: "cascade" }),
+    vehicle_id: integer("vehicle_id").notNull().references(() => vehicleTable.registration_number, { onDelete: "cascade" }),
     seat_id: integer("seat_id").notNull().references(() => seatTable.seat_id, { onDelete: "cascade" }),
     departure: varchar("departure").notNull(),
     destination: varchar("destination").notNull(),
@@ -84,8 +84,8 @@ export type TSSeats = typeof seatTable.$inferSelect;
 export type TIVehicles = typeof vehicleTable.$inferInsert;
 export type TSVehicles = typeof vehicleTable.$inferSelect;
 
-export type TITickets = typeof ticketTable.$inferInsert;
-export type TSTickets = typeof ticketTable.$inferSelect;
+// export type TITickets = typeof ticketTable.$inferInsert;
+// export type TSTickets = typeof ticketTable.$inferSelect;
 
-export type TIPayments = typeof paymentsTable.$inferInsert;
-export type TSPayments = typeof paymentsTable.$inferSelect;
+// export type TIPayments = typeof paymentsTable.$inferInsert;
+// export type TSPayments = typeof paymentsTable.$inferSelect;
