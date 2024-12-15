@@ -6,7 +6,7 @@ import {
   createBookingController, 
   updateBookingController, 
   deleteBookingController 
-} from "./booking.controller";
+} from "./bookings.controller";
 
 import { 
   userRoleAuth,
