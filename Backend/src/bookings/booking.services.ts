@@ -6,6 +6,8 @@ export const createBookingService = async (booking: any) => {
     return await db.insert(bookingTable).values(booking)
     .returning({booking_id: bookingTable.booking_id})
     .execute();
+    //validate payment
+    
 }
 // Fetch all bookings
 export const getAllBookingsService = async () => {

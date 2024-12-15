@@ -54,6 +54,19 @@ export const bookingTable = pgTable("bookingTable", {
     updated_at: timestamp("updated_at").defaultNow(),
 });
 //vehicle
+export const vehiclesTable = pgTable("vehiclesTable", {
+    registration_number: varchar("registration_number").primaryKey(), 
+    vehicle_name: varchar("vehicle_name").notNull(),
+    vehicle_type: varchar("vehicle_type").notNull(),
+    vehicle_model: varchar("vehicle_model").notNull(),
+    vehicle_capacity: integer("vehicle_capacity").notNull(),
+    vehicle_number: varchar("vehicle_number").notNull(),
+    vehicle_status: varchar("vehicle_status").default('active'),
+    availability: varchar("availability").default('open'),
+    destination_routes: jsonb("destination_routes").notNull(),
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+});
 //tickets
 
 // Define types for insertion and selection

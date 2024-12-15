@@ -7,8 +7,10 @@ export const createBooking = async (c: Context) => {
     try{
         const booking = c.req.json();
         const createdBooking = await createBookingService(booking);
+        // check if booking was created successfully
         if(createdBooking===undefined) return c.json({message: "Booking failed😒"},400);
         return c.json({message: "Booking successful🥳", booking: createdBooking},201);
+        
     } catch(error: any){
         return c.text(error?.message, 400);
     }
