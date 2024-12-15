@@ -25,6 +25,7 @@
     "hono": "^4.6.12",
     "jsonwebtoken": "^9.0.2",
     "nodemailer": "^6.9.16",
+    "stripe": "^17.4.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {

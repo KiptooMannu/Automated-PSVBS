@@ -1,5 +1,5 @@
 // booking.router.ts
-import { Hono } from "hono";
+import { Context, Hono, Next} from "hono";
 import { 
   getAllBookingsController, 
   getBookingByIdController, 
@@ -8,8 +8,33 @@ import {
   deleteBookingController 
 } from "./booking.controller";
 
+import { 
+  userRoleAuth,
+  adminRoleAuth
+ } from "../middleware/bearAuth";
+
 // Create Hono app instance
 const bookingRouter = new Hono();
+
+// Define middleware to check user role
+const roleAuthChain = (...middlewares: any) => {
+        return async (c: Context, next: Next) => {
+            for (const middleware of middlewares) {
+                let isAuthorized = false;
+    
+                // Middleware runs, and if it authorizes, it sets `isAuthorized` to true
+                await middleware(c, async () => {
+                    isAuthorized = true;
+                });
+    
+                if (isAuthorized) {
+                    return next(); // Authorized, proceed to next handler
+                }
+            }
+            // If no middleware authorizes the user, return 401
+            return c.json({ error: "Unauthorized" }, 401);
+        };
+    };
 
 // Define routes
 bookingRouter

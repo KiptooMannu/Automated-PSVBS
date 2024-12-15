@@ -2,6 +2,7 @@ import { Context } from "hono";
 import { registerUser,loginUser,getUsersService,getUserByIdService,updateUserService,deleteUserService } from "./auth.service";
 import { is } from "drizzle-orm";
 
+
 export const register = async(c: Context) => {
     try {
         const user = await c.req.json();

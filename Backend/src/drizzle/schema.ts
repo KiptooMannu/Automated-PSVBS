@@ -72,7 +72,7 @@ export const bookingTable = pgTable("bookings", {
 // Tickets Table
 export const ticketTable = pgTable("tickets", {
     ticket_id: serial("ticket_id").primaryKey(),
-    user_id: integer("user_id").notNull().references(() => userTable.user_id, { onDelete: "cascade" }),
+    user_id: integer("user_id").notNull().references(() => userTable.user_id, { onDelete: "cascade" }),// linking user to a ticket
     subject: varchar("subject").notNull(),
     description: text("description").notNull(),
     status: ticketStatusEnum("ticket_status").default("paid"), // Default status 'paid' (ticket confirmation after payment)
@@ -96,7 +96,6 @@ export const paymentsTable = pgTable("payments", {
     created_at: timestamp("created_at").defaultNow(),
     updated_at: timestamp("updated_at").defaultNow(),
 });
-
 
 // Define types for insertion and selection
 
