@@ -69,6 +69,34 @@ export const bookingTable = pgTable("bookings", {
     created_at: timestamp("created_at").defaultNow(),
     updated_at: timestamp("updated_at").defaultNow(),
 });
+// Tickets Table
+export const ticketTable = pgTable("tickets", {
+    ticket_id: serial("ticket_id").primaryKey(),
+    user_id: integer("user_id").notNull().references(() => userTable.user_id, { onDelete: "cascade" }),
+    subject: varchar("subject").notNull(),
+    description: text("description").notNull(),
+    status: ticketStatusEnum("ticket_status").default("paid"), // Default status 'paid' (ticket confirmation after payment)
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+});
+
+// Payments Table
+export const paymentsTable = pgTable("payments", {
+    payment_id: serial("payment_id").primaryKey(),
+    booking_id: integer("booking_id")
+        .notNull()
+        .references(() => bookingTable.booking_id, { onDelete: "cascade" }),
+    amount: decimal("amount").notNull(),
+    payment_method: varchar("payment_method", { length: 50 }).notNull(),
+    payment_status: paymentStatusEnum("payment_status").default("pending"),
+    transaction_reference: varchar("transaction_reference", { length: 100 }).notNull().unique(),
+    payment_date: timestamp("payment_date").defaultNow(),
+    ticket_id: integer("ticket_id")
+        .references(() => ticketTable.ticket_id, { onDelete: "cascade" }), // Linking payment to a ticket
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+});
+
 
 // Define types for insertion and selection
 
@@ -84,8 +112,8 @@ export type TSSeats = typeof seatTable.$inferSelect;
 export type TIVehicles = typeof vehicleTable.$inferInsert;
 export type TSVehicles = typeof vehicleTable.$inferSelect;
 
-// export type TITickets = typeof ticketTable.$inferInsert;
-// export type TSTickets = typeof ticketTable.$inferSelect;
+export type TITickets = typeof ticketTable.$inferInsert;
+export type TSTickets = typeof ticketTable.$inferSelect;
 
-// export type TIPayments = typeof paymentsTable.$inferInsert;
-// export type TSPayments = typeof paymentsTable.$inferSelect;
+export type TIPayments = typeof paymentsTable.$inferInsert;
+export type TSPayments = typeof paymentsTable.$inferSelect;
