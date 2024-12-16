@@ -40,7 +40,7 @@ export const createTicket = async (c: Context) => {
 
 export const updateTicket = async (c: Context) => {
   try {
-    const updatedTicket = await updateTicketService(Number(c.req.param('id')), await c.req.json());
+    const updatedTicket = await updateTicketService(Number(c.req.param('user_id')), await c.req.json());
     if (updatedTicket) {
       return c.json(updatedTicket, 200);
     } else {
