@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1734010302392,
-      "tag": "0000_shiny_pyro",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1734172889281,
-      "tag": "0001_shallow_metal_master",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1734194148185,
-      "tag": "0002_simple_trish_tilby",
+      "when": 1734342102901,
+      "tag": "0000_tricky_mordo",
       "breakpoints": true
     }
   ]

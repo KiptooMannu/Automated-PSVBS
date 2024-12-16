@@ -40,7 +40,7 @@ export const vehicleTable = pgTable("vehicles", {
 // Seats Table
 export const seatTable = pgTable("seats", {
     seat_id: serial("seat_id").primaryKey(),
-    vehicle_id: integer("vehicle_id")
+    vehicle_id: varchar("vehicle_id")
         .notNull()
         .references(() => vehicleTable.registration_number, { onDelete: "cascade" }),
     seat_number: varchar("seat_number").notNull(),
@@ -66,7 +66,7 @@ export const ticketTable = pgTable("tickets", {
 export const bookingTable = pgTable("bookings", {
     booking_id: serial("booking_id").primaryKey(),
     user_id: integer("user_id").notNull().references(() => userTable.user_id, { onDelete: "cascade" }),
-    vehicle_id: integer("vehicle_id").notNull().references(() => vehicleTable.registration_number, { onDelete: "cascade" }),
+    vehicle_id: varchar("vehicle_id").notNull().references(() => vehicleTable.registration_number, { onDelete: "cascade" }),
     seat_id: integer("seat_id").notNull().references(() => seatTable.seat_id, { onDelete: "cascade" }),
     departure: varchar("departure").notNull(),
     destination: varchar("destination").notNull(),
