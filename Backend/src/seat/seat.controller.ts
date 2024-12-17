@@ -1,5 +1,11 @@
 import { Context } from 'hono';
-import { getAllSeatsService,getSeatByIdService,createSeatService,updateSeatService,deleteSeatService,getSeatByVehicleIdService } from './seat.service';
+import { getAllSeatsService,
+    getSeatByIdService as getSeatByIdService,
+    createSeatService as createSeatService,
+    updateSeatService as updateSeatService,
+    deleteSeatService as deleteSeatService,
+    getSeatByVehicleIdService as getSeatByVehicleIdService 
+} from './seat.service';
 
 //create seat
 export const insertVehicleController = async (c: Context) => {
@@ -39,22 +45,53 @@ export const getSeatByIdController = async (c: Context) =>{
 }
 
 // update seat by ID
+// export const updateSeatByIdController = async (c: Context) => {
+//     try {
+//         const seat_id = c.req.param("seat_id");
+//         const seat = await c.req.json();
+//         if(!seat_id) return c.text("Invalid seat id", 400);
+//         //search for seat by id
+//         const existingSeat = await getSeatByIdService(parseInt(seat_id));
+//         if(existingSeat===undefined) return c.json({message: "No seat found with this id😒"},404);
+//         // update seat by id
+//         const updatedSeat = await updateSeatService(parseInt(seat_id), seat);
+//         if (updatedSeat === undefined) return c.json({msg:"Seat not updated 😒 "}, 400);
+//         return c.json(updatedSeat, 200);        
+//     } catch (error: any) {
+//         return c.text(error?.message, 400);
+//     }
+// }
+// //update seat by seat id
+// export const updateSeatByIdController = async (c: Context) => {
+//     try{
+//         const seat_id = c.req.param("seat_id");
+//         const seat = await c.req.json();
+//         if(!seat_id) return c.text("Invalid seat id", 400);
+//         const existingSeat = await getSeatByIdService(seat_id);
+//         if(existingSeat===undefined) return c.json({message: "No seat found with this id😒"},404);
+//         const updatedSeat = await updateSeatService(seat_id);
+//         if (updatedSeat === undefined) return c.json({msg:"Seat not updated 😒 "}, 400);
+//         return c.json(updatedSeat, 200);
+//     } catch(error: any){
+//         return c.text(error?.message, 400);
+//     }
+// }
+//update seat by seat id
 export const updateSeatByIdController = async (c: Context) => {
     try {
-        const seat_id = c.req.param("seat_id");
-        const seat = await c.req.json();
-        if(!seat_id) return c.text("Invalid seat id", 400);
-        //search for seat by id
-        const existingSeat = await getSeatByIdService(parseInt(seat_id));
-        if(existingSeat===undefined) return c.json({message: "No seat found with this id😒"},404);
-        // update seat by id
-        const updatedSeat = await updateSeatService(parseInt(seat_id), seat);
-        if (updatedSeat === undefined) return c.json({msg:"Seat not updated 😒 "}, 400);
-        return c.json(updatedSeat, 200);        
+        const seat_id = Number(c.req.param("seat_id")); // Convert to number
+        if (isNaN(seat_id)) return c.json({ message: "Invalid Seat ID" }, 400); 
+
+        const seatData = await c.req.json(); 
+        const result = await updateSeatService(seat_id, seatData); 
+        return c.json({ message: result }, 200);
     } catch (error: any) {
-        return c.text(error?.message, 400);
+        console.error("Error updating seat:", error);
+        return c.json({ message: "Error updating seat", error: error.message || error }, 500);
     }
-}
+};
+
+
 
 //delete seat by ID
 export const deleteSeatByIdController = async (c: Context) => {

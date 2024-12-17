@@ -6,7 +6,7 @@ import {
   updateTicket as updateTicketService,
   deleteTicket as deleteTicketService,
 } from './Ticketing.Service';
-//✅
+
 export const getAllTickets = async (c: Context) => {
   try {
     const tickets = await getAllTicketsService();
