@@ -99,3 +99,9 @@ export const deleteUserService = async (id: number): Promise<string> => {
     await db.delete(userTable).where(eq(userTable.user_id, id)).execute();
     return 'User deleted successfully';
 }
+
+export const getUserByEmailService = async (email: string): Promise<TSUsers | undefined> =>{
+    return await db.query.userTable.findFirst({
+        where:eq(userTable.email, email),
+    });
+}

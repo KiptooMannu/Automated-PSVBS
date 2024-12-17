@@ -1,7 +1,8 @@
 import { Context } from "hono";
-import { registerUser,loginUser,getUsersService,getUserByIdService,updateUserService,deleteUserService } from "./auth.service";
+import { registerUser,loginUser,getUsersService,getUserByIdService,updateUserService,deleteUserService,getUserByEmailService } from "./auth.service";
 import { is } from "drizzle-orm";
-
+import bcrypt from 'bcrypt';
+import { sendEmail } from "../utils/mail";
 
 export const register = async(c: Context) => {
     try {
@@ -83,7 +84,7 @@ export const updateUser = async(c: Context) =>{
     }
 }
 
-
+//delete a user
 export const deleteUser = async(c: Context) =>{
     const id = parseInt(c.req.param('id'));
     if(isNaN(id)){
@@ -102,5 +103,47 @@ export const deleteUser = async(c: Context) =>{
     } catch (error: any) {
         return c.json({error: error.message}, 400);
         
+    }
+}
+
+// forgot password
+export const forgotPassword = async(c: Context) => {
+    try{
+        const {email} = await c.req.json();
+        const user = await getUserByEmailService(email);
+        if(!user){
+            return c.json({message: 'User not found'}, 404);
+        }
+        //generate random password
+        const randomPassword = Math.random().toString(36).slice(-8);
+        //hash password
+        const salt = bcrypt.genSaltSync(10);
+        const hashedPassword = bcrypt.hashSync(randomPassword, salt);
+        //update user password
+        await updateUserService(user.user_id, user);
+        //send email with new password
+        const response = await sendEmail(email, 'Password Reset', `Your new password is ${randomPassword} please keep it safe and use it to login.`);
+        return c.json({message: 'Password reset successful', response}, 200);
+    } catch(error: any){
+        return c.json({error: error.message}, 400);
+    }
+}
+
+//reset password function
+export const resetPassword = async(c: Context) => {
+    try{
+        const {email, password} = await c.req.json();
+        const user = await getUserByEmailService(email);
+        if(!user){
+            return c.json({message: 'User not found'}, 404);
+        }
+        //hash password
+        const salt = bcrypt.genSaltSync(10);
+        const hashedPassword = bcrypt.hashSync(password, salt);
+        //update user password
+        await updateUserService(user.user_id, user);
+        return c.json({message: 'Password reset successful'}, 200);
+    } catch(error: any){
+        return c.json({error: error.message}, 400);
     }
 }
