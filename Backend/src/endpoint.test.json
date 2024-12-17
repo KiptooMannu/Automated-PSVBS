@@ -37,9 +37,9 @@
     "status": "paid"
   },
   {
-    "user_id": 2345,
+    "user_id": 1,
     "vehicle_id": "XZ4567AB",
-    "seat_id": 1,
+    "seat_id": 3,
     "departure": "Chicago",
     "destination": "Cincinnati",
     "departure_date": "2024-12-30T10:00:00",

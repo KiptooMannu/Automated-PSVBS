@@ -21,23 +21,18 @@ export const getAllBookingsController = async (c: Context) => {
     }
 };
 
-// Get booking by ID
-export const getBookingByIdController = async (c: Context) => {
-    try {
-        const id = parseInt(c.req.param("user_id"));
-        if (isNaN(id)) return c.text("Invalid user id", 400);
-        const booking = await getBookingByIdService(id);
-        if (booking === undefined) return c.json({ message: "No booking found for this user😒" }, 404);
-        return c.json(booking, 200);
-    } catch (error: any) {
-        return c.json({ error: error?.message }, 500);
-    }
-};
 
 // Create booking
 export const createBookingController = async (c: Context) => {
     try {
         const booking = await c.req.json();
+        // Convert date fields to Date objects
+        if (booking.departure_date) {
+            booking.departure_date = new Date(booking.departure_date);
+        }
+        if (booking.booking_date) {
+            booking.booking_date = new Date(booking.booking_date);
+        }
         const newBooking = await createBookingService(booking);
         // check if booking was created successfully
         if (newBooking === undefined) return c.json({ message: "Booking creation failed😒" }, 400);
@@ -47,12 +42,32 @@ export const createBookingController = async (c: Context) => {
     }
 };
 
+//get booking by id
+export const getBookingByIdController = async (c: Context) => {
+    try {
+        const id = parseInt(c.req.param("id"));
+        if (isNaN(id)) return c.text("Invalid booking id😒", 400);
+        const booking = await getBookingByIdService(id);
+        if (booking === undefined) return c.json({ message: "No booking found with this id😒" }, 404);
+        return c.json(booking, 200);
+    } catch (error: any) {
+        return c.json({ error: error?.message }, 500);
+    }
+}
+
 // Update booking
 export const updateBookingController = async (c: Context) => {
     try {
         const id = parseInt(c.req.param("id"));
         if (isNaN(id)) return c.text("Invalid booking id😒", 400);
         const booking = await c.req.json();
+        // Convert date fields to Date objects
+        if (booking.departure_date) {
+            booking.departure_date = new Date(booking.departure_date);
+        }
+        if (booking.booking_date) {
+            booking.booking_date = new Date(booking.booking_date);
+        }
         const updatedBooking = await updateBookingService(id, booking);
         if (updatedBooking === undefined) return c.json({ message: "No booking found with this id😒" }, 404);
         return c.json({ message: "Booking updated successfully🥳", booking: updatedBooking }, 200);
@@ -64,7 +79,7 @@ export const updateBookingController = async (c: Context) => {
 // Delete /cancel booking
 export const deleteBookingController = async (c: Context) => {
     try {
-        const id = parseInt(c.req.param("booking_id"));
+        const id = parseInt(c.req.param("id"));
         if (isNaN(id)) return c.text("Invalid booking id", 400);
         const deletedBooking = await deleteBookingService(id);
         if (deletedBooking === undefined) return c.json({ message: "No booking found with this id😒" }, 404);
