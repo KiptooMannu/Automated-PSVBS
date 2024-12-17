@@ -7,6 +7,7 @@ import { paymentRouter } from './payments/Payment.Router';  // from main
 import TicketingRouter from './Ticketing/Ticketing.Router';  // from main
 import bookingRouter from './bookings/booking.router';  // decide the correct file name
 import vehicleRouter from './vehicle/vehicle.routes';  // from origin/main
+import seatRouter from './seat/seat.route';  // from origin
 
 // analytics, reports etc
 const app = new Hono();
@@ -19,6 +20,7 @@ app.route('/', bookingRouter);  // Ensure this is correct (check file name or st
 app.route('/', paymentRouter);  // from main
 app.route('/', TicketingRouter);  // from main
 app.route('/', vehicleRouter);  // from origin/main
+app.route('/', seatRouter);  // from origin
 
 app.get('/', async (c) => {
     return c.json({ message: '🌟 Welcome to my API! 🚀' });

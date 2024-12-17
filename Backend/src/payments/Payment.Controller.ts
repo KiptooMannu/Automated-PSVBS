@@ -39,6 +39,8 @@ export const getPaymentByIdController = async (c: Context) => {
 export const createPaymentController = async (c: Context) => {
     try {
         const payment = await c.req.json();
+        // Convert date fields to Date objects
+        payment.payment_date = new Date(payment.payment_date);
         const newPayment = await createPaymentService(payment);
         if (!newPayment) {
             return c.text("Payment not created", 400);
@@ -57,6 +59,8 @@ export const updatePaymentController = async (c: Context) => {
             return c.text("Invalid id", 400);
         }
         const payment = await c.req.json();
+        // Convert date fields to Date objects
+        payment.payment_date = new Date(payment.payment_date);
         const updatedPayment = await updatePaymentService(id, payment);
         if (!updatedPayment) {
             return c.text("Payment not updated", 400);

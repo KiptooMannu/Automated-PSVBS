@@ -77,7 +77,7 @@ export const bookingTable = pgTable("bookings", {
     total_price: decimal("total_price").notNull(),
     booking_status: bookingStatusEnum("booking_status").default("pending"),
     booking_date: timestamp("booking_date").defaultNow(),
-    is_active: boolean("is_active").default(true), // Added is_active column
+    is_active: boolean("is_active").default(true),
     created_at: timestamp("created_at").defaultNow(),
     updated_at: timestamp("updated_at").defaultNow(),
 });

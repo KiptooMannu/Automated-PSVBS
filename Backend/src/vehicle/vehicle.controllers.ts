@@ -24,11 +24,11 @@ export const listAllVehicles = async (c: Context) => {
 }
 //get vehicle by Reg no
 export const getAllVehicleByRegNo = async (c: Context) =>{
-    const reg_no = parseInt(c.req.param("registration_number"));
+    const reg_no = c.req.param("registration_number");
     try{
-        if(!reg_no) return c.text("Invalid user id", 400);
-        const vehicle = await getVehicleByRegNumberService("reg_no");
-        if(vehicle===undefined) return c.json({message: "No vehicle found for this user😒"},404);
+        if(!reg_no) return c.text("Invalid license plate", 400);
+        const vehicle = await getVehicleByRegNumberService(reg_no);
+        if(vehicle===undefined) return c.json({message: "No vehicle found for this license plate😒"},404);
         return c.json(vehicle, 200);
 
     } catch(error){
@@ -38,14 +38,14 @@ export const getAllVehicleByRegNo = async (c: Context) =>{
 // update vehicle by regno
 export const updateVehicleByRegNo = async (c: Context) => {
     try {
-        const reg_no = parseInt(c.req.param("registration_number"));
+        const reg_no = c.req.param("registration_number");
         const vehicle = await c.req.json();
         if(!reg_no) return c.text("Invalid registration id", 400);
         //search for vehicle by regno
-        const existingVehicle = await getVehicleByRegNumberService("reg_no");
+        const existingVehicle = await getVehicleByRegNumberService(reg_no);
         if(existingVehicle===undefined) return c.json({message: "No vehicle found with this reg no😒"},404);
         // update vehicle by regno
-        const updatedVehicle = await updateVehicleService("reg_no", vehicle);
+        const updatedVehicle = await updateVehicleService(reg_no, vehicle);
         if (updatedVehicle === undefined) return c.json({msg:"Vehicle not updated 😒 "}, 400);
         return c.json(updatedVehicle, 200);        
     } catch (error: any) {
@@ -54,14 +54,14 @@ export const updateVehicleByRegNo = async (c: Context) => {
 }
 //delete vehicle by regno
 export const deleteVehicleByRegNo = async (c: Context) => {
-    const reg_no = parseInt(c.req.param("registration_number"));
+    const reg_no = c.req.param("registration_number");
     try {
         if(!reg_no) return c.text("Invalid registration id😒", 400);
         //search for vehicle by regno
-        const existingVehicle = await getVehicleByRegNumberService("reg_no");
-        if(existingVehicle===undefined) return c.json({message: "No vehicle found with this id😒"},404);
+        const existingVehicle = await getVehicleByRegNumberService(reg_no);
+        if(existingVehicle===undefined) return c.json({message: "No vehicle found with this reg no😒"},404);
         // delete vehicle by regno
-        const deleteVehicle = await deleteVehicleService("reg_no");
+        const deleteVehicle = await deleteVehicleService(reg_no);
         if (deleteVehicle === undefined) return c.json({msg:"Vehicle not deleted 😒 "}, 400);
         return c.json({msg:deleteVehicle}, 200);        
     } catch (error: any) {
