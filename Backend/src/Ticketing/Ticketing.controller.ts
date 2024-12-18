@@ -70,3 +70,7 @@ export const deleteTicket = async (c: Context) => {
     return c.json({msg:"Error while deleting ticket😒"})
   }
 }
+//send ticket to user as email
+export const sendTicket = async (c: Context) => {
+
+};

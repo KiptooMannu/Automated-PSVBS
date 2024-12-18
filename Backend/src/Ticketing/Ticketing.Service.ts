@@ -33,3 +33,5 @@ export const deleteTicket = async (ticket_id: number): Promise<string> => {
   await db.delete(ticketTable).where(eq(ticketTable.ticket_id, ticket_id));
   return "Ticket deleted successfully";
 };
+
+// getticket by user id and email
