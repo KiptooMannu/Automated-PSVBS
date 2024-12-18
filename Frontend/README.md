@@ -28,4 +28,24 @@ pnpm install redux-persist
 ```
 
 ### 3. project structure
+```bash
+├── node_modules/
+├── public/
+├── src/
+│   ├── app/
+│   │   ├── store.ts
+│   ├── features/
+│   │   ├── counter/
+│   │   │   ├── counterSlice.ts
+│   │   ├── todo/
+│   │   │   ├── todoSlice.ts
+│   │   │   ├── todoApi.ts
+│   │   │   ├── Todo.tsx
+│   ├── App.tsx
+│   ├── main.tsx
+│   ├── index.css
+├── package.json
+├── vite.config.ts
+├── tsconfig.json
+├── README.md`
 ```
