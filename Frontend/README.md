@@ -38,9 +38,9 @@ pnpm install redux-persist
 │   │   ├── counter/
 │   │   │   ├── counterSlice.ts
 │   │   ├── todo/
-│   │   │   ├── todoSlice.ts
-│   │   │   ├── todoApi.ts
-│   │   │   ├── Todo.tsx
+│   │   │   ├── userSlice.ts
+│   │   │   ├── userApi.ts
+│   │   │   ├── user.tsx
 │   ├── App.tsx
 │   ├── main.tsx
 │   ├── index.css
@@ -48,4 +48,26 @@ pnpm install redux-persist
 ├── vite.config.ts
 ├── tsconfig.json
 ├── README.md`
+```
+
+### 4. Run the Project
+```bash
+pnpm run dev
+```
+# Usage
+- **Counter**: Demonstrates the use of Redux Toolkit to manage state.
+- **Todo**: Fetches data from a mock API and displays it in a list.
+
+### 5 clone the project
+```bash
+git clone https://github.com/Ngetich-86/AUTOMATED-PSV-SEAT-RESERVATION-SYSTEM.git
+```
+```bash
+cd Frontend
+```
+```bash
+pnpm install
+```
+```bash
+pnpm run dev
 ```
