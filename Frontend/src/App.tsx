@@ -1,26 +1,32 @@
 
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Navbar from './components/Navbar/Navbar';
-// import ErrorPage from './pages/ErrorPage';
+import ErrorPage from './pages/ErrorPage';
 import Login from './pages/Login';
 import HomePage from './pages/landingPage/HomePage';
+import Register from './pages/Register';
 
 function App() {
   const router = createBrowserRouter([
     {
       path: '/',
       element: <HomePage />,
-      // errorElement: <ErrorPage />
+      errorElement: <ErrorPage />
     },
     {
       path: '/navbar',
       element: <Navbar />,
-      // errorElement: <ErrorPage />
+      errorElement: <ErrorPage />
     },
     {
       path: '/login',
       element: <Login />,
-      // errorElement: <ErrorPage />
+      errorElement: <ErrorPage />
+    },
+    {
+      path: '/register',
+      element: <Register />,
+      errorElement: <ErrorPage />
     },
   ])
 
