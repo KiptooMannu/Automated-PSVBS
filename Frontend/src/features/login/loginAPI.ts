@@ -20,7 +20,7 @@ export const loginAPI = createApi({
     endpoints: (builder) => ({
         loginUser: builder.mutation<TLoginResponse, LoginFormData>({
             query: (user) => ({
-                url: 'auth/login',
+                url: 'login',
                 method: 'POST',
                 body: user,
             }),

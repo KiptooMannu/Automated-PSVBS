@@ -58,7 +58,7 @@ const Navbar = () => {
     return (
         <div className="navbar bg-base-100 border-b-2">
             <div className="flex-1">
-                <Link to="/" className="btn btn-ghost text-2xl font-bold text-webcolor ml-6 md:ml-12">RentalRides</Link>
+                <Link to="/" className="btn btn-ghost text-2xl font-bold text-webcolor ml-6 md:ml-12">Automated PSV Seat Reservation System</Link>
             </div>
 
             <div className="flex-none gap-2">
@@ -69,14 +69,14 @@ const Navbar = () => {
                             <li><Link to="/dashboard/vehicles">Dashboard</Link></li>
 
                         <li><a href="#">Contact</a></li>
-                        {/* {!username && ( */}
+        
                             <>
                                 <li><Link to="/register">Register</Link></li>
                                 <li><Link to="/login">Login</Link></li>
                             </>
-                        {/* )} */}
+                 
                         <li className="flex items-center justify-center ml-3">
-                            {/* {username ? `${username}` : ''} */}
+                        
                         </li>
                     </ul>
                 </div>
