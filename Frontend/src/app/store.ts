@@ -14,11 +14,13 @@ const persistConfig = {
 // combine reducers
 const rootReducer = combineReducers({
     [usersAPI.reducerPath]: usersAPI.reducer,
+    [loginAPI.reducerPath]: loginAPI.reducer,
     // add other reducers here
     user: userSlice,
 });
 // add persist reducer
 const persistedReducer = persistReducer(persistConfig, rootReducer);
+
 
 // create store
 export const store = configureStore({

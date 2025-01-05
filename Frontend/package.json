@@ -10,12 +10,18 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@hookform/resolvers": "^3.9.1",
     "@reduxjs/toolkit": "^2.5.0",
     "daisyui": "^4.12.22",
+    "lucide-react": "^0.469.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-hook-form": "^7.54.2",
     "react-redux": "^9.2.0",
-    "redux-persist": "^6.0.0"
+    "react-router-dom": "^7.1.1",
+    "redux-persist": "^6.0.0",
+    "sonner": "^1.7.1",
+    "yup": "^1.6.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
