@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 
 const Hero = () => {
     const user = useSelector((state: RootState) => state.user);
-    // const name = user.user?.name;
+    const name = user.user?.first_name;
 
     const [loaded, setLoaded] = useState(false);
 
@@ -30,7 +30,7 @@ const Hero = () => {
                     <h1 className="mb-5 text-3xl lg:text-5xl font-bold">
                         Welcome to Automated PSV Seat Reservation System,
                         <span className='text-webcolor'>
-                            {/* {name ? ` ${name}` : ''} */}
+                            {name ? ` ${name}` : ''}
                         </span>
                     </h1>
                     <p className="mb-5">
