@@ -2,7 +2,6 @@
 import { useForm, SubmitHandler } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
-// import authImage from "../../assets/images/auth/authimg.png"
 import { usersAPI } from "../features/users/usersAPI"
 import { Link, useNavigate } from "react-router-dom";
 import { Toaster, toast } from 'sonner'
@@ -119,7 +118,7 @@ const Register = () => {
 
 
         <div className="hidden lg:block w-full lg:w-[35%] ">
-          {/* <img src={authImage} alt="auth" className="w-full h-full object-cover lg:object-fill rounded-lg" /> */}
+          <img src="https://www.gitsoftwaresolutions.com/assets/whyUs/3.png" alt="auth" className="w-full h-full object-cover lg:object-fill rounded-lg" />
         </div>
 
       </div>

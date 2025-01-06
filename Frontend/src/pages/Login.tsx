@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-// import authImage from "../../assets/images/auth/authimg.png";
 import { loginAPI, LoginFormData } from "../features/login/loginAPI";
 import { Link, useNavigate } from "react-router-dom";
 import { Toaster, toast } from 'sonner';
@@ -105,7 +104,7 @@ const Login = () => {
         </div>
 
         <div className="hidden lg:block w-full lg:w-[25%]">
-          {/* <img src={authImage} alt="auth" className="w-full h-full object-cover lg:object-fill rounded-lg" /> */}
+          <img src="https://cdn.pixabay.com/photo/2019/12/16/10/30/iphone-4699057_1280.jpg" alt="auth" className="w-full h-full object-cover lg:object-fill rounded-lg" />
         </div>
       </div>
     </div>
