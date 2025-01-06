@@ -10,19 +10,19 @@ import Navbar from "../components/Navbar/Navbar"
 
 
 type FormData = {
-  full_name: string
+  first_name: string
+  last_name: string
   email: string
-  contact_phone: string
-  address: string
+  phone_number : string
   password: string
   confirmPassword: string
 }
 
 const schema = yup.object().shape({
-  full_name: yup.string().required("Full name is required"),
+  first_name: yup.string().required("First Name is required"),
+  last_name: yup.string().required("Last Name is required"),
   email: yup.string().email().required("Email is required"),
-  contact_phone: yup.string().required("Phone number is required"),
-  address: yup.string().required("Address is required"),
+  phone_number: yup.string().required("Phone number is required"),
   password: yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
   confirmPassword: yup.string().oneOf([yup.ref("password")], "Passwords must match").required("Confirm password is required")
 })
@@ -74,8 +74,12 @@ const Register = () => {
         <div className="card bg-base-100 w-full lg:w-[40%] shadow-2xl">
           <form onSubmit={handleSubmit(onSubmit)} className="card-body">
             <div className="form-control">
-              <input type="text" placeholder="fullname" className="input input-bordered" required {...register("full_name")} />
-              <p className="text-red-500">{errors.full_name?.message}</p>
+              <input type="text" placeholder="Firstname" className="input input-bordered" required {...register("first_name")} />
+              <p className="text-red-500">{errors.first_name?.message}</p>
+            </div>
+            <div className="form-control">
+              <input type="text" placeholder="lastname" className="input input-bordered" required {...register("last_name")} />
+              <p className="text-red-500">{errors.last_name?.message}</p>
             </div>
             <div className="form-control">
               <input type="email" placeholder="email" className="input input-bordered" required {...register("email")} />
@@ -83,14 +87,8 @@ const Register = () => {
             </div>
 
             <div className="form-control">
-              <input type="string" placeholder="phone number" className="input input-bordered" required {...register("contact_phone")} />
-              <p className="text-red-500">{errors.contact_phone?.message}</p>
-            </div>
-
-            {/* for address */}
-            <div className="form-control">
-              <input type="string" placeholder="address" className="input input-bordered" required {...register("address")} />
-              <p className="text-red-500">{errors.address?.message}</p>
+              <input type="string" placeholder="phone number" className="input input-bordered" required {...register("phone_number")} />
+              <p className="text-red-500">{errors.phone_number?.message}</p>
             </div>
 
             <div className="form-control">
