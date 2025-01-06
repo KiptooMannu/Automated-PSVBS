@@ -9,7 +9,7 @@ const Dashboard = () => {
   return (
     <>
     <Navbar />
-    <Container className='flex max-h-fit min-h-screen bg-green-400 text-neutral-200' >
+    <Container className='flex max-h-fit min-h-screen bg-gray-800 text-neutral-200' >
         <div className='min-w-fit bg-base-200 hidden md:block'>
           <Drawer />
         </div>
