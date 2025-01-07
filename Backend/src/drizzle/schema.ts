@@ -32,6 +32,7 @@ export const vehicleTable = pgTable("vehicles", {
     model_year: integer("model_year"),
     current_location: varchar("current_location", { length: 255 }).notNull(),
     is_active: boolean("is_active").default(true),
+    image_url: varchar("image_url", { length: 255 }),
     created_at: timestamp("created_at").defaultNow(),
     updated_at: timestamp("updated_at").defaultNow(),
     is_deleted: boolean("is_deleted").default(false),
