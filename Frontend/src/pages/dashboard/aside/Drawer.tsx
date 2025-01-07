@@ -52,20 +52,23 @@ function SideNav() {
                     </ul>
                 </details>
             </li>
+            
+            
             <li>
                 <details >
-                    <summary><Book />Book Now </summary>
+                    <summary><Book />Bookings </summary>
                     <ul>
                         
                         <li><Link to="view_all_bookings">All Bookings</Link></li>
                         <li><Link to="my_bookings">My Bookings</Link></li>
-                        <li><Link to="book_form"></Link>Book Now</li>
+                        
                     </ul>
                 </details>
             </li>
             <li>
                 <Link to="profile"><SquareUserRound />Profile</Link>
             </li>
+          
             <li>
                 <Link to="tickets"><Users />Tickets</Link>
             </li>
@@ -75,9 +78,11 @@ function SideNav() {
             <li>
                 <Link to="profile"><Settings />Profile</Link>
             </li>
+            <li><Link to="booking_form"></Link>Book Now</li>
             <li>
                 <Link to="#" onClick={handleLogOut}><LogOut />Logout</Link>
             </li>
+            
         </ul>
     )
 }
