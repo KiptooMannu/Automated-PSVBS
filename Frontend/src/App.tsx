@@ -12,6 +12,7 @@ import BookingForm from './pages/dashboard/main/Booking/BookingForm';
 import AllBookings from './pages/dashboard/main/Booking/AllBookings';
 import MyBookings from './pages/dashboard/main/Booking/MyBookings';
 import MapSeat from './pages/dashboard/main/Booking/MapSeat';
+import CreateVehicleForm from './pages/dashboard/main/Vehicles/CreateVehicleForm';
 
 function App() {
   const router = createBrowserRouter([
@@ -69,6 +70,10 @@ function App() {
       {
         path: 'my_bookings',
         element: <MyBookings />
+      },
+      {
+        path: 'create_vehicle',
+        element: <CreateVehicleForm />
       },
     ]
   }

@@ -41,41 +41,46 @@ const BookingForm: React.FC = () => {
     <div className="bg-slate-800 min-h-screen">
       <h1 className="text-xl font-bold mb-4 text-webcolor text-center p-5">Book Now!!!</h1>
 
-      <div className="card lg:w-[100%] m-auto rounded-lg bg-green-500 p-6">
+      <div className="card lg:w-[100%] m-auto rounded-lg bg-slate-500 p-6">
         {/* Search Filters */}
         <form onSubmit={handleSubmit} className="space-y-6 ">
-          <div className="flex-1 bg-red-600">
-          <div className="form-control ">
-            <label htmlFor="vehicleType" className="label">
-              <span className="label-text">Vehicle Type</span>
-            </label>
-            <input
-              id="vehicleType"
-              type="text"
-              placeholder="Search by vehicle type"
-              value={vehicleType}
-              onChange={(e) => setVehicleType(e.target.value)}
-              className="input input-bordered"
-            />
-          </div>
-          <div className="form-control">
-            <label htmlFor="currentLocation" className="label">
-              <span className="label-text">Current Location</span>
-            </label>
-            <input
-              id="currentLocation"
-              type="text"
-              placeholder="Search by current location"
-              value={currentLocation}
-              onChange={(e) => setCurrentLocation(e.target.value)}
-              className="input input-bordered"
-            />
-          </div>
-          </div>
-          
+        <div className="flex flex-col lg:flex-row gap-4">
+      {/* Vehicle Type Input */}
+      <div className="flex-1">
+        <div className="form-control">
+          <label htmlFor="vehicleType" className="label">
+            <span className="label-text">Vehicle Type</span>
+          </label>
+          <input
+            id="vehicleType"
+            type="text"
+            placeholder="Search by vehicle type"
+            value={vehicleType}
+            onChange={(e) => setVehicleType(e.target.value)}
+            className="input input-bordered"
+          />
+        </div>
+      </div>
+      {/* Current Location Input */}
+      <div className="flex-1">
+        <div className="form-control">
+          <label htmlFor="currentLocation" className="label">
+            <span className="label-text">Current Location</span>
+          </label>
+          <input
+            id="currentLocation"
+            type="text"
+            placeholder="Search by current location"
+            value={currentLocation}
+            onChange={(e) => setCurrentLocation(e.target.value)}
+            className="input input-bordered"
+          />
+        </div>
+      </div>
+    </div>
 
           {/* Vehicle List */}
-  <div className="space-y-4 bg-blue-900 p-6">
+  <div className="space-y-4 p-6">
   {filteredVehicles?.length ? (
     <div className="flex flex-wrap justify-center gap-6 ">
       {filteredVehicles.map((vehicle) => (
@@ -108,12 +113,13 @@ const BookingForm: React.FC = () => {
                 {vehicle.is_active ? "Available" : "Unavailable"}
               </span>
             </h3>
-            <div className="space-y-1 text-gray-600 text-sm">
+            <div className="space-y-1 text-green-900 text-sm">
               <p>Type: {vehicle.vehicle_type}</p>
               <p>Capacity: {vehicle.capacity}</p>
               <p>License Plate: {vehicle.license_plate}</p>
               <p>Location: {vehicle.current_location}</p>
-              <p>Remaining seats: 6</p>
+              <p><strong>Remaining seats: 6</strong></p>
+              <p><strong>cost: 1600</strong></p>
             </div>
 
             {/* Confirm Booking Button and map seat*/}

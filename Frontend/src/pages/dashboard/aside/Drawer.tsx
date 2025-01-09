@@ -58,7 +58,6 @@ function SideNav() {
                 <details >
                     <summary><Book />Bookings </summary>
                     <ul>
-                        
                         <li><Link to="view_all_bookings">All Bookings</Link></li>
                         <li><Link to="my_bookings">My Bookings</Link></li>
                         
@@ -67,6 +66,9 @@ function SideNav() {
             </li>
             <li>
                 <Link to="profile"><SquareUserRound />Profile</Link>
+            </li>
+            <li>
+                <Link to="create_vehicle"><Users />Manage Vehicles</Link>
             </li>
           
             <li>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Navbar from '../../../../components/Navbar/Navbar';
 
 const SeatMapPage = () => {
   const [selectedSeats, setSelectedSeats] = useState([]);
@@ -20,6 +21,8 @@ const SeatMapPage = () => {
   };
 
   return (
+  <>
+    <Navbar />
     <div className="flex justify-center items-center min-h-screen bg-gray-600">
       <div className="card w-96 bg-base-100 shadow-xl p-6 space-y-4">
         <h1 className="text-center text-3xl font-bold mb-4 text-primary">Seat Selection</h1>
@@ -57,6 +60,7 @@ const SeatMapPage = () => {
         </button>
       </div>
     </div>
+    </>
   );
 };
 

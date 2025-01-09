@@ -57,7 +57,7 @@ const Profile = () => {
         email: userData.email,
         phone_number: userData.phone_number,
         image_url: userData.image_url,
-        // role: userData.user_type,
+        // role: userData.role,
       });
     }
   }, [userData, reset]);
@@ -125,7 +125,7 @@ const Profile = () => {
                 className="absolute bottom-0 right-0 p-1 bg-gray-700 rounded-full border-2 border-white cursor-pointer"
                 title="Not Verified"
               >
-                <MdHelp className="text-white w-6 h-6" />
+                {/* <MdHelp className="text-white w-6 h-6" /> */}
               </div>
             )}
           </div>
