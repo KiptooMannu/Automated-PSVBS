@@ -13,6 +13,9 @@ import AllBookings from './pages/dashboard/main/Booking/AllBookings';
 import MyBookings from './pages/dashboard/main/Booking/MyBookings';
 import MapSeat from './pages/dashboard/main/Booking/MapSeat';
 import CreateVehicleForm from './pages/dashboard/main/Vehicles/CreateVehicleForm';
+import CreateVehicleModal from './pages/dashboard/main/Vehicles/CreateVehicleForm';
+import DeleteVehicleModal from './pages/dashboard/main/Vehicles/DeleteVehicle';
+import EditVehicleModal from './pages/dashboard/main/Vehicles/EditVehicle';
 
 function App() {
   const router = createBrowserRouter([
@@ -73,7 +76,15 @@ function App() {
       },
       {
         path: 'create_vehicle',
-        element: <CreateVehicleForm />
+        element: <CreateVehicleModal />
+      },
+      {
+        path: 'edit_vehicle',
+        element: <EditVehicleModal />
+      },
+      {
+        path: 'delete_vehicle',
+        element: <DeleteVehicleModal />
       },
     ]
   }

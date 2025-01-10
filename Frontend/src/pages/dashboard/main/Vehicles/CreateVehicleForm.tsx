@@ -1,113 +1,207 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useCreateVehicleMutation,Vehicle } from '../../../../features/vehicles/vehicleAPI';
+import { useCreateVehicleMutation, Vehicle } from '../../../../features/vehicles/vehicleAPI';
 import { Toaster, toast } from 'sonner';
 import axios from 'axios';
-import { NavLink } from 'react-router-dom';
 
-interface CreateVehicleModalProps {
-  vehicle: Vehicle | null;
+interface CreateResourceModalProps {
   onClose: () => void;
 }
-// Define the validation schema
-const createVehicleSchema = yup.object().shape({
+
+const CreateVehicleSchema = yup.object().shape({
+  registration_number: yup.string().required('Registration number is required'),
   vehicle_name: yup.string().required('Vehicle name is required'),
-  vehicle_description: yup.string().required('Vehicle description is required'),
-  vehicle_image: yup.string().required('Vehicle image is required'),
-  vehicle_link: yup.string().required('Vehicle link is required'),
+  license_plate: yup.string().required('License plate is required'),
+  capacity: yup.number().required('Capacity is required'),
+  vehicle_type: yup.string().required('Vehicle type is required'),
+  current_location: yup.string().required('Current location is required'),
+  image_url: yup.string().required('Image URL is required'),
 });
 
-const CreateVehicleModal = ({ vehicle, onClose }: CreateVehicleModalProps) => {
+const CreateVehicleModal: React.FC<CreateResourceModalProps> = ({ onClose }) => {
   const [createVehicle] = useCreateVehicleMutation();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
   const { register, handleSubmit, formState: { errors } } = useForm({
-    resolver: yupResolver(createVehicleSchema),
+    resolver: yupResolver(CreateVehicleSchema),
   });
 
   const onSubmit = async (data: any) => {
     try {
       setIsUploading(true);
-      (true);
-      //handle image upload
+
+      // Handle image file
       let imageUrl = '';
-          const blogImage = data.blog_image[0];
-          if (blogImage) {
-            // Image validation
-            if (blogImage.size > 2000000) { // 2MB limit
-              setImageError('The file is too large');
-              setIsUploading(false);
-              return;
-            }
-    
-            if (!['image/jpeg', 'image/png', 'image/gif'].includes(blogImage.type)) {
-              setImageError('Unsupported file format');
-              setIsUploading(false);
-              return;
-            }
-            // Image upload to cloudinary
-            const formData = new FormData();
-            formData.append('file', blogImage);
-            formData.append('upload_preset', 'j9grhett'); // upload preset
-    
-            const response = await axios.post('https://api.cloudinary.com/v1_1/dwsxs74ow/image/upload', formData);
-    
-            if (response.status === 200) {
-              imageUrl = response.data.secure_url;
-            } else {
-              throw new Error('Failed to upload image');
-            }
-           }
-           // Prepare the resource data with the uploaded image URL
-           const blogData = {
-            ...data,
-            blog_image: imageUrl,
-          };
-      await createVehicle(data).unwrap();
+      const vehicleImage = data.resource_image[0];
+      if (imageUrl) {
+        // Image validation
+        if (imageUrl.size > 2000000) { // 2MB limit
+          setImageError('The file is too large');
+          setIsUploading(false);
+          return;
+        }
+
+        if (!['image/jpeg', 'image/png', 'image/gif'].includes(imageUrl.type)) {
+          setImageError('Unsupported file format');
+          setIsUploading(false);
+          return;
+        }
+
+        // Upload image to Cloudinary
+        const formData = new FormData();
+        formData.append('file', imageUrl);
+        formData.append('upload_preset', 'upload'); // upload preset
+
+        const response = await axios.post('https://api.cloudinary.com/v1_1/dl3ovuqjn/image/upload', formData);
+
+        if (response.status === 200) {
+          imageUrl = response.data.secure_url;
+        } else {
+          throw new Error('Failed to upload image');
+        }
+      }
+
+      // Prepare the resource data with the uploaded image URL
+      const resourceData = {
+        ...data,
+        resource_image: imageUrl,
+      };
+
+      await createVehicle(resourceData).unwrap();
       toast.success('Vehicle created successfully');
       onClose();
     } catch (error) {
       toast.error('Failed to create vehicle');
     } finally {
-      setIsUploading(true);
-      (false);
+      setIsUploading(false);
     }
   };
 
   return (
-    <div className="modal">
-      <div className="modal-content">
-        <span className="close" onClick={onClose}>&times;</span>
-        <h2>Create Vehicle</h2>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="form-group">
-            <label htmlFor="vehicle_name">Vehicle Name</label>
-            <input type="text" id="vehicle_name" {...register('vehicle_name')} />
-            {errors.vehicle_name && <span>{errors.vehicle_name.message}</span>}
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+      <Toaster />
+      <div className="bg-white p-6 rounded-lg shadow-lg w-full md:w-3/4 lg:w-1/2  max-h-screen overflow-auto">
+        <h2 className="text-xl font-bold mb-4">Create New Vehicle</h2>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* Vehicle Name */}
+          <div className="form-control">
+            <input
+              id="vehicle_name"
+              {...register('vehicle_name')}
+              className="input input-bordered"
+              placeholder="Vehicle Name"
+            />
+            {errors.vehicle_name && (
+              <p className="text-red-500 text-sm">{errors.vehicle_name.message}</p>
+            )}
           </div>
-          <div className="form-group">
-            <label htmlFor="vehicle_description">Vehicle Description</label>
-            <input type="text" id="vehicle_description" {...register('vehicle_description')} />
-            {errors.vehicle_description && <span>{errors.vehicle_description.message}</span>}
+
+          {/* registration_number */}
+          <div className="form-control">
+            <input
+              id="registration_number"
+              {...register('registration_number')}
+              className="input input-bordered"
+              placeholder="Registration Number"
+            />
+            {errors.registration_number && (
+              <p className="text-red-500 text-sm">{errors.registration_number.message}</p>
+            )}
           </div>
-          <div className="form-group">
-            <label htmlFor="vehicle_image">Vehicle Image</label>
-            <input type="text" id="vehicle_image" {...register('vehicle_image')} />
-            {errors.vehicle_image && <span>{errors.vehicle_image.message}</span>}
+          
+          {/* license_plate */}
+          <div className="form-control">
+            <input
+              id="license_plate"
+              {...register('license_plate')}
+              className="input input-bordered"
+              placeholder="License Plate"
+            />
+            {errors.license_plate && (
+              <p className="text-red-500 text-sm">{errors.license_plate.message}</p>
+            )}
           </div>
-          <div className="form-group">
-            <label htmlFor="vehicle_link">Vehicle Link</label>
-            <input type="text" id="vehicle_link" {...register('vehicle_link')} />
-            {errors.vehicle_link && <span>{errors.vehicle_link.message}</span>}
+          
+          {/* capacity */}
+          <div className="form-control">
+            <input
+              id="capacity"
+              {...register('capacity')}
+              className="input input-bordered"
+              placeholder="Capacity"
+            />
+            {errors.capacity && (
+              <p className="text-red-500 text-sm">{errors.capacity.message}</p>
+            )}
           </div>
-          <button type="submit" className="btn" disabled={loading}>
-            {loading ? 'Creating...' : 'Create Vehicle'}
-          </button>
+          
+          {/* vehicle_type */}
+          <div className="form-control">
+            <input
+              id="vehicle_type"
+              {...register('vehicle_type')}
+              className="input input-bordered"
+              placeholder="Vehicle Type"
+            />
+            {errors.vehicle_type && (
+              <p className="text-red-500 text-sm">{errors.vehicle_type.message}</p>
+            )}
+          </div>
+          
+          {/* current_location */}
+          <div className="form-control">
+            <input
+              id="current_location"
+              {...register('current_location')}
+              className="input input-bordered"
+              placeholder="Current Location"
+            />
+            {errors.current_location && (
+              <p className="text-red-500 text-sm">{errors.current_location.message}</p>
+            )}
+          </div>
+          {/* image_url */}
+
+          
+          {/* Resource Image */}
+          <div className="form-control">
+            <input
+              type="file"
+              id="image_url"
+              {...register('image_url')}
+              className="input input-bordered"
+              onChange={(e) => {
+                const file = e.target.files ? e.target.files[0] : null;
+                if (file) {
+                  setImagePreview(URL.createObjectURL(file));
+                }
+              }}
+            />
+            {errors.image_url && (
+              <p className="text-red-500 text-sm">{errors.image_url.message}</p>
+            )}
+            {imageError && (
+              <p className="text-red-500 text-sm">{imageError}</p>
+            )}
+            {imagePreview && (
+              <img src={imagePreview} alt="Image Preview" className="mt-4 max-w-full h-auto" />
+            )}
+          </div>
+
+          <div className="flex justify-end mt-4">
+            <button onClick={onClose} className="mr-2 px-4 py-2 text-gray-700">Cancel</button>
+            <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-lg" disabled={isUploading}>
+              {isUploading ? 'Uploading...' : 'Create'}
+            </button>
+          </div>
         </form>
       </div>
     </div>
   );
-}
+};
+
+export default CreateVehicleModal;

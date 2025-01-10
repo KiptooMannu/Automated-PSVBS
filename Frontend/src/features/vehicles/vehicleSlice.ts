@@ -8,13 +8,12 @@ type VehicleState = {
 
 // Define the vehicle type
 type vehicles = {
-    vehicle_id: number;
+    registration_number: string;
     vehicle_name: string;
-    vehicle_description: string;
-    vehicle_image: string;
-    vehicle_link: string;
-    created_at: string;
-    updated_at: string;
+    vehicle_type: string;
+    current_location: string;
+    capacity: number;
+    image_url: string;
 };
 
 // Helper function to safely parse localStorage
