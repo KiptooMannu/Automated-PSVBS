@@ -15,7 +15,7 @@ const EditVehicleSchema = yup.object().shape({
   registration_number: yup.string().required('Registration number is required'),
   vehicle_name: yup.string().required('Vehicle name is required'),
   license_plate: yup.string().required('License plate is required'),
-  capacity: yup.number().required('Capacity is required'),
+  capacity: yup.number().typeError('Capacity must be a number').nullable(),
   vehicle_type: yup.string().required('Vehicle type is required'),
   current_location: yup.string().required('Current location is required'),
   image_url: yup.mixed().notRequired(), // Optional image
@@ -35,7 +35,7 @@ const EditVehicleModal: React.FC<EditVehicleModalProps> = ({ vehicle, onClose })
       setValue('registration_number', vehicle.registration_number || '');
       setValue('vehicle_name', vehicle.vehicle_name || '');
       setValue('license_plate', vehicle.license_plate || '');
-      setValue('capacity', vehicle.capacity || '');
+      setValue('capacity', vehicle.capacity || undefined);
       setValue('vehicle_type', vehicle.vehicle_type || '');
       setValue('current_location', vehicle.current_location || '');
       setImagePreview(vehicle.image_url || null);
@@ -66,9 +66,9 @@ const EditVehicleModal: React.FC<EditVehicleModalProps> = ({ vehicle, onClose })
         // Upload image
         const formData = new FormData();
         formData.append('file', vehicleImage);
-        formData.append('upload_preset', 'upload');
+        formData.append('upload_preset', 'yx7pvzix');
 
-        const response = await axios.post('https://api.cloudinary.com/v1_1/dl3ovuqjn/image/upload', formData);
+        const response = await axios.post('https://api.cloudinary.com/v1_1/dwsxs74ow/image/upload', formData);
         if (response.status === 200) {
           imageUrl = response.data.secure_url;
         } else {
@@ -76,12 +76,15 @@ const EditVehicleModal: React.FC<EditVehicleModalProps> = ({ vehicle, onClose })
         }
       }
 
-      const updatedResourceData = {
-        ...data,
-        image_url: imageUrl,
+      const updatedVehicle = {
+        ...vehicle, // Include existing vehicle properties
+        ...data,    // Overwrite with new form values
+        image_url: imageUrl, 
       };
+      console.log('Payload being sent:', updatedVehicle);
 
-      await updateVehicle({ registration_number: vehicle.registration_number, data: updatedResourceData }).unwrap();
+      // await updateVehicle({ registration_number: vehicle.registration_number, data: updatedVehicle }).unwrap();
+      await updateVehicle(updatedVehicle).unwrap();
       toast.success('Vehicle updated successfully');
       onClose();
     } catch (error) {
@@ -99,19 +102,20 @@ const EditVehicleModal: React.FC<EditVehicleModalProps> = ({ vehicle, onClose })
         <h2 className="text-xl font-bold mb-4">Edit Vehicle</h2>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Fields */}
-          {['registration_number', 'vehicle_name', 'license_plate', 'capacity', 'vehicle_type', 'current_location'].map((field) => (
-            <div key={field} className="form-control lg:mr-8">
-              <input
-                id={field}
-                {...register(field)}
-                className="input input-bordered"
-                placeholder={field.replace('_', ' ').toUpperCase()}
-              />
-              {errors[field] && (
-                <p className="text-red-500 text-sm">{errors[field]?.message}</p>
-              )}
-            </div>
-          ))}
+          {(['registration_number', 'vehicle_name', 'license_plate', 'capacity', 'vehicle_type', 'current_location'] as const).map((field) => (
+  <div key={field} className="form-control lg:mr-8">
+    <input
+      id={field}
+      {...register(field)}
+      className="input input-bordered"
+      placeholder={field.replace('_', ' ').toUpperCase()}
+    />
+    {errors[field] && (
+      <p className="text-red-500 text-sm">{errors[field]?.message}</p>
+    )}
+  </div>
+))}
+
 
           {/* Image Input */}
           <div className="form-control lg:mr-8">

@@ -93,13 +93,11 @@ const BookingForm: React.FC = () => {
           }`}
           onClick={() => setSelectedVehicle(vehicle)}
         >
-          <figure className="w-1/2 h-3/4 flex items-center justify-center object-cover">
             <img
               src={vehicle.image_url}
               alt={vehicle.vehicle_name}
-              className="rounded-lg"
+              className="w-full h-40 object-cover rounded-lg mb-4"
             />
-          </figure>
           
           {/* Card Content */}
           <div className="p-4">

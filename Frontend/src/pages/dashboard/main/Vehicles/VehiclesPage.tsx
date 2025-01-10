@@ -57,7 +57,7 @@ const VehiclesPage: React.FC = () => {
           <li key={vehicle.registration_number} className="bg-gray-800 text-white p-6 rounded-lg shadow-lg">
             <img
               src={vehicle.image_url}
-              alt="Resource banner"
+              alt={vehicle.vehicle_name}
               className="w-full h-40 object-cover rounded-lg mb-4"
             />
             <h2 className="text-2xl font-semibold text-white mb-4">{vehicle.vehicle_name}</h2>

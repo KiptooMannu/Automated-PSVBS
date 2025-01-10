@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useCreateVehicleMutation, Vehicle } from '../../../../features/vehicles/vehicleAPI';
+import { useCreateVehicleMutation } from '../../../../features/vehicles/vehicleAPI';
 import { Toaster, toast } from 'sonner';
 import axios from 'axios';
 
@@ -18,7 +17,7 @@ const CreateVehicleSchema = yup.object().shape({
   capacity: yup.number().required('Capacity is required'),
   vehicle_type: yup.string().required('Vehicle type is required'),
   current_location: yup.string().required('Current location is required'),
-  image_url: yup.string().required('Image URL is required'),
+  image_url: yup.mixed().required('Image URL is required'),
 });
 
 const CreateVehicleModal: React.FC<CreateResourceModalProps> = ({ onClose }) => {
@@ -26,7 +25,7 @@ const CreateVehicleModal: React.FC<CreateResourceModalProps> = ({ onClose }) => 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState<boolean>(false);
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { register, handleSubmit, formState: { errors }, setValue } = useForm({
     resolver: yupResolver(CreateVehicleSchema),
   });
 
@@ -36,16 +35,16 @@ const CreateVehicleModal: React.FC<CreateResourceModalProps> = ({ onClose }) => 
 
       // Handle image file
       let imageUrl = '';
-      const vehicleImage = data.resource_image[0];
-      if (imageUrl) {
+      const vehicleImage = data.image_url?.[0]; // Access the image file properly
+      if (vehicleImage) {
         // Image validation
-        if (imageUrl.size > 2000000) { // 2MB limit
+        if (vehicleImage.size > 2000000) { // 2MB limit
           setImageError('The file is too large');
           setIsUploading(false);
           return;
         }
 
-        if (!['image/jpeg', 'image/png', 'image/gif'].includes(imageUrl.type)) {
+        if (!['image/jpeg', 'image/png', 'image/gif'].includes(vehicleImage.type)) {
           setImageError('Unsupported file format');
           setIsUploading(false);
           return;
@@ -53,7 +52,7 @@ const CreateVehicleModal: React.FC<CreateResourceModalProps> = ({ onClose }) => 
 
         // Upload image to Cloudinary
         const formData = new FormData();
-        formData.append('file', imageUrl);
+        formData.append('file', vehicleImage);
         formData.append('upload_preset', 'upload'); // upload preset
 
         const response = await axios.post('https://api.cloudinary.com/v1_1/dl3ovuqjn/image/upload', formData);
@@ -75,6 +74,7 @@ const CreateVehicleModal: React.FC<CreateResourceModalProps> = ({ onClose }) => 
       toast.success('Vehicle created successfully');
       onClose();
     } catch (error) {
+      console.error('Failed to create vehicle', error);
       toast.error('Failed to create vehicle');
     } finally {
       setIsUploading(false);
@@ -164,10 +164,8 @@ const CreateVehicleModal: React.FC<CreateResourceModalProps> = ({ onClose }) => 
               <p className="text-red-500 text-sm">{errors.current_location.message}</p>
             )}
           </div>
-          {/* image_url */}
 
-          
-          {/* Resource Image */}
+          {/* Image Upload */}
           <div className="form-control">
             <input
               type="file"
@@ -178,6 +176,8 @@ const CreateVehicleModal: React.FC<CreateResourceModalProps> = ({ onClose }) => 
                 const file = e.target.files ? e.target.files[0] : null;
                 if (file) {
                   setImagePreview(URL.createObjectURL(file));
+                  // Use setValue to update image_url in form state
+                  setValue('image_url', file);
                 }
               }}
             />
