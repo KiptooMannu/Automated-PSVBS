@@ -16,6 +16,7 @@ import CreateVehicleForm from './pages/dashboard/main/Vehicles/CreateVehicleForm
 import CreateVehicleModal from './pages/dashboard/main/Vehicles/CreateVehicleForm';
 import DeleteVehicleModal from './pages/dashboard/main/Vehicles/DeleteVehicle';
 import EditVehicleModal from './pages/dashboard/main/Vehicles/EditVehicle';
+import VehiclesPage from './pages/dashboard/main/Vehicles/VehiclesPage';
 
 function App() {
   const router = createBrowserRouter([
@@ -75,16 +76,8 @@ function App() {
         element: <MyBookings />
       },
       {
-        path: 'create_vehicle',
-        element: <CreateVehicleModal />
-      },
-      {
-        path: 'edit_vehicle',
-        element: <EditVehicleModal />
-      },
-      {
-        path: 'delete_vehicle',
-        element: <DeleteVehicleModal />
+        path: 'vehicles',
+        element: <VehiclesPage />
       },
     ]
   }

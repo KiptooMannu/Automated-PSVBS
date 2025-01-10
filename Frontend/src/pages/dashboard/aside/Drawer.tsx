@@ -68,7 +68,7 @@ function SideNav() {
                 <Link to="profile"><SquareUserRound />Profile</Link>
             </li>
             <li>
-                <Link to="create_vehicle"><Users />Manage Vehicles</Link>
+                <Link to="vehicles"><Users />Manage Vehicles</Link>
             </li>
           
             <li>

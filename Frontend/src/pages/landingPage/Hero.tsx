@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { RootState } from '../../app/store';
 // import bgrides from '../../assets/images/bgrides.jpeg';
-import bghome from '../../assets/seatReseveImg.jpg'
+import bghome from '../../assets/bus station.jpg'
 import { useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
 
