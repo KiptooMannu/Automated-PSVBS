@@ -17,6 +17,9 @@ import CreateVehicleModal from './pages/dashboard/main/Vehicles/CreateVehicleFor
 import DeleteVehicleModal from './pages/dashboard/main/Vehicles/DeleteVehicle';
 import EditVehicleModal from './pages/dashboard/main/Vehicles/EditVehicle';
 import VehiclesPage from './pages/dashboard/main/Vehicles/VehiclesPage';
+import PaymentFailed from './pages/dashboard/main/Payments/PaymentFailed';
+import SuccessPayment from './pages/dashboard/main/Payments/PaymentSuccess';
+import Payment from './pages/dashboard/main/Payments/Payments';
 
 function App() {
   const router = createBrowserRouter([
@@ -78,6 +81,18 @@ function App() {
       {
         path: 'vehicles',
         element: <VehiclesPage />
+      },
+      {
+        path: 'payment_failed',
+        element: <PaymentFailed/>
+      },
+      {
+        path: 'payment_success',
+        element: <SuccessPayment />
+      },
+      {
+        path: 'payments',
+        element: <Payment />
       },
     ]
   }

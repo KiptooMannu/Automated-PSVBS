@@ -70,6 +70,9 @@ function SideNav() {
             <li>
                 <Link to="vehicles"><Users />Manage Vehicles</Link>
             </li>
+            <li>
+                <Link to="payments"><Users />Payments</Link>
+            </li>
           
             <li>
                 <Link to="tickets"><Users />Tickets</Link>

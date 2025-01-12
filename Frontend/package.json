@@ -12,6 +12,7 @@
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
     "@reduxjs/toolkit": "^2.5.0",
+    "@stripe/stripe-js": "^5.5.0",
     "axios": "^1.7.9",
     "daisyui": "^4.12.22",
     "date-fns": "^4.1.0",
