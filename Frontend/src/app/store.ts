@@ -6,6 +6,7 @@ import { loginAPI } from "../features/login/loginAPI";
 import { bookingVehicleAPI } from "../features/booking/bookingAPI";
 import userSlice from "../features/users/userSlice";
 import { vehicleAPI } from "../features/vehicles/vehicleAPI";
+import { ticketAPI } from "../features/tickets/ticketsAPI";
 
 const persistConfig = {
     key: 'root',
@@ -19,6 +20,7 @@ const rootReducer = combineReducers({
     [loginAPI.reducerPath]: loginAPI.reducer,
     [bookingVehicleAPI.reducerPath]: bookingVehicleAPI.reducer,
     [vehicleAPI.reducerPath] : vehicleAPI.reducer,
+    [ticketAPI.reducerPath]: ticketAPI.reducer,
     // add other reducers here
     user: userSlice,
 });

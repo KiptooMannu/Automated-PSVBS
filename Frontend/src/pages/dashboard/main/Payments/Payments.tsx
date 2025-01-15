@@ -136,8 +136,8 @@ const Payment = () => {
                   <td className="px-4 py-2">{booking.booking_id}</td>
                   <td className="px-4 py-2">{getVehicleDetails(booking.vehicle_id)}</td>
                   <td className="px-4 py-2">{formatDate(booking.booking_date)}</td>
-                  <td className="px-4 py-2">{formatDate(booking.return_date)}</td>
-                  <td className="px-4 py-2">{booking.total_amount}</td>
+                  {/* <td className="px-4 py-2">{formatDate(booking.return_date)}</td> */}
+                  {/* <td className="px-4 py-2">{booking.total_amount}</td> */}
                   <td className="px-4 py-2">{booking.booking_status}</td>
                   <td className="px-4 py-2">
                     {booking.payments.length > 0 ? booking.payments[0].payment_status : 'Not paid'}

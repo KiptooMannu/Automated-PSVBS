@@ -12,10 +12,7 @@ import BookingForm from './pages/dashboard/main/Booking/BookingForm';
 import AllBookings from './pages/dashboard/main/Booking/AllBookings';
 import MyBookings from './pages/dashboard/main/Booking/MyBookings';
 import MapSeat from './pages/dashboard/main/Booking/MapSeat';
-import CreateVehicleForm from './pages/dashboard/main/Vehicles/CreateVehicleForm';
-import CreateVehicleModal from './pages/dashboard/main/Vehicles/CreateVehicleForm';
-import DeleteVehicleModal from './pages/dashboard/main/Vehicles/DeleteVehicle';
-import EditVehicleModal from './pages/dashboard/main/Vehicles/EditVehicle';
+import Tickets from './pages/dashboard/main/Tickets/Tickets';
 import VehiclesPage from './pages/dashboard/main/Vehicles/VehiclesPage';
 import PaymentFailed from './pages/dashboard/main/Payments/PaymentFailed';
 import SuccessPayment from './pages/dashboard/main/Payments/PaymentSuccess';
@@ -93,6 +90,10 @@ function App() {
       {
         path: 'payments',
         element: <Payment />
+      },
+      {
+        path: 'tickets',
+        element: <Tickets />
       },
     ]
   }

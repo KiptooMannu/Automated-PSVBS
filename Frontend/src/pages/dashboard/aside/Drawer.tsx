@@ -81,7 +81,7 @@ function SideNav() {
                 <Link to="payments"><Settings />Payments</Link>
             </li>
             <li>
-                <Link to="profile"><Settings />Profile</Link>
+                <Link to="tickets"><Settings />Tickets</Link>
             </li>
             <li><Link to="booking_form"></Link>Book Now</li>
             <li>
