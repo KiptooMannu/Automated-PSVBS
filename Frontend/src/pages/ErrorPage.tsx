@@ -15,7 +15,7 @@ function ErrorPage() {
                 <p className="mt-4 text-base leading-7 text-gray-600">
                     Sorry, we couldn't find the page you're looking for.
                 </p>
-                <p className="mt-4 text-base leading-7 text-gray-600">
+                <p className="mt-4 text-base leading-7 text-red-600">
                     {(error as Error)?.message}
                 </p>
                 <div className="mt-4 flex items-center justify-center gap-x-3">

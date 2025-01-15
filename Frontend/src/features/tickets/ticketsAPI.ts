@@ -60,3 +60,11 @@ export const ticketAPI = createApi({
         }),
     }),
 });
+
+export const {
+    useGetTicketsQuery,
+    useCreateTicketMutation,
+    useUpdateTicketMutation,
+    useDeleteTicketMutation,
+    useGetTicketByIdQuery,
+} = ticketAPI;

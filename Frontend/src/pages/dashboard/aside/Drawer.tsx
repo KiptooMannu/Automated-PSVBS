@@ -83,6 +83,9 @@ function SideNav() {
             <li>
                 <Link to="tickets"><Settings />Tickets</Link>
             </li>
+            <li>
+                <Link to="all_tickets"><Settings />All Tickets</Link>
+            </li>
             <li><Link to="booking_form"></Link>Book Now</li>
             <li>
                 <Link to="#" onClick={handleLogOut}><LogOut />Logout</Link>
