@@ -94,7 +94,7 @@ function App() {
       },
       {
         path: 'tickets',
-        element: <Tickets />
+        element: <Tickets ticket_id={6}  />
       },
       {
         path: 'all_tickets',

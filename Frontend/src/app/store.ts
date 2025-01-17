@@ -33,7 +33,8 @@ export const store = configureStore({
     reducer: persistedReducer,
     middleware: (getDefaultMiddleware) => getDefaultMiddleware({
         serializableCheck: false,
-    }).concat(usersAPI.middleware).concat(usersAPI.middleware).concat(vehicleAPI.middleware).concat(bookingVehicleAPI.middleware).concat(usersAPI.middleware,
+    }).concat(usersAPI.middleware).concat(usersAPI.middleware).concat(vehicleAPI.middleware).concat(ticketAPI.middleware)
+    .concat(bookingVehicleAPI.middleware).concat(usersAPI.middleware,
         loginAPI.middleware
     ),
 });

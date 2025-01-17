@@ -73,13 +73,7 @@ function SideNav() {
             <li>
                 <Link to="payments"><Users />Payments</Link>
             </li>
-          
-            <li>
-                <Link to="tickets"><Users />Tickets</Link>
-            </li>
-            <li>
-                <Link to="payments"><Settings />Payments</Link>
-            </li>
+
             <li>
                 <Link to="tickets"><Settings />Tickets</Link>
             </li>
@@ -90,7 +84,6 @@ function SideNav() {
             <li>
                 <Link to="#" onClick={handleLogOut}><LogOut />Logout</Link>
             </li>
-            
         </ul>
     )
 }
