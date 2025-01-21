@@ -25,7 +25,7 @@ function MyBookings() {
     format(new Date(isoDate), "MM/dd/yyyy HH:mm:ss");
 
   return (
-    <div className="overflow-x-auto bg-gray-900 min-h-screen">
+    <div className="overflow-x-auto bg-gradient-to-r from-blue-50  via-blue-100 to-white min-h-screen shadow-lg ">
       <h2 className="text-center text-xl p-4 font-bold text-blue-600">
         Booking Details
       </h2>

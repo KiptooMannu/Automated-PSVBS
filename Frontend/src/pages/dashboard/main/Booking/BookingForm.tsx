@@ -38,7 +38,7 @@ const BookingForm: React.FC = () => {
     return <p className="text-center text-red-500">Failed to load vehicles. Please try again later.</p>;
 
   return (
-    <div className="bg-slate-800 min-h-screen">
+    <div className="overflow-x-auto bg-gradient-to-r from-blue-50  via-blue-100 to-white min-h-screen shadow-lg">
       <h1 className="text-xl font-bold mb-4 text-webcolor text-center p-5">Book Now!!!</h1>
 
       <div className="card lg:w-[100%] m-auto rounded-lg bg-slate-500 p-6">

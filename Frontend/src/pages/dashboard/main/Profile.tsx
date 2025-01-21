@@ -108,9 +108,9 @@ const Profile = () => {
 
   return (
     <>
-      <div className="overflow-x-auto bg-gradient-to-r from-blue-50  via-blue-100 to-white min-h-screen shadow-lg">
+      <div className="overflow-x-auto bg-gradient-to-r from-blue-50 via-blue-100 to-white min-h-screen shadow-lg flex flex-col items-center justify-center">
         <div className="flex flex-col items-center md:flex-row md:items-start border-b-2 border-green-600 pb-6">
-          <div className="relative mb-6 md:mb-0 md:mr-8 flex justify-center items-center border-color: currentColor; 	border-radius: 0px;">
+          <div className="relative mb-6 md:mb-0 md:mr-8 flex justify-center items-center">
             <img
               src={userData.image_url || userIcon}
               className="rounded-full h-32 w-32 object-cover border-4 border-white"
@@ -145,15 +145,14 @@ const Profile = () => {
                 <p className="text-lg font-semibold">Phone:</p>
                 <p className="text-lg ml-2">{userData.phone_number}</p>
               </div>
-            
             </div>
           </div>
         </div>
-
+  
         <div className="flex justify-center mt-6 space-x-4">
           <button className="btn btn-primary" onClick={() => setIsEditMode(true)}>Edit Profile</button>
         </div>
-
+  
         {isEditMode && (
           <div className="mt-8">
             <form onSubmit={handleSubmit(onSubmit)}>
@@ -195,25 +194,23 @@ const Profile = () => {
                   />
                 </div>
                 <div className="form-control">
-                  <label htmlFor="phone_number" className="label">Password</label>
+                  <label htmlFor="password" className="label">Password</label>
                   <input
-                    id="phone_number"
+                    id="password"
                     className="input input-bordered"
                     defaultValue="********"
                   />
                 </div>
                 <div className="form-control">
-                  <label htmlFor="phone_number" className="label">Confirm Password</label>
+                  <label htmlFor="confirm_password" className="label">Confirm Password</label>
                   <input
-                    id="phone_number"
+                    id="confirm_password"
                     className="input input-bordered"
                     defaultValue="********"
                   />
                 </div>
-               
-                
               </div>
-
+  
               <div className="form-control mt-4">
                 <label htmlFor="image" className="label">Profile Image</label>
                 <input
@@ -223,7 +220,7 @@ const Profile = () => {
                   onChange={handleImageUpload}
                 />
               </div>
-
+  
               <div className="flex justify-end mt-4 space-x-4">
                 <button type="button" className="btn bg-gray-500 text-white" onClick={() => setIsEditMode(false)}>Cancel</button>
                 <button type="submit" className="btn bg-blue-500 text-white">Update Profile</button>
@@ -234,6 +231,6 @@ const Profile = () => {
       </div>
     </>
   );
-};
+}  
 
 export default Profile;
