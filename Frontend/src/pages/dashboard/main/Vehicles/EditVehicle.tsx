@@ -26,6 +26,7 @@ const EditVehicleModal: React.FC<EditVehicleModalProps> = ({ vehicle, onClose })
   const [imagePreview, setImagePreview] = useState<string | null>(vehicle?.image_url || null);
   const [imageError, setImageError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState<boolean>(false);
+
   const { register, handleSubmit, setValue, formState: { errors } } = useForm({
     resolver: yupResolver(EditVehicleSchema),
   });
@@ -46,28 +47,28 @@ const EditVehicleModal: React.FC<EditVehicleModalProps> = ({ vehicle, onClose })
     try {
       setIsUploading(true);
       let imageUrl = imagePreview;
-
+  
       if (data.image_url && data.image_url[0]) {
         const vehicleImage = data.image_url[0];
-
+  
         // Validate image
         if (vehicleImage.size > 2000000) { // 2MB limit
           setImageError('The file is too large');
           setIsUploading(false);
           return;
         }
-
+  
         if (!['image/jpeg', 'image/png', 'image/gif'].includes(vehicleImage.type)) {
           setImageError('Unsupported file format');
           setIsUploading(false);
           return;
         }
-
+  
         // Upload image
         const formData = new FormData();
         formData.append('file', vehicleImage);
         formData.append('upload_preset', 'yx7pvzix');
-
+  
         const response = await axios.post('https://api.cloudinary.com/v1_1/dwsxs74ow/image/upload', formData);
         if (response.status === 200) {
           imageUrl = response.data.secure_url;
@@ -75,25 +76,55 @@ const EditVehicleModal: React.FC<EditVehicleModalProps> = ({ vehicle, onClose })
           throw new Error('Failed to upload image');
         }
       }
-
+  
       const updatedVehicle = {
         ...vehicle, // Include existing vehicle properties
         ...data,    // Overwrite with new form values
-        image_url: imageUrl, 
+        image_url: imageUrl,
       };
-      console.log('Payload being sent:', updatedVehicle);
-
-      // await updateVehicle({ registration_number: vehicle.registration_number, data: updatedVehicle }).unwrap();
+  
+      // Remove created_at and updated_at from payload
+      delete updatedVehicle.created_at;
+      delete updatedVehicle.updated_at;
+  
       await updateVehicle(updatedVehicle).unwrap();
-      toast.success('Vehicle updated successfully');
+  
+      // Wait for 3 seconds before showing success message (simulate a fixed timeout)
+      setTimeout(() => {
+        toast.success('Vehicle updated successfully ✔️', {
+          style: {
+            backgroundColor: 'green',
+            color: 'white',
+            padding: '10px',
+            fontSize: '16px',
+            borderRadius: '8px',
+            display: 'flex',
+            alignItems: 'center',
+          },
+        });
+      }, 3000); // 3 seconds delay
+  
       onClose();
     } catch (error) {
       console.error('Error updating vehicle:', error);
-      toast.error('Failed to update vehicle');
+  
+      // Error toast immediately
+      toast.error('Failed to update vehicle ❌', {
+        style: {
+          backgroundColor: 'red',
+          color: 'white',
+          padding: '10px',
+          fontSize: '16px',
+          borderRadius: '8px',
+          display: 'flex',
+          alignItems: 'center',
+        },
+      });
     } finally {
       setIsUploading(false);
     }
   };
+  
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
@@ -103,19 +134,18 @@ const EditVehicleModal: React.FC<EditVehicleModalProps> = ({ vehicle, onClose })
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Fields */}
           {(['registration_number', 'vehicle_name', 'license_plate', 'capacity', 'vehicle_type', 'current_location'] as const).map((field) => (
-  <div key={field} className="form-control lg:mr-8">
-    <input
-      id={field}
-      {...register(field)}
-      className="input input-bordered"
-      placeholder={field.replace('_', ' ').toUpperCase()}
-    />
-    {errors[field] && (
-      <p className="text-red-500 text-sm">{errors[field]?.message}</p>
-    )}
-  </div>
-))}
-
+            <div key={field} className="form-control lg:mr-8">
+              <input
+                id={field}
+                {...register(field)}
+                className="input input-bordered"
+                placeholder={field.replace('_', ' ').toUpperCase()}
+              />
+              {errors[field] && (
+                <p className="text-red-500 text-sm">{errors[field]?.message}</p>
+              )}
+            </div>
+          ))}
 
           {/* Image Input */}
           <div className="form-control lg:mr-8">
