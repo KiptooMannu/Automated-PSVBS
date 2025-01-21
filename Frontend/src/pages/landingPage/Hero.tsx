@@ -37,7 +37,7 @@ const Hero = () => {
                     Book affordable and convenient PSV seats effortlessly with our automated reservation system. Our solution ensures secure payments, 
                     real-time availability, and hassle-free travel planning for all.
                     </p>
-                    <Link to="/dashboard/vehicles" className="btn bg-webcolor text-text-light hover:text-black border-none">Book Now!!</Link>
+                    <Link to="/dashboard/booking_form" className="btn bg-webcolor text-text-light hover:text-black border-none">Book Now!!</Link>
                 </div>
             </div>
         </div>

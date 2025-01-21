@@ -108,10 +108,9 @@ const Profile = () => {
 
   return (
     <>
-     <div className="card shadow-xl mx-auto p-6 rounded-md bg-gray-800 min-h-screen max-w-4xl ">
-
+      <div className="overflow-x-auto bg-gradient-to-r from-blue-50  via-blue-100 to-white min-h-screen shadow-lg">
         <div className="flex flex-col items-center md:flex-row md:items-start border-b-2 border-green-600 pb-6">
-          <div className="relative mb-6 md:mb-0 md:mr-8 flex justify-center items-center">
+          <div className="relative mb-6 md:mb-0 md:mr-8 flex justify-center items-center border-color: currentColor; 	border-radius: 0px;">
             <img
               src={userData.image_url || userIcon}
               className="rounded-full h-32 w-32 object-cover border-4 border-white"
