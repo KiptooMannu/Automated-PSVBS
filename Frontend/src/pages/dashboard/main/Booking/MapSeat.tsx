@@ -115,6 +115,7 @@
 import React, { useState } from 'react';
 import { Toaster } from 'sonner';
 import { useGetSeatsQuery } from '../../../../features/seats/seatsAPI';
+import { useNavigate } from 'react-router-dom';
 
 interface MapSeatModalProps {
   onClose: () => void;
@@ -136,6 +137,7 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ onClose }) => {
         return rows;
       }, [])
     : [];
+    const navigate = useNavigate();
 
   const handleSeatClick = (seat: string) => {
     setSelectedSeats((prevSelected) =>
@@ -149,6 +151,7 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ onClose }) => {
     setIsBooking(true);
     try {
       // Simulate API call
+      navigate('/dashboard/payments');
       if (onClose) onClose();
     } catch (error: any) {
       setError(error.message || 'An unexpected error occurred.');
@@ -215,7 +218,7 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ onClose }) => {
             } text-text-light hover:text-black border-none`}
             disabled={isBooking}
           >
-            {isBooking ? 'Booking...' : 'Book Now'}
+            {isBooking ? 'Booking...' : 'Pay Now🤑'}
           </button>
         </div>
       </div>

@@ -44,9 +44,9 @@ const BookingForm: React.FC = () => {
     return <p className="text-center text-red-500">Failed to load vehicles. Please try again later.</p>;
 
   return (
-    <div className="overflow-x-auto bg-gradient-to-r from-blue-50  via-blue-100 to-white min-h-screen shadow-lg">
+    <div className="overflow-x-auto bg-gradient-to-r from-blue-50  via-blue-800 to-white min-h-screen shadow-lg">
       <h1 className="text-xl font-bold mb-4 text-webcolor text-center p-5">Book Now!!!</h1>
-      <div className="card lg:w-[100%] m-auto rounded-lg bg-slate-500 p-6">
+      <div className="card lg:w-[100%] m-auto rounded-lg  p-6">
         {/* Search Filters */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="flex flex-col lg:flex-row gap-4">
@@ -91,7 +91,7 @@ const BookingForm: React.FC = () => {
                 {filteredVehicles.map((vehicle) => (
                   <div
                     key={vehicle.registration_number}
-                    className={`card w-full sm:w-[45%] lg:w-[30%] bg-blue-100 shadow-md rounded-lg overflow-hidden transform transition-all duration-300 hover:scale-105 ${
+                    className={`card w-full sm:w-[45%] lg:w-[30%] bg-blue-200 shadow-md rounded-lg overflow-hidden transform transition-all duration-300 hover:scale-105 ${
                       selectedVehicle?.registration_number === vehicle.registration_number
                         ? "border-2 border-webcolor"
                         : "border border-gray-200"

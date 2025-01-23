@@ -129,10 +129,6 @@ const Navbar: React.FC = () => {
   const user = useSelector((state: RootState) => state.user);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-//   const userId = user?.user?.user_id;
-//   const { data: userData } = usersAPI.useGetUserByIdQuery(userId || "", {
-//     skip: !userId,
-//   });
 const userId = typeof user?.user?.user_id === "number" ? user?.user?.user_id : undefined;
 
 const { data: userData } = usersAPI.useGetUserByIdQuery(userId as number, {
@@ -178,9 +174,9 @@ const { data: userData } = usersAPI.useGetUserByIdQuery(userId as number, {
         {/* Title */}
         <Link
           to="/"
-          className="text-2xl font-bold text-slate-950 hover:text-gray-700 transition-colors duration-300"
+          className="text-2xl font-bold text-slate-900 hover:text-gray-700 transition-colors duration-300"
         >
-          Automated PSV Seat Reservation System
+          Automated Seat Reservation System
         </Link>
 
         {/* Navigation Links */}
@@ -222,12 +218,12 @@ const { data: userData } = usersAPI.useGetUserByIdQuery(userId as number, {
                     alt="Profile"
                     className="w-8 h-8 rounded-full"
                   />
-                  <span className="font-medium">
+                  {/* <span className="font-medium">
                     {userData?.first_name} {userData?.last_name}
-                  </span>
+                  </span> */}
                 </div>
                 {/* Logout Button */}
-                                  {/* <button
+                                  <button
                                       onClick={handleLogout}
                                       className="btn btn-ghost hover:text-gray-700"
                                       title="Logout"
@@ -246,7 +242,7 @@ const { data: userData } = usersAPI.useGetUserByIdQuery(userId as number, {
                                               d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1m0-10V4m0 16V4"
                                           />
                                       </svg>
-                                  </button> */}
+                                  </button>
               </li>
             )}
           </ul>

@@ -55,13 +55,13 @@ const VehiclesPage: React.FC = () => {
 
       <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:mx-4">
         {vehicle?.map((vehicle: Vehicle) => (
-          <li key={vehicle.registration_number} className="bg-gray-800 text-white p-6 rounded-lg shadow-lg">
+          <li key={vehicle.registration_number} className="bg-blue-400 text-white p-6 rounded-lg shadow-lg">
             <img
               src={vehicle.image_url}
               alt={vehicle.vehicle_name}
               className="w-full h-40 object-cover rounded-lg mb-4"
             />
-            <h2 className="text-2xl font-semibold text-white mb-4">{vehicle.vehicle_name}</h2>
+            <h2 className="text-2xl font-semibold text-black mb-4">{vehicle.vehicle_name}</h2>
             <p className="text-white mb-2 flex items-center justify-between">{vehicle.registration_number}</p>
             <h2 className="text-2xl font-semibold text-white mb-4">{vehicle.capacity}</h2>
             <p className="text-white mb-2 flex items-center justify-between">{vehicle.current_location}</p>
