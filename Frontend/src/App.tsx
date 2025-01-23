@@ -46,10 +46,6 @@ function App() {
       element: <Register />,
       errorElement: <ErrorPage />
     },
-    {
-      path: 'map_seat',
-      element: <MapSeat />
-    },
     // DASHBOARD ROUTES
   {
     path: 'dashboard',

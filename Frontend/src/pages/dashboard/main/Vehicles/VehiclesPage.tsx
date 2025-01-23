@@ -46,7 +46,8 @@ const VehiclesPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto py-6 px-4 lg:px-0">
+    // <div className="max-w-7xl mx-auto py-6 px-4 lg:px-0">
+    <div className="overflow-x-auto bg-gradient-to-r from-blue-100  via-blue-400 to-white min-h-screen shadow-lg">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-white">Manage Vehicles</h1>
         <CreateVehicleButton onOpenModal={openCreateModal} />

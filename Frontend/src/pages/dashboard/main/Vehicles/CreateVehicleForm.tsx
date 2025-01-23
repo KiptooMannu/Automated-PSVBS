@@ -6,7 +6,7 @@ import { useCreateVehicleMutation } from '../../../../features/vehicles/vehicleA
 import { Toaster, toast } from 'sonner';
 import axios from 'axios';
 
-interface CreateResourceModalProps {
+interface CreateVehicleModalProps {
   onClose: () => void;
 }
 
@@ -20,7 +20,7 @@ const CreateVehicleSchema = yup.object().shape({
   image_url: yup.mixed().required('Image URL is required'), 
 });
 
-const CreateVehicleModal: React.FC<CreateResourceModalProps> = ({ onClose }) => {
+const CreateVehicleModal: React.FC<CreateVehicleModalProps> = ({ onClose }) => {
   const [createVehicle] = useCreateVehicleMutation();
   const [imagePreview, setImagePreview] = useState<string | null>(null); // Image preview state
   const [imageError, setImageError] = useState<string | null>(null);
@@ -68,7 +68,7 @@ const CreateVehicleModal: React.FC<CreateResourceModalProps> = ({ onClose }) => 
       // Prepare the resource data with the uploaded image URL
       const resourceData = {
         ...data,
-        image_url: imageUrl, // Ensure that the field is named `image_url`
+        image_url: imageUrl, // Ensure that the field is named image_url
       };
 
       // Send data to backend for creation

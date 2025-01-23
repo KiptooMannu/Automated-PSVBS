@@ -1,20 +1,23 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { RootState } from "../../app/store";
 import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "../../app/store";
 import { logOut } from "../../features/users/userSlice";
 import { usersAPI } from "../../features/users/usersAPI";
 
-const Navbar = () => {
+const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const userId = user.user?.user_id;
-  const { data: userData } = usersAPI.useGetUserByIdQuery(userId!, {
-    skip: !userId,
-  });
+const userId = typeof user?.user?.user_id === "number" ? user?.user?.user_id : undefined;
+
+const { data: userData } = usersAPI.useGetUserByIdQuery(userId as number, {
+  skip: !userId,
+});
+
 
   const toggleDropdown = (event: React.MouseEvent) => {
     event.stopPropagation();
@@ -49,8 +52,7 @@ const Navbar = () => {
   };
 
   return (
-<div className="navbar bg-slate-50 text-black shadow-[0_4px_10px_rgba(0,0,0,0.1)] h-16 px-4 md:px-12">
-
+    <div className="navbar bg-slate-50 text-black shadow-[0_4px_10px_rgba(0,0,0,0.1)] h-16 px-4 md:px-12">
       <div className="flex justify-between items-center w-full mx-auto">
         {/* Title */}
         <Link
@@ -95,21 +97,33 @@ const Navbar = () => {
                 {/* Profile Section */}
                 <div className="flex items-center gap-2">
                   <img
-                    src={userData.image_url}
+                    src={userData?.image_url || "/placeholder.jpg"}
                     alt="Profile"
                     className="w-8 h-8 rounded-full"
                   />
-                  <span className="font-medium">
-                    {userData.first_name} {userData.last_name}
-                  </span>
+                 
                 </div>
                 {/* Logout Button */}
-                <button
-                  onClick={handleLogout}
-                  className="btn btn-ghost hover:text-gray-700"
-                >
-                  Logout
-                </button>
+                                  <button
+                                      onClick={handleLogout}
+                                      className="btn btn-ghost hover:text-gray-700"
+                                      title="Logout"
+                                  >
+                                      <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          className="h-6 w-6"
+                                          fill="none"
+                                          viewBox="0 0 24 24"
+                                          stroke="currentColor"
+                                          strokeWidth={2}
+                                      >
+                                          <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1m0-10V4m0 16V4"
+                                          />
+                                      </svg>
+                                  </button>
               </li>
             )}
           </ul>
