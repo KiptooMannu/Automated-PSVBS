@@ -43,7 +43,7 @@ function SideNav() {
 
 
     return (
-        <ul className="menu bg-blue-950 min-w-fit gap-1 text-base-content min-h-full text-white-400 font-semibold  ">
+        <ul className="menu bg-blue-950 min-w-fit gap-1  min-h-full text-white font-semibold  ">
             <li>
                 <details open >
                     <summary ><Menu />Dashboard</summary>
