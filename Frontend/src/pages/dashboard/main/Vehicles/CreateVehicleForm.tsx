@@ -17,7 +17,7 @@ const CreateVehicleSchema = yup.object().shape({
   capacity: yup.number().required('Capacity is required'),
   vehicle_type: yup.string().required('Vehicle type is required'),
   current_location: yup.string().required('Current location is required'),
-  image_url: yup.mixed().required('Image URL is required'), // Make sure image_url is required
+  image_url: yup.mixed().required('Image URL is required'), 
 });
 
 const CreateVehicleModal: React.FC<CreateResourceModalProps> = ({ onClose }) => {
@@ -26,7 +26,7 @@ const CreateVehicleModal: React.FC<CreateResourceModalProps> = ({ onClose }) => 
   const [imageError, setImageError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState<boolean>(false);
 
-  const { register, handleSubmit, formState: { errors }, setValue } = useForm({
+  const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: yupResolver(CreateVehicleSchema),
   });
 
