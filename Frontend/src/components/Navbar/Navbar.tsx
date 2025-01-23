@@ -57,9 +57,9 @@ const { data: userData } = usersAPI.useGetUserByIdQuery(userId as number, {
         {/* Title */}
         <Link
           to="/"
-          className="text-2xl font-bold text-slate-950 hover:text-gray-700 transition-colors duration-300"
+          className="text-2xl font-bold text-slate-900 hover:text-gray-700 transition-colors duration-300"
         >
-          Automated PSV Seat Reservation System
+          Automated Seat Reservation System
         </Link>
 
         {/* Navigation Links */}
@@ -101,7 +101,9 @@ const { data: userData } = usersAPI.useGetUserByIdQuery(userId as number, {
                     alt="Profile"
                     className="w-8 h-8 rounded-full"
                   />
-                 
+                  {/* <span className="font-medium">
+                    {userData?.first_name} {userData?.last_name}
+                  </span> */}
                 </div>
                 {/* Logout Button */}
                                   <button

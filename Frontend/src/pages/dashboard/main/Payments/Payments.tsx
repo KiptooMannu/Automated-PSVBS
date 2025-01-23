@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { format } from 'date-fns';
 import { RootState } from '../../../../app/store';
-import { bookingVehicleAPI } from '../../../../features/booking/bookingAPI';
-import { vehicleAPI } from '../../../../features/vehicles/vehicleAPI';
+// import { bookingVehicleAPI } from '../../../../features/booking/bookingAPI';
+import { useFetchCarSpecsQuery,Vehicle } from '../../../../features/vehicles/vehicleAPI';
 import { toast, Toaster } from 'sonner';
 import { loadStripe } from '@stripe/stripe-js';
 import { paymentAPI } from '../../../../features/payments/paymentAPI';
+import { useGetUserBookingQuery } from '../../../../features/booking/bookingAPI';
 import { Link } from 'react-router-dom';
 
 const stripePromise = loadStripe('pk_test_51O0yZQFnVjhMqK7vwrYX1wz3VThFWgoAEjafFFKVNSv0KQ76YMKbFW0dWDWOOs9DSXcp3zeNvRt14lVPO4C5FmyW00iLYryWNn');
@@ -14,17 +15,20 @@ const stripePromise = loadStripe('pk_test_51O0yZQFnVjhMqK7vwrYX1wz3VThFWgoAEjafF
 const Payment = () => {
   const user = useSelector((state: RootState) => state.user);
   const id = user.user?.user_id;
+  console.log('user id is:', id);
   const user_id = user.user?.user_id || 0;// get user id
 
   // get user-specific bookings data
-  const { data: bookingData, isLoading: bookingLoading, error: bookingError } = bookingVehicleAPI.useGetUserBookingQuery(user_id, {
-    refetchOnMountOrArgChange: true,
-  });
+  // const { data: bookingData, isLoading: bookingLoading, error: bookingError } = bookingVehicleAPI.useGetUserBookingQuery(user_id, {
+  //   refetchOnMountOrArgChange: true,
+  // });
+  const { data: bookingData, isLoading: bookingLoading, error: bookingError } = useGetUserBookingQuery(user_id);
   console.log('booking data is: ',bookingData);
 
   // Fetch vehicles data
-  const { data: vehicleData, isLoading: vehicleLoading, error: vehicleError } = vehicleAPI.useFetchCarSpecsQuery({});
-    console.log('vehicle data is: ',vehicleData);
+  // const { data: vehicleData, isLoading: vehicleLoading, error: vehicleError } = vehicleAPI.useFetchCarSpecsQuery({});
+  const { data: vehicle, isLoading, error } = useFetchCarSpecsQuery();
+    console.log(vehicle)
 
   const [createPayment] = paymentAPI.useCreatePaymentMutation();
   const [isPaymentLoading, setIsPaymentLoading] = useState<number | null>(null);
@@ -34,33 +38,48 @@ const Payment = () => {
     return format(new Date(isoDate), 'MM/dd/yyyy');
   };
 
-  // Function to get vehicle details by vehicle_id
-  const getVehicleDetails = (vehicleId: number) => {
-    if (vehicleData) {
-      const vehicle = vehicleData.find((v: { registration_number: string; }) => v.registration_number === String(vehicleId));
-      if (vehicle) {
-        return `${vehicle?.vehicle_name} ${vehicle?.model_year}`;
+  //Function to get bookings by user_id
+  const getBookingByUserId = (user_id: number) => {
+    if (bookingData) {
+      const booking = bookingData.find((b: { user_id: number; }) => b.user_id === user_id);
+      if (booking) {
+        return booking;
       } else {
-        console.log(`Vehicle with ID ${vehicleId} not found`);
+        console.log(`Booking with user ID ${user_id} not found`);
       }
     }
-    return 'Vehicle id not found';
-  };  
+    return 'Booking id not found';
+  };
+
+  // Function to get vehicle details by vehicle_id
+  // const getVehicleDetails = (vehicleId: number) => {
+  //   if (vehicleData) {
+  //     const vehicle = vehicleData.find((v: { registration_number: string; }) => v.registration_number === String(vehicleId));
+  //     if (vehicle) {
+  //       return `${vehicle?.vehicle_name} ${vehicle?.model_year}`;
+  //     } else {
+  //       console.log(`Vehicle with ID ${vehicleId} not found`);
+  //     }
+  //   }
+  //   return 'Vehicle id not found';
+  // };  
+
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   // handle payment initiation
-  const handleMakePayment = async (booking_id: number, amount: string) => {
-    console.log('Initiating payment with booking_id:', booking_id, 'and amount:', amount);
+  const handleMakePayment = async (booking_id: number, price: string) => {
+    console.log('Initiating payment with booking_id:', booking_id, 'and amount:', price);
 
     // Convert amount to number to ensure it's valid
-    const amountNumber = parseFloat(amount);
+    const amountNumber = parseFloat(price);
     if (isNaN(amountNumber)) {
       toast.error('Invalid amount');
-      console.error('Invalid amount:', amount);
+      console.error('Invalid amount:', price);
       return;
     }
 
     setIsPaymentLoading(booking_id);
     try {
-      const paymentResponse = await createPayment({ booking_id, total_amount: amountNumber }).unwrap();
+      const paymentResponse = await createPayment({ booking_id, price: amountNumber }).unwrap();
       toast.success('Payment initiated successfully');
       console.log('Payment response:', paymentResponse);
 
@@ -84,19 +103,19 @@ const Payment = () => {
     }
   };
 
-  if (bookingLoading || vehicleLoading) {
-    return <div>Loading...</div>;
-  }
+  // if (bookingLoading || vehicleLoading) {
+  //   return <div>Loading...</div>;
+  // }
 
-  if (bookingError || vehicleError) {
-    return <div>Error loading data</div>;
-  }
+  // if (bookingError || vehicleError) {
+  //   return <div>Error loading data</div>;
+  // }
 
   if (!bookingData || bookingData.length === 0) {
     return <div className='flex flex-col'>
       <h2 className="text-center text-xl p-2 rounded-t-md text-webcolor font-bold border-b-2 border-slate-500">No Payment History</h2>
       <button>
-       <Link to='/dashboard/vehicles' className='btn bg-webcolor text-text-light hover:text-black'>Book a Vehicle</Link>
+       <Link to='/dashboard/booking_form' className='btn bg-webcolor text-text-light hover:text-black'>Book a Seat</Link>
       </button>
     </div>;
   }
@@ -121,7 +140,7 @@ const Payment = () => {
             <thead>
               <tr className="bg-slate-700">
                 <th className="px-4 py-2 text-left text-text-light">Booking ID</th>
-                <th className="px-4 py-2 text-left text-text-light">Vehicle Details</th>
+                <th className="px-4 py-2 text-left text-text-light">Vehicle id</th>
                 <th className="px-4 py-2 text-left text-text-light">Booking Date</th>
                 <th className="px-4 py-2 text-left text-text-light">Return Date</th>
                 <th className="px-4 py-2 text-left text-text-light">Total Amount</th>
@@ -134,7 +153,7 @@ const Payment = () => {
               {bookingData.map((booking) => (
                 <tr key={booking.booking_id} className="border-b border-slate-600">
                   <td className="px-4 py-2">{booking.booking_id}</td>
-                  <td className="px-4 py-2">{getVehicleDetails(booking.vehicle_id)}</td>
+                  {/* <td className="px-4 py-2">{getVehicleDetails(booking.vehicle_id)}</td> */}
                   <td className="px-4 py-2">{formatDate(booking.booking_date)}</td>
                   {/* <td className="px-4 py-2">{formatDate(booking.return_date)}</td> */}
                   {/* <td className="px-4 py-2">{booking.total_amount}</td> */}
