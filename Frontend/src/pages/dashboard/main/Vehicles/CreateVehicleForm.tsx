@@ -6,7 +6,7 @@ import { useCreateVehicleMutation } from '../../../../features/vehicles/vehicleA
 import { Toaster, toast } from 'sonner';
 import axios from 'axios';
 
-interface CreateResourceModalProps {
+interface CreateVehicleModalProps {
   onClose: () => void;
 }
 
@@ -17,14 +17,15 @@ const CreateVehicleSchema = yup.object().shape({
   capacity: yup.number().required('Capacity is required'),
   vehicle_type: yup.string().required('Vehicle type is required'),
   current_location: yup.string().required('Current location is required'),
-  image_url: yup.mixed().required('Image URL is required'),
+  image_url: yup.mixed().required('Image URL is required'), 
 });
 
-const CreateVehicleModal: React.FC<CreateResourceModalProps> = ({ onClose }) => {
+const CreateVehicleModal: React.FC<CreateVehicleModalProps> = ({ onClose }) => {
   const [createVehicle] = useCreateVehicleMutation();
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null); // Image preview state
   const [imageError, setImageError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState<boolean>(false);
+
   const { register, handleSubmit, formState: { errors }, setValue } = useForm({
     resolver: yupResolver(CreateVehicleSchema),
   });
@@ -33,7 +34,7 @@ const CreateVehicleModal: React.FC<CreateResourceModalProps> = ({ onClose }) => 
     try {
       setIsUploading(true);
 
-      // Handle image file
+      // Handle image file upload
       let imageUrl = '';
       const vehicleImage = data.image_url?.[0]; // Access the image file properly
       if (vehicleImage) {
@@ -67,10 +68,17 @@ const CreateVehicleModal: React.FC<CreateResourceModalProps> = ({ onClose }) => 
       // Prepare the resource data with the uploaded image URL
       const resourceData = {
         ...data,
-        resource_image: imageUrl,
+        image_url: imageUrl, // Ensure that the field is named image_url
       };
 
-      await createVehicle(resourceData).unwrap();
+      // Send data to backend for creation
+      const createdVehicle = await createVehicle(resourceData).unwrap();
+
+      // Display image preview after creation
+      if (createdVehicle?.image_url) {
+        setImagePreview(createdVehicle.image_url); // Update state with the image URL
+      }
+
       toast.success('Vehicle created successfully');
       onClose();
     } catch (error) {
@@ -84,7 +92,7 @@ const CreateVehicleModal: React.FC<CreateResourceModalProps> = ({ onClose }) => 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
       <Toaster />
-      <div className="bg-white p-6 rounded-lg shadow-lg w-full md:w-3/4 lg:w-1/2  max-h-screen overflow-auto">
+      <div className="bg-white p-6 rounded-lg shadow-lg w-full md:w-3/4 lg:w-1/2 max-h-screen overflow-auto">
         <h2 className="text-xl font-bold mb-4">Create New Vehicle</h2>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Vehicle Name */}
@@ -100,7 +108,7 @@ const CreateVehicleModal: React.FC<CreateResourceModalProps> = ({ onClose }) => 
             )}
           </div>
 
-          {/* registration_number */}
+          {/* Registration Number */}
           <div className="form-control">
             <input
               id="registration_number"
@@ -113,7 +121,7 @@ const CreateVehicleModal: React.FC<CreateResourceModalProps> = ({ onClose }) => 
             )}
           </div>
           
-          {/* license_plate */}
+          {/* License Plate */}
           <div className="form-control">
             <input
               id="license_plate"
@@ -126,7 +134,7 @@ const CreateVehicleModal: React.FC<CreateResourceModalProps> = ({ onClose }) => 
             )}
           </div>
           
-          {/* capacity */}
+          {/* Capacity */}
           <div className="form-control">
             <input
               id="capacity"
@@ -139,7 +147,7 @@ const CreateVehicleModal: React.FC<CreateResourceModalProps> = ({ onClose }) => 
             )}
           </div>
           
-          {/* vehicle_type */}
+          {/* Vehicle Type */}
           <div className="form-control">
             <input
               id="vehicle_type"
@@ -152,7 +160,7 @@ const CreateVehicleModal: React.FC<CreateResourceModalProps> = ({ onClose }) => 
             )}
           </div>
           
-          {/* current_location */}
+          {/* Current Location */}
           <div className="form-control">
             <input
               id="current_location"
@@ -175,9 +183,7 @@ const CreateVehicleModal: React.FC<CreateResourceModalProps> = ({ onClose }) => 
               onChange={(e) => {
                 const file = e.target.files ? e.target.files[0] : null;
                 if (file) {
-                  setImagePreview(URL.createObjectURL(file));
-                  // Use setValue to update image_url in form state
-                  setValue('image_url', file);
+                  setImagePreview(URL.createObjectURL(file)); // Update preview
                 }
               }}
             />
@@ -192,6 +198,7 @@ const CreateVehicleModal: React.FC<CreateResourceModalProps> = ({ onClose }) => 
             )}
           </div>
 
+          {/* Submit and Cancel Buttons */}
           <div className="flex justify-end mt-4">
             <button onClick={onClose} className="mr-2 px-4 py-2 text-gray-700">Cancel</button>
             <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-lg" disabled={isUploading}>

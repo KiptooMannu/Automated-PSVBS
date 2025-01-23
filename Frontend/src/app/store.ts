@@ -7,6 +7,7 @@ import { bookingVehicleAPI } from "../features/booking/bookingAPI";
 import userSlice from "../features/users/userSlice";
 import { vehicleAPI } from "../features/vehicles/vehicleAPI";
 import { ticketAPI } from "../features/tickets/ticketsAPI";
+import { seatAPI } from "../features/seats/seatsAPI";
 
 const persistConfig = {
     key: 'root',
@@ -21,6 +22,7 @@ const rootReducer = combineReducers({
     [bookingVehicleAPI.reducerPath]: bookingVehicleAPI.reducer,
     [vehicleAPI.reducerPath] : vehicleAPI.reducer,
     [ticketAPI.reducerPath]: ticketAPI.reducer,
+    [seatAPI.reducerPath]: seatAPI.reducer,
     // add other reducers here
     user: userSlice,
 });
@@ -34,7 +36,7 @@ export const store = configureStore({
     middleware: (getDefaultMiddleware) => getDefaultMiddleware({
         serializableCheck: false,
     }).concat(usersAPI.middleware).concat(usersAPI.middleware).concat(vehicleAPI.middleware).concat(ticketAPI.middleware)
-    .concat(bookingVehicleAPI.middleware).concat(usersAPI.middleware,
+    .concat(bookingVehicleAPI.middleware).concat(seatAPI.middleware).concat(usersAPI.middleware,
         loginAPI.middleware
     ),
 });
