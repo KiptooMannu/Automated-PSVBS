@@ -2,6 +2,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { ApiDomain } from "../../utils/ApiDomain";
 
 export interface TPayment {
+  payment_id: number;
   booking_id: number;
   amount: string;
   payment_status: string;
@@ -53,3 +54,8 @@ export const paymentAPI = createApi({
     }),
   }),
 });
+
+export const {
+  useCreatePaymentMutation,
+  useGetPaymentByBookingIdQuery
+} = paymentAPI

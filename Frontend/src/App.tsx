@@ -89,6 +89,14 @@ function App() {
         element: <Payment />
       },
       {
+        path: 'payment-success',
+        element: <SuccessPayment />
+      },
+      {
+        path: 'payment-canceled',
+        element: <PaymentFailed />
+      },
+      {
         path: 'tickets',
         element: <Tickets ticket_id={6}  />
       },

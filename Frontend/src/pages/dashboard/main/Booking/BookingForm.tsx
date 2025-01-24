@@ -128,7 +128,7 @@ const BookingForm: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleMapSeatModal(vehicle)}
-                        className="btn bg-webcolor text-text-light hover:text-black border-none w-1/2 m-auto"
+                        className="btn bg-blue-600 text-text-white hover:text-black border-none w-1/2 m-auto"
                       >
                         Select Seat
                       </button>
