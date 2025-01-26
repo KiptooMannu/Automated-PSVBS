@@ -98,11 +98,11 @@ const BookingForm: React.FC = () => {
                     }`}
                     onClick={() => setSelectedVehicle(vehicle)}
                   >
-                    <img
+                    {/* <img
                       src={vehicle.image_url}
                       alt={vehicle.vehicle_name}
                       className="w-full h-40 object-cover rounded-lg mb-4"
-                    />
+                    /> */}
                     <div className="p-4">
                       <h3 className="text-xl font-semibold text-gray-800 mb-2">
                         {vehicle.vehicle_name}
