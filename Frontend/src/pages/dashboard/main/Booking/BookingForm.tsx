@@ -10,12 +10,14 @@ const BookingForm: React.FC = () => {
   const [isMapSeatModalOpen, setIsMapSeatModalOpen] = useState(false); // Modal state
 
   const { data: vehicles, isLoading, isError } = useFetchCarSpecsQuery();
+  console.log("Vehicles:", vehicles);
 
   // Handle Map Seat Modal
   const handleMapSeatModal = (vehicle: Vehicle) => {
     setSelectedVehicle(vehicle); // Set the selected vehicle
     setIsMapSeatModalOpen(true); // Open the modal
   };
+  // console.log("Selected Vehicle:", selectedVehicle);
 
   // Filter vehicles based on search criteria
   const filteredVehicles = vehicles?.filter((vehicle) => {
@@ -27,6 +29,9 @@ const BookingForm: React.FC = () => {
       : true;
     return matchesType && matchesLocation;
   });
+  //calculate remaining seats
+ 
+
 
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
@@ -122,7 +127,9 @@ const BookingForm: React.FC = () => {
                         <p>Reg No: {vehicle.registration_number}</p>
                         <p>License Plate: {vehicle.license_plate}</p>
                         <p>Location: {vehicle.current_location}</p>
-                        <p><strong>Remaining seats: 6</strong></p>
+                        {/* <p>Departure Location: {vehicle.arrival}</p> */}
+                        {/* <p>Destination: {vehicle.destination}</p> */}
+                        <p><strong>Remaining seats: {}</strong></p>
                         <p><strong>Cost: 1600</strong></p>
                       </div>
                       <button
@@ -142,7 +149,7 @@ const BookingForm: React.FC = () => {
           </div>
           {isMapSeatModalOpen && selectedVehicle && (
             <MapSeatModal
-              // vehicle={selectedVehicle} // Pass the selected vehicle
+              vehicle={selectedVehicle} // Pass the selected vehicle
               onClose={() => setIsMapSeatModalOpen(false)}
             />
           )}

@@ -59,7 +59,7 @@ function SideNav() {
                     <summary><Book />Bookings </summary>
                     <ul>
                         <li><Link to="view_all_bookings">All Bookings</Link></li>
-                        <li><Link to="booking_form"></Link>Book Now</li>
+                        <li><Link to="booking_form">Book Now</Link></li>
                         <li><Link to="my_bookings">My Bookings</Link></li>
                         
                     </ul>
