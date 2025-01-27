@@ -81,6 +81,7 @@ CREATE TABLE IF NOT EXISTS "vehicles" (
 	"model_year" integer,
 	"current_location" varchar(255) NOT NULL,
 	"is_active" boolean DEFAULT true,
+	"image_url" varchar(255),
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
 	"is_deleted" boolean DEFAULT false,

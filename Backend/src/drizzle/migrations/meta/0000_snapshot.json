@@ -1,5 +1,5 @@
 {
-  "id": "dcffef07-32d4-444b-90aa-e118080b1eb1",
+  "id": "1939bbb3-d665-4159-a5fa-aff3e9595812",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -575,6 +575,12 @@
           "primaryKey": false,
           "notNull": false,
           "default": true
+        },
+        "image_url": {
+          "name": "image_url",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
