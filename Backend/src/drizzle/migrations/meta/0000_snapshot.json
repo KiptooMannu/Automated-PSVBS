@@ -1,5 +1,5 @@
 {
-  "id": "dcffef07-32d4-444b-90aa-e118080b1eb1",
+  "id": "a5d0dd84-b612-4716-abdb-b72e16d26d5b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -29,18 +29,6 @@
         "seat_id": {
           "name": "seat_id",
           "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "departure": {
-          "name": "departure",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "destination": {
-          "name": "destination",
-          "type": "varchar",
           "primaryKey": false,
           "notNull": true
         },
@@ -569,12 +557,30 @@
           "primaryKey": false,
           "notNull": true
         },
+        "departure": {
+          "name": "departure",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "destination": {
+          "name": "destination",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
         "is_active": {
           "name": "is_active",
           "type": "boolean",
           "primaryKey": false,
           "notNull": false,
           "default": true
+        },
+        "image_url": {
+          "name": "image_url",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
