@@ -1,0 +1,11 @@
+/* Hero.scss */
+.hero-bg {
+    background-image: url('../../assets/bus station.jpg');
+    background-size: cover;  /* Ensure the image fits within the container */
+    background-position: center;  /* Center the image */
+    background-repeat: no-repeat;  /* Prevent image repetition */
+ height: auto;
+
+    text-align: center;  /* Center the text */
+  }
+  

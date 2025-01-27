@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { RootState } from '../../app/store';
-import bghome from '../../assets/bus station.jpg'
 import { useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
+import './Hero.scss'; // Import the SCSS file
 
 const Hero = () => {
     const user = useSelector((state: RootState) => state.user);
@@ -15,32 +15,30 @@ const Hero = () => {
     }, []);
 
     return (
-        <div
-            className="hero h-full lg:h-screen"
-            style={{
-                backgroundImage: `url(${bghome})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-            }}
-        >
-            <div className="hero-overlay bg-opacity-50 rounded-lg"></div>
+        <div className="relative min-h-screen hero-bg">
+            <div className="hero-overlay bg-opacity-50"></div>
             <div className={`hero-content text-neutral-content text-center transition-opacity duration-1000 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
-                <div className={`transform transition-transform duration-1000 ${loaded ? 'translate-y-0' : '-translate-y-10'}`}>
-                    <h1 className="mb-5 text-3xl lg:text-5xl font-bold">
-                        Welcome to Automated PSV Seat Reservation System,
-                        <span className='text-webcolor'>
-                            {name ? ` ${name}` : ''}
-                        </span>
-                    </h1>
-                    <p className="mb-5">
-                    Book affordable and convenient PSV seats effortlessly with our automated reservation system. Our solution ensures secure payments, 
-                    real-time availability, and hassle-free travel planning for all.
-                    </p>
-                    <Link to="/dashboard/booking_form" className="btn bg-webcolor text-text-light hover:text-black border-none">Book Now!!</Link>
-                </div>
+            <div className={`flex flex-col justify-center items-center transform transition-transform duration-1000 ${loaded ? 'translate-y-0' : '-translate-y-10'}`}>
+    <h1 className="mb-5 text-3xl lg:text-5xl font-bold text-center">
+        Welcome to Automated PSV Seat Reservation System,
+        <span className="text-webcolor">
+            {name ? ` ${name}` : ''}
+        </span>
+    </h1>
+    <p className="mb-5 text-white text-center">
+        Book affordable and convenient PSV seats effortlessly with our automated reservation system. Our solution ensures secure payments,
+        real-time availability, and hassle-free travel planning for all.
+    </p>
+    <Link to="/dashboard/booking_form">
+        <button className="btn text-text-light hover:text-black border-none bg-orange-700">
+            Book Now!!
+        </button>
+    </Link>
+</div>
+
             </div>
         </div>
     );
-}
+};
 
 export default Hero;
