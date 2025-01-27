@@ -19,6 +19,7 @@ export const listAllVehicles = async (c: Context) => {
         if (vehicles === null) return c.json({msg:"No vehicles found😒"}, 404);
         return c.json(vehicles, 200);
     } catch (error: any) {
+        console.log(`Error: ${error}`);
         return c.json({msg:"Error while fetching vehicles😒"}, 400);
     }
 }

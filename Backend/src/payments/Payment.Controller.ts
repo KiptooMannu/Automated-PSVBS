@@ -98,8 +98,8 @@ export const createCheckoutSessionController = async (c: Context) => {
     }
 
     // Validate booking data
-    if (!booking || !booking.booking_id || !booking.user_id || !booking.total_price) {
-        return c.json({ message: "Booking data is incomplete" }, 400);
+    if (!booking.booking_id) {
+        return c.json({ message: "Booking id is required" }, 400);
     }
 
     try {
@@ -118,8 +118,10 @@ export const createCheckoutSessionController = async (c: Context) => {
             payment_method_types: ['card'],
             line_items,
             mode: 'payment',
-            success_url: `${ClientURL}/payment-success`,
-            cancel_url: `${ClientURL}/payment-canceled`,
+            // success_url: `${ClientURL}dashboard/payment-success`,
+            // cancel_url: `${ClientURL}dashboard/payment-canceled`,
+            success_url: "http://localhost:5173/dashboard/payment-success",
+            cancel_url: "http://localhost:5173/dashboard/payment-canceled",
         };
 
         const session: Stripe.Checkout.Session = await stripe.checkout.sessions.create(sessionParams);

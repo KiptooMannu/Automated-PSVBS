@@ -118,3 +118,5 @@ export type TSTickets = typeof ticketTable.$inferSelect;
 
 export type TIPayments = typeof paymentsTable.$inferInsert;
 export type TSPayments = typeof paymentsTable.$inferSelect;
+
+//==========================================================================================================

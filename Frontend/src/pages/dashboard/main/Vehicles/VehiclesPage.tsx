@@ -47,7 +47,7 @@ const VehiclesPage: React.FC = () => {
 
   return (
     // <div className="max-w-7xl mx-auto py-6 px-4 lg:px-0">
-    <div className="overflow-x-auto bg-gradient-to-r from-blue-100  via-blue-400 to-white min-h-screen shadow-lg">
+    <div className="overflow-x-auto bg-gradient-to-r from-blue-50  via-blue-400 to-white min-h-screen shadow-lg">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-white">Manage Vehicles</h1>
         <CreateVehicleButton onOpenModal={openCreateModal} />
@@ -55,7 +55,7 @@ const VehiclesPage: React.FC = () => {
 
       <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:mx-4">
         {vehicle?.map((vehicle: Vehicle) => (
-          <li key={vehicle.registration_number} className="bg-blue-400 text-white p-6 rounded-lg shadow-lg">
+          <li key={vehicle.registration_number} className="bg-blue-800 text-white p-6 rounded-lg shadow-lg">
             <img
               src={vehicle.image_url}
               alt={vehicle.vehicle_name}

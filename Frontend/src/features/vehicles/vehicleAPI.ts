@@ -53,7 +53,7 @@ export const vehicleAPI = createApi({
       invalidatesTags: ["Vehicles"],
     }),
     getVehicleById: builder.query<Vehicle, string>({
-      query: (registration_number) => `vehicles/${registration_number}`, // Fixed endpoint
+      query: (registration_number) => `vehicles${registration_number}`, // Fixed endpoint
       providesTags: ["Vehicles"],
     }),
   }),
