@@ -18,6 +18,8 @@ const EditVehicleSchema = yup.object().shape({
   capacity: yup.number().typeError('Capacity must be a number').nullable(),
   vehicle_type: yup.string().required('Vehicle type is required'),
   current_location: yup.string().required('Current location is required'),
+  // destination: yup.string().required('Destination is required'),
+  // departure: yup.string().required('Departure location is required'),
   image_url: yup.mixed().notRequired(), // Optional image
 });
 
@@ -39,6 +41,8 @@ const EditVehicleModal: React.FC<EditVehicleModalProps> = ({ vehicle, onClose })
       setValue('capacity', vehicle.capacity || undefined);
       setValue('vehicle_type', vehicle.vehicle_type || '');
       setValue('current_location', vehicle.current_location || '');
+      // setValue('destination', vehicle.destination || '');
+      // setValue('departure', vehicle.departure || '');
       setImagePreview(vehicle.image_url || null);
     }
   }, [vehicle, setValue]);

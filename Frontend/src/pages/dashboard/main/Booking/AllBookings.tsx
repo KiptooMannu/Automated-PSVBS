@@ -31,8 +31,8 @@ function AllBookings() {
               <th className="border border-gray-400 px-4 py-2">Booking ID</th>
               <th className="border border-gray-400 px-4 py-2">User ID</th>
               <th className="border border-gray-400 px-4 py-2">Seat ID</th>
-              <th className="border border-gray-400 px-4 py-2">Departure</th>
-              <th className="border border-gray-400 px-4 py-2">Destination</th>
+              {/* <th className="border border-gray-400 px-4 py-2">Departure</th> */}
+              {/* <th className="border border-gray-400 px-4 py-2">Destination</th> */}
               <th className="border border-gray-400 px-4 py-2">Booking Date</th>
               <th className="border border-gray-400 px-4 py-2">Status</th>
             </tr>
@@ -43,8 +43,8 @@ function AllBookings() {
                 <td className="border border-gray-400 px-4 py-2">{booking.booking_id}</td>
                 <td className="border border-gray-400 px-4 py-2">{booking.user_id}</td>
                 <td className="border border-gray-400 px-4 py-2">{booking.seat_id}</td>
-                <td className="border border-gray-400 px-4 py-2">{booking.departure}</td>
-                <td className="border border-gray-400 px-4 py-2">{booking.destination}</td>
+                {/* <td className="border border-gray-400 px-4 py-2">{booking.departure}</td> */}
+                {/* <td className="border border-gray-400 px-4 py-2">{booking.destination}</td> */}
                 <td className="border border-gray-400 px-4 py-2">{formatDate(booking.booking_date)}</td>
                 <td className="border border-gray-400 px-4 py-2">{booking.booking_status}</td>
               </tr>

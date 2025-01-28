@@ -250,7 +250,7 @@
 
 // export default MapSeatModal;
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Toaster } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useForm, SubmitHandler } from "react-hook-form";
@@ -276,7 +276,7 @@ interface BookingData {
 }
 
 const schema = yup.object().shape({
-  seat_number: yup.string().required('Seat number is required'),
+  // seat_number: yup.string().required('Seat number is required'),
   booking_date: yup.string().required('Booking date is required'),
   // booking_time: yup.string().required('Booking time is required'),
   // departure_time: yup.string().required('Departure time is required'),
@@ -295,13 +295,17 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose }) => {
 
   const navigate = useNavigate();
   const [createBooking] = useCreateBookingVehicleMutation();
+  console.log('create booking:' ,createBooking);
 
   const externalData = {
-    user_id: user.user?.user_id
+    user_id: user.user?.user_id,
+    // vehicle_id: vehicle.registration_number,
+    vehicle_id: Number(vehicle.registration_number),
+    seat_id: 1,
+
   };
 
-  const { register, handleSubmit, formState: { errors } } = useForm<BookingData>({
-    resolver: yupResolver(schema)
+  const { register, handleSubmit, formState: { errors } } = useForm<BookingData>({ resolver: yupResolver(schema)
   });
 
   const onSubmit: SubmitHandler<BookingData> = async (formData) => {
@@ -309,10 +313,12 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose }) => {
       ...externalData,
       ...formData
     };
+    console.log("Payload:", dataToSubmit);
 
     try {
       setIsSubmitting(true);
       await createBooking(dataToSubmit).unwrap();
+      console.log("Data to submit:", dataToSubmit);
       toast.success("Booking created successfully");
 
       setTimeout(() => {
@@ -320,6 +326,7 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose }) => {
       }, 1000);
     } catch (err) {
       toast.error("Error creating booking");
+      console.error("Error creating booking:", err);
     } finally {
       setIsSubmitting(false);
     }
@@ -334,9 +341,10 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose }) => {
         return vehicle.capacity;
       }
     };
-    console.log('remaining seats', calculateRemainingSeats(vehicle));
+    // console.log('remaining seats', calculateRemainingSeats(vehicle));
     const remainingSeats = calculateRemainingSeats(vehicle);
     // calculate total amount
+    
     
 
 
@@ -369,6 +377,7 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose }) => {
           <>
             <h1 className="text-xl font-bold mb-4 text-webcolor text-center p-5">Booking Vehicle</h1>
             <p className='text-2xl text-center'><strong>Remaining Seats:{remainingSeats}</strong></p>
+            <h4 className='text-center'>Total Amount: {}</h4>
             <div className="p-5 rounded-lg card lg:w-3/4 border-2  bg-blue-300  m-auto">
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div className="flex flex-col lg:flex-row space-x-4 w-full">
@@ -385,11 +394,15 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose }) => {
                 </div>
 
                 <div className="flex justify-between mt-6 space-x-2">
-                  <button type="submit" className="btn bg-webcolor text-text-light hover:text-black border-none w-1/4 m-auto">
+                  <button
+                    type="submit"
+                    className="btn bg-webcolor text-text-light hover:text-green border-none w-1/4 m-auto"
+                    // disabled={isSubmitting}
+                  >
                     {isSubmitting ? (
                       <>
                         <span className="loading loading-spinner text-text-light"></span>
-                        <span className='text-text-light'>Submitting...</span>
+                        <span className="text-text-light">Submitting...</span>
                       </>
                     ) : (
                       "Create Booking"

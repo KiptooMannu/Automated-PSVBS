@@ -6,11 +6,13 @@ import { toast } from "react-toastify";
 const BookingForm: React.FC = () => {
   const [vehicleType, setVehicleType] = useState<string>(""); // State for filtering by type
   const [currentLocation, setCurrentLocation] = useState<string>(""); // State for filtering by location
+  const [destination, setDestination] = useState<string>(""); // State for filtering by destination
+  const [departure, setDeparture] = useState<string>(""); // State for filtering by departure
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null); // Selected vehicle
   const [isMapSeatModalOpen, setIsMapSeatModalOpen] = useState(false); // Modal state
 
   const { data: vehicles, isLoading, isError } = useFetchCarSpecsQuery();
-  console.log("Vehicles:", vehicles);
+  // console.log("Vehicles:", vehicles);
 
   // Handle Map Seat Modal
   const handleMapSeatModal = (vehicle: Vehicle) => {
@@ -27,6 +29,12 @@ const BookingForm: React.FC = () => {
     const matchesLocation = currentLocation
       ? vehicle.current_location.toLowerCase().includes(currentLocation.toLowerCase())
       : true;
+    const matchesDeparture = departure
+      ? vehicle.departure.toLowerCase().includes(departure.toLowerCase())
+      : true;
+    const matchesDestination = destination
+      ? vehicle.destination.toLowerCase().includes(destination.toLowerCase())
+      : true;
     return matchesType && matchesLocation;
   });
   //calculate remaining seats
@@ -34,14 +42,14 @@ const BookingForm: React.FC = () => {
 
 
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedVehicle) {
-      alert("Please select a vehicle.");
-      return;
-    }
-    toast.success(`Booking confirmed for vehicle: ${selectedVehicle.vehicle_name}`);
-  };
+  // const handleSubmit = (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (!selectedVehicle) {
+  //     alert("Please select a vehicle.");
+  //     return;
+  //   }
+  //   toast.success(`Booking confirmed for vehicle: ${selectedVehicle.vehicle_name}`);
+  // };
 
   if (isLoading)
     return <p className="text-center text-gray-500">Loading vehicles...</p>;
@@ -53,8 +61,44 @@ const BookingForm: React.FC = () => {
       <h1 className="text-xl font-bold mb-4 text-webcolor text-center p-5">Book Now!!!</h1>
       <div className="card lg:w-[100%] m-auto rounded-lg  p-6">
         {/* Search Filters */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form 
+        // onSubmit={handleSubmit} 
+        className="space-y-6"
+        >
           <div className="flex flex-col lg:flex-row gap-4">
+            {/* Departure Location Input */}
+            <div className="flex-1">
+              <div className="form-control">
+                <label htmlFor="departure" className="label">
+                  <span className="label-text">Departure Location</span>
+                </label>
+                <input
+                  id="departure"
+                  type="text"
+                  placeholder="Search by departure location📍"
+                  value={departure}
+                  onChange={(e) => setDeparture(e.target.value)}
+                  className="input input-bordered"
+                />
+              </div>
+            </div>
+            {/* Destination Input */}
+            <div className="flex-1">
+              <div className="form-control">
+                <label htmlFor="destination" className="label">
+                  <span className="label-text">Destination</span>
+                </label>
+                <input
+                  id="destination"
+                  type="text"
+                  placeholder="Search by destination📍"
+                  value={destination}
+                  onChange={(e) => setDestination(e.target.value)}
+                  className="input input-bordered"
+                />
+              </div>
+            </div>
+
             {/* Vehicle Type Input */}
             <div className="flex-1">
               <div className="form-control">
@@ -127,8 +171,8 @@ const BookingForm: React.FC = () => {
                         <p>Reg No: {vehicle.registration_number}</p>
                         <p>License Plate: {vehicle.license_plate}</p>
                         <p>Location: {vehicle.current_location}</p>
-                        {/* <p>Departure Location: {vehicle.arrival}</p> */}
-                        {/* <p>Destination: {vehicle.destination}</p> */}
+                        <p>Destination: {vehicle.departure}</p>
+                        <p>Departure Location: {vehicle.destination}</p>
                         <p><strong>Remaining seats: {}</strong></p>
                         <p><strong>Cost: 1600</strong></p>
                       </div>
@@ -147,13 +191,14 @@ const BookingForm: React.FC = () => {
               <p className="text-center text-gray-400">No vehicles match your search.</p>
             )}
           </div>
+          </form>
           {isMapSeatModalOpen && selectedVehicle && (
             <MapSeatModal
               vehicle={selectedVehicle} // Pass the selected vehicle
               onClose={() => setIsMapSeatModalOpen(false)}
             />
           )}
-        </form>
+        
       </div>
     </div>
   );

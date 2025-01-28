@@ -14,6 +14,8 @@ type vehicles = {
     current_location: string;
     capacity: number;
     image_url: string;
+    destination: string;
+    departure: string;
 };
 
 // Helper function to safely parse localStorage
