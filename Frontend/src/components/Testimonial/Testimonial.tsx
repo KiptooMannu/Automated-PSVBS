@@ -49,18 +49,7 @@ const testimonials = [
     name: "Sophia Johnson",
     text: "Cras mattis consectetur purus sit amet fermentum. Donec ullamcorper nulla non metus auctor fringilla.",
   },
-  {
-    id: 9,
-    image: "https://randomuser.me/api/portraits/men/9.jpg",
-    name: "Liam Anderson",
-    text: "Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Vestibulum id ligula porta felis euismod semper.",
-  },
-  {
-    id: 10,
-    image: "https://randomuser.me/api/portraits/women/10.jpg",
-    name: "Olivia Martinez",
-    text: "Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Curabitur blandit tempus porttitor.",
-  },
+ 
 ];
 
 const Testimonial = () => {

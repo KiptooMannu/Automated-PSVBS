@@ -1,6 +1,7 @@
 import { useGetTicketByIdQuery } from "../../../../features/tickets/ticketsAPI";
 import { format } from "date-fns";
 import { NavLink } from "react-router-dom";
+
 // Badge component for status
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
   const statusColors: { [key: string]: string } = {
@@ -59,11 +60,13 @@ const Tickets: React.FC<{ ticket_id: number }> = ({ ticket_id }) => {
             Pay Now
           </button>
         )}
-        <button className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
-        NavLink ="/dashboard/tickets"
+        {/* Use NavLink to navigate to the Cancel Ticket page */}
+        <NavLink
+          to="/dashboard/tickets"
+          className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
         >
           Cancel Ticket
-        </button>
+        </NavLink>
       </div>
     </div>
   );

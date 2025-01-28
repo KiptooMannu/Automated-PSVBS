@@ -104,7 +104,7 @@ const Login = () => {
         </div>
 
         <div className="hidden lg:block w-full lg:w-[25%]">
-          <img src="https://cdn.pixabay.com/photo/2019/12/16/10/30/iphone-4699057_1280.jpg" alt="auth" className="w-full h-full object-cover lg:object-fill rounded-lg" />
+          <img src="https://www.gitsoftwaresolutions.com/assets/whyUs/4.png" alt="auth" className="w-full h-full object-cover lg:object-fill rounded-lg" />
         </div>
       </div>
     </div>
