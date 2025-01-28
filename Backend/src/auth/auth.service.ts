@@ -31,11 +31,18 @@ export const registerUser = async (user: any) => {
       email: user.email,
       phone_number: user.phone_number,
       image_url: user.image_url,
+      password: hashedPassword,// Hash the password before storing it
     })
     .returning({ id: userTable.user_id })
     .execute();
 
   const userId = newUser[0].id;
+
+  if (!user.username) {
+    // Clean up and throw an error if username is missing
+    await db.delete(userTable).where(eq(userTable.user_id, userId)).execute();
+    throw new Error("Username is required for registration");
+}
 
   try {
     await db
@@ -50,6 +57,7 @@ export const registerUser = async (user: any) => {
 
     return "User registered successfully";
   } catch (error) {
+    console.log('Registration Error!!:' ,error);
     await db.delete(userTable).where(eq(userTable.user_id, userId)).execute();
     throw new Error("Registration failed. Please try again.");
   }

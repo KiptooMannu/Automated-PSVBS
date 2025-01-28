@@ -10,7 +10,7 @@ export const paymentStatusEnum = pgEnum("payment_status", ["pending", "completed
 export const authTable = pgTable("auth", {
     auth_id: serial("auth_id").primaryKey(),
     user_id: integer("user_id").notNull().references(() => userTable.user_id, { onDelete: "cascade" }),
-    username: varchar("username", { length: 255 }).notNull().unique(),
+    username: varchar("username", { length: 255 }).unique(),
     password_hash: varchar("password_hash", { length: 255 }).notNull(),
     role: roleEnum("role").default("user"), // e.g., 'user', 'admin'
     created_at: timestamp("created_at").defaultNow(),
@@ -24,6 +24,7 @@ export const userTable = pgTable("users", {
     last_name: varchar("last_name"),
     email: varchar("email").notNull().unique(),
     phone_number: varchar("phone_number"),
+    password: varchar("password", { length: 255 }).notNull(),
     image_url: varchar("image_url", { length: 255 }),
     isVerified: boolean("is_verified").default(false),
     created_at: timestamp("created_at").defaultNow(),

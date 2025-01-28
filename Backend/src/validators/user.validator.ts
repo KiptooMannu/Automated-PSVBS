@@ -7,6 +7,7 @@ export const registerSchema = z.object({
     email: z.string().email(),
     password: z.string().min(6).max(255),
     role: z.enum(['user', 'admin','super_admin']).default('user'),
+    username: z.string().min(1, "Username is required").optional(),
 })
 
 export const loginSchema = z.object({
