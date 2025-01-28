@@ -38,6 +38,7 @@ const Profile = () => {
   const role = user.user?.role;
   const id = user.user?.user_id;
   const user_id = id ? id : 0;
+  console.log('user_id:', user_id);
 
   const { data: userData, isLoading, error, refetch } = usersAPI.useGetUserByIdQuery(user_id, {
     pollingInterval: 6000,
@@ -61,6 +62,7 @@ const Profile = () => {
       });
     }
   }, [userData, reset]);
+  // console.log('userData:', userData);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

@@ -13,7 +13,8 @@ type FormData = {
   last_name: string
   email: string
   phone_number : string
-  password: string
+  password: string,
+  username: string,
   confirmPassword: string
 }
 
@@ -22,6 +23,7 @@ const schema = yup.object().shape({
   last_name: yup.string().required("Last Name is required"),
   email: yup.string().email().required("Email is required"),
   phone_number: yup.string().required("Phone number is required"),
+  username: yup.string().required("Username is required"),
   password: yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
   confirmPassword: yup.string().oneOf([yup.ref("password")], "Passwords must match").required("Confirm password is required")
 })
@@ -88,6 +90,11 @@ const Register = () => {
             <div className="form-control">
               <input type="string" placeholder="phone number" className="input input-bordered" required {...register("phone_number")} />
               <p className="text-red-500">{errors.phone_number?.message}</p>
+            </div>
+            
+            <div className="form-control">
+              <input type="text" placeholder="username" className="input input-bordered" required {...register("username")} />
+              <p className="text-red-500">{errors.username?.message}</p>
             </div>
 
             <div className="form-control">

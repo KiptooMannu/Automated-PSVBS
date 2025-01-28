@@ -295,7 +295,7 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose }) => {
 
   const navigate = useNavigate();
   const [createBooking] = useCreateBookingVehicleMutation();
-  console.log('create booking:' ,createBooking);
+  // console.log('create booking:' ,createBooking);
 
   const externalData = {
     user_id: user.user?.user_id,
