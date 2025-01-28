@@ -2,6 +2,18 @@ CREATE TYPE "public"."booking_status" AS ENUM('pending', 'confirmed', 'completed
 CREATE TYPE "public"."payment_status" AS ENUM('pending', 'completed', 'failed', 'refunded');--> statement-breakpoint
 CREATE TYPE "public"."user_type" AS ENUM('user', 'admin', 'super_admin', 'disabled');--> statement-breakpoint
 CREATE TYPE "public"."ticket_status" AS ENUM('paid', 'failed', 'refunded');--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "auth" (
+	"auth_id" serial PRIMARY KEY NOT NULL,
+	"user_id" integer NOT NULL,
+	"username" varchar(255) NOT NULL,
+	"password_hash" varchar(255) NOT NULL,
+	"role" "user_type" DEFAULT 'user',
+	"created_at" timestamp DEFAULT now(),
+	"updated_at" timestamp DEFAULT now(),
+	"is_deleted" boolean DEFAULT false,
+	CONSTRAINT "auth_username_unique" UNIQUE("username")
+);
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "bookings" (
 	"booking_id" serial PRIMARY KEY NOT NULL,
 	"user_id" integer NOT NULL,
@@ -59,9 +71,7 @@ CREATE TABLE IF NOT EXISTS "users" (
 	"first_name" varchar,
 	"last_name" varchar,
 	"email" varchar NOT NULL,
-	"password" varchar NOT NULL,
 	"phone_number" varchar,
-	"user_type" "user_type" DEFAULT 'user',
 	"image_url" varchar(255),
 	"is_verified" boolean DEFAULT false,
 	"created_at" timestamp DEFAULT now(),
@@ -87,6 +97,12 @@ CREATE TABLE IF NOT EXISTS "vehicles" (
 	"is_deleted" boolean DEFAULT false,
 	CONSTRAINT "vehicles_license_plate_unique" UNIQUE("license_plate")
 );
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "auth" ADD CONSTRAINT "auth_user_id_users_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("user_id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
 --> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "bookings" ADD CONSTRAINT "bookings_user_id_users_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("user_id") ON DELETE cascade ON UPDATE no action;

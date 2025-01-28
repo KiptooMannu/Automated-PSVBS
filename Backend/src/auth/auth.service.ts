@@ -1,107 +1,166 @@
-import db  from "../drizzle/db";
-import {userTable } from "../drizzle/schema";
-import { sql} from "drizzle-orm";
-import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
-import jwt from 'jsonwebtoken';
-import { registerSchema,loginSchema} from "../validators/user.validator";
-import { TIUsers, TSUsers } from "../drizzle/schema";
+import jwt from "jsonwebtoken";
+import db from "../drizzle/db";
+import { userTable, authTable } from "../drizzle/schema";
+import { registerSchema, loginSchema } from "../validators/user.validator";
+import { eq } from "drizzle-orm";
 
+const secret = process.env.SECRET!;
+const expiresIn = process.env.EXPIRESIN!;
 
-type User ={
-    user_id?: number;
-    username: string;
-    email: string;
-    password: string;
-}
+export const registerUser = async (user: any) => {
+  registerSchema.parse(user);
 
-const secret = process.env.SECRET;
-const expiresIn = process.env.EXPIRESIN;
+  const existingUser = await db
+    .select()
+    .from(userTable)
+    .where(eq(userTable.email, user.email))
+    .execute();
 
+  if (existingUser.length > 0) {
+    throw new Error("User already exists");
+  }
 
-export const registerUser = async (user: User) => {
-    registerSchema.parse(user);
+  const hashedPassword = await bcrypt.hash(user.password, 10);
 
-    //check if user already exists
-    const existingUser = await db.select().from(userTable).where(eq(userTable.email, user.email)).execute();
-    console.log(user)
-    if(existingUser.length > 0){
-        throw new Error("User already exists");
-    }
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(user.password, 10);
+  const newUser = await db
+    .insert(userTable)
+    .values({
+      first_name: user.first_name,
+      last_name: user.last_name,
+      email: user.email,
+      phone_number: user.phone_number,
+      image_url: user.image_url,
+    })
+    .returning({ id: userTable.user_id })
+    .execute();
 
-    // Create user
-    const newUser = await db.insert(userTable).values({
-        ...user,
-        password: hashedPassword,
-    }).returning({ id: userTable.user_id }).execute();
+  const userId = newUser[0].id;
 
-    const userId = newUser[0].id;
+  try {
+    await db
+      .insert(authTable)
+      .values({
+        user_id: userId,
+        username: user.username,
+        password_hash: hashedPassword,
+        role: user.role || "user", // Default role should be 'user'
+      })
+      .execute();
 
+    return "User registered successfully";
+  } catch (error) {
+    await db.delete(userTable).where(eq(userTable.user_id, userId)).execute();
+    throw new Error("Registration failed. Please try again.");
+  }
 };
 
 export const loginUser = async (email: string, password: string) => {
-    loginSchema.parse({email, password});
-    const users = await db.select().from(userTable).where(eq(userTable.email, email)).execute();
+    // Validate email and password
+    loginSchema.parse({ email, password });
+  
+    // Step 1: Find user by email
+    const users = await db
+      .select()
+      .from(userTable)
+      .where(eq(userTable.email, email))
+      .execute();
+  
     if (users.length === 0) {
-        throw new Error('User not found! Try Again');
+      throw new Error("User not found! Try Again");
     }
+  
     const user = users[0];
-    //fetch users password
-    const auths = await db.select().from(userTable).where(eq(userTable.user_id, user.user_id)).execute();
-    if(auths.length === 0){
-        throw new Error('User not found! Try Again');
+  
+    // Step 2: Find authentication record for the user
+    const auths = await db
+      .select()
+      .from(authTable)
+      .where(eq(authTable.user_id, user.user_id))
+      .execute();
+  
+    if (auths.length === 0) {
+      throw new Error("Invalid credentials! Try again");
     }
+  
     const auth = auths[0];
-    //validate the provided password
-    const isPasswordValid = await bcrypt.compare(password, auth.password);
-    if(!isPasswordValid){
-        throw new Error('Invalid credentials try again');
+  
+    // Step 3: Compare password with the stored hashed password
+    const isPasswordValid = await bcrypt.compare(password, auth.password_hash);
+  
+    if (!isPasswordValid) {
+      throw new Error("Invalid credentials! Try again");
     }
-    //generate token
-    const token = jwt.sign({id: user.user_id, email: user.email}, secret!, {expiresIn});
-    return {token, user}
+  
+    // Step 4: Generate a JWT token
+    const token = jwt.sign(
+      { id: user.user_id, email: user.email, role: auth.role },
+      secret,
+      { expiresIn }
+    );
+  
+    // Step 5: Return token and user data
+    return { token, user };
 };
 
+export const getUsersService = async (limit: number = 10) => {
+  const users = await db.select().from(userTable).limit(limit).execute();
+  return users;
+};
 
+export const getUserByIdService = async (id: number) => { // Ensure id is a number
+  const user = await db
+    .select()
+    .from(userTable)
+    .where(eq(userTable.user_id, id))
+    .execute();
 
+  if (user.length === 0) {
+    return { message: "User not found", data: null };
+  }
 
+  return { message: "User found", data: user[0] };
+};
 
-//get all users
-export const getUsersService = async (limit?:number): Promise<TIUsers[] | null> => {
-    if(limit){
-        return await db.query.userTable.findMany({
-            limit:limit
-        });
-    }
-    return await db.query.userTable.findMany();
-}
+export const updateUserService = async (userId: number, updatedData: any) => { // Ensure userId is a number
+  const updatedUser = await db
+    .update(userTable)
+    .set(updatedData)
+    .where(eq(userTable.user_id, userId))
+    .returning()
+    .execute();
 
-//get single user by id
-export const getUserByIdService = async (id: number): Promise<TSUsers | undefined> =>{
-    return await db.query.userTable.findFirst({
-        where:eq(userTable.user_id, id),
-    });
-}
+  if (updatedUser.length === 0) {
+    throw new Error("User update failed or user not found");
+  }
 
-export const updateUserService  = async (id: number, user: TIUsers): Promise<string> => {
-    if(user.password){
-        const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(user.password, saltRounds);
-        user.password = hashedPassword;
-    }
- await db.update(userTable).set(user).where(eq(userTable.user_id, id)).execute();
-    return 'User updated successfully';
-}
+  return { message: "User updated successfully", data: updatedUser[0] };
+};
 
-export const deleteUserService = async (id: number): Promise<string> => {
-    await db.delete(userTable).where(eq(userTable.user_id, id)).execute();
-    return 'User deleted successfully';
-}
+export const deleteUserService = async (userId: number) => { // Ensure userId is a number
+    const deletedUser = await db
+    .delete(userTable) // Provide the table name here
+    .where(eq(userTable.user_id, userId))
+    .returning()
+    .execute();
 
-export const getUserByEmailService = async (email: string): Promise<TSUsers | undefined> =>{
-    return await db.query.userTable.findFirst({
-        where:eq(userTable.email, email),
-    });
-}
+  if (deletedUser.length === 0) {
+    throw new Error("User deletion failed or user not found");
+  }
+
+  return { message: "User deleted successfully", data: deletedUser[0] };
+};
+
+export const getUserByEmailService = async (email: string) => {
+  const users = await db
+    .select()
+    .from(userTable)
+    .where(eq(userTable.email, email))
+    .execute();
+
+  if (users.length === 0) {
+    throw new Error("User not found");
+  }
+
+  return users[0];
+};
