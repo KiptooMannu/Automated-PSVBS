@@ -1,70 +1,51 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { ApiDomain } from "../../utils/ApiDomain";
-
-interface Tickets {
-    ticket_id: number;
-    user_id: number;
-    subject: string;
-    description: string;
-    status: string;
-    created_at: string;
-    updated_at: string;
-}
-
-interface TPayment {
-    booking_id: number;
-    amount: string;
-    payment_status: string;
-    payment_date: string;
-    payment_method: string;
-    transaction_reference: string;
-    ticket_id: number;
-    created_at: string;
-    updated_at: string;
-}
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { CustomerTickets } from '../../types/types';
+import { ApiDomain } from '../../utils/ApiDomain';
 
 export const ticketAPI = createApi({
-    reducerPath: 'ticketAPI',
-    baseQuery: fetchBaseQuery({ baseUrl: ApiDomain }),
-    tagTypes: ['ticket'],
-    endpoints: (builder) => ({
-        getTickets: builder.query<Tickets[], void>({
-            query: () => 'tickets',
-            providesTags: ['ticket'],
-        }),
-        createTicket: builder.mutation({
-            query: (newTicket) => ({
-                url: 'tickets',
-                method: 'POST',
-                body: newTicket,
-            }),
-            invalidatesTags: ['ticket'],
-        }),
-        updateTicket: builder.mutation<Tickets, Partial<Tickets & { ticket_id: number }>>({
-            query: ({ ticket_id, ...rest }) => ({
-                url: `tickets/${ticket_id}`,
-                method: 'PUT',
-                body: rest,
-            }),
-            invalidatesTags: ['ticket'],
-        }),
-        deleteTicket: builder.mutation<{ success: boolean; ticket_id: number }, number>({
-            query: (ticket_id) => ({
-                url: `tickets/${ticket_id}`,
-                method: 'DELETE',
-            }),
-            invalidatesTags: ['ticket'],
-        }),
-        getTicketById: builder.query<Tickets, number>({
-            query: (ticket_id) => `tickets/${ticket_id}`,
-        }),
+  reducerPath: 'ticketsApi',
+  baseQuery: fetchBaseQuery({ baseUrl: ApiDomain }),
+  tagTypes: ['Tickets'],
+  endpoints: (builder) => ({
+    getTickets: builder.query<CustomerTickets[], void>({
+      query: () => '/customer-support',
+      providesTags: ['Tickets'],
     }),
+    // Change the hook name to 'useGetTicketByIdQuery'
+    getTicketById: builder.query<CustomerTickets, number>({
+      query: (id) => `customer-support/${id}`,
+      providesTags: [{ type: 'Tickets', id: 'LIST' }],
+    }),
+    addTicket: builder.mutation<CustomerTickets, Partial<CustomerTickets>>({
+      query: (newTickets) => ({
+        url: '/customer-support',
+        method: 'POST',
+        body: newTickets,
+      }),
+      invalidatesTags: [{ type: 'Tickets', id: 'LIST' }],
+    }),
+    updateTicket: builder.mutation<CustomerTickets, { id: number, updatedTicket: CustomerTickets }>({
+      query: ({ id, updatedTicket }) => ({
+        url: `/customer-support/${id}`,
+        method: 'PUT',
+        body: updatedTicket,
+      }),
+      invalidatesTags: [{ type: 'Tickets', id: 'LIST' }],
+    }),
+    deleteTicket: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `/customer-support/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: [{ type: 'Tickets', id: 'LIST' }],
+    }),
+  }),
 });
 
 export const {
-    useGetTicketsQuery,
-    useCreateTicketMutation,
-    useUpdateTicketMutation,
-    useDeleteTicketMutation,
-    useGetTicketByIdQuery,
+  useGetTicketsQuery,
+  useGetTicketByIdQuery,  // Updated hook name here
+  useAddTicketMutation,
+  useUpdateTicketMutation,
+  useDeleteTicketMutation,
 } = ticketAPI;

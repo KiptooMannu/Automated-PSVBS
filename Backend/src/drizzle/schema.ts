@@ -6,15 +6,24 @@ export const bookingStatusEnum = pgEnum("booking_status", ["pending", "confirmed
 export const ticketStatusEnum = pgEnum("ticket_status", ["paid", "failed", "refunded"]);
 export const paymentStatusEnum = pgEnum("payment_status", ["pending", "completed", "failed", "refunded"]);
 
+// Auth Table
+export const authTable = pgTable("auth", {
+    auth_id: serial("auth_id").primaryKey(),
+    user_id: integer("user_id").notNull().references(() => userTable.user_id, { onDelete: "cascade" }),
+    username: varchar("username", { length: 255 }).notNull().unique(),
+    password_hash: varchar("password_hash", { length: 255 }).notNull(),
+    role: roleEnum("role").default("user"), // e.g., 'user', 'admin'
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+    is_deleted: boolean("is_deleted").default(false),
+});
 // Users Table
 export const userTable = pgTable("users", {
     user_id: serial("user_id").primaryKey(),
     first_name: varchar("first_name"),
     last_name: varchar("last_name"),
     email: varchar("email").notNull().unique(),
-    password: varchar("password").notNull(),
     phone_number: varchar("phone_number"),
-    user_type: roleEnum("user_type").default("user"),
     image_url: varchar("image_url", { length: 255 }),
     isVerified: boolean("is_verified").default(false),
     created_at: timestamp("created_at").defaultNow(),
@@ -53,14 +62,13 @@ export const seatTable = pgTable("seats", {
     created_at: timestamp("created_at").defaultNow(),
     updated_at: timestamp("updated_at").defaultNow(),
 });
-
 // Tickets Table
 export const ticketTable = pgTable("tickets", {
     ticket_id: serial("ticket_id").primaryKey(),
     user_id: integer("user_id").notNull().references(() => userTable.user_id, { onDelete: "cascade" }),
     subject: varchar("subject").notNull(),
     description: text("description").notNull(),
-    status: ticketStatusEnum("ticket_status").default("paid"), // Default status 'paid' (ticket confirmation after payment)
+    status: ticketStatusEnum("ticket_status").default("paid"),
     created_at: timestamp("created_at").defaultNow(),
     updated_at: timestamp("updated_at").defaultNow(),
 });
@@ -95,10 +103,11 @@ export const paymentsTable = pgTable("payments", {
     transaction_reference: varchar("transaction_reference", { length: 100 }).notNull().unique(),
     payment_date: timestamp("payment_date").defaultNow(),
     ticket_id: integer("ticket_id")
-        .references(() => ticketTable.ticket_id, { onDelete: "cascade" }), // Linking payment to a ticket
+        .references(() => ticketTable.ticket_id, { onDelete: "cascade" }),
     created_at: timestamp("created_at").defaultNow(),
     updated_at: timestamp("updated_at").defaultNow(),
 });
+
 
 // Define types for insertion and selection
 export type TIUsers = typeof userTable.$inferInsert;
@@ -118,5 +127,9 @@ export type TSTickets = typeof ticketTable.$inferSelect;
 
 export type TIPayments = typeof paymentsTable.$inferInsert;
 export type TSPayments = typeof paymentsTable.$inferSelect;
+
+export type TIAuth = typeof authTable.$inferInsert;
+export type TSAuth = typeof authTable.$inferSelect;
+
 
 //==========================================================================================================

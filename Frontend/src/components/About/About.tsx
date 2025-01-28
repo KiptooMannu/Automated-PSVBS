@@ -1,19 +1,19 @@
 import { CheckCircle } from "lucide-react";
 
 const AboutSection = () => {
-  // Local image URL (public folder)
-  const imageURL = "../../../src/assets/Bus.jpg";  // Adjust this path based on where you placed your image
+
+  const imageURL = "../../../src/assets/hero3.jpg";  
 
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="flex flex-col lg:flex-row items-center lg:space-x-8">
         {/* Image Section */}
-        <div className="lg:w-1/2 mb-8 lg:mb-0">
-          <div className="max-w-lg mx-auto lg:mx-0">
+        <div className="lg:w-1/2 mb-8 lg:mb-0 h-full">
+          <div className="max-w-lg mx-auto lg:mx-0 h-full">
             <img
               src={imageURL}
               alt="Public Transport Bus"
-              className="w-full rounded-lg shadow-lg object-cover" // Ensures the image covers the space properly
+              className="w-full h-full rounded-lg shadow-lg object-cover"
               loading="lazy"
             />
           </div>
@@ -22,9 +22,9 @@ const AboutSection = () => {
         {/* Text Section */}
         <div className="lg:w-1/2">
           <div className="max-w-lg mx-auto lg:mx-0">
-          <h2 className=" text-3xl font-bold mb-8 text-primary">
-        About Us
-      </h2>
+            <h1 className="font-bold text-4xl text-[#000d6b] mt-4">
+              About Us
+            </h1>
             <h2 className="text-4xl font-bold mb-6">Welcome to SeatEase.io</h2>
             <p className="text-lg text-gray-700 leading-relaxed mb-6">
               At SeatEase.io, we are revolutionizing the public transportation
@@ -52,6 +52,34 @@ const AboutSection = () => {
               </p>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Stats Section */}
+      <div className="about-stats mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="stat-item text-center p-6 bg-gray-100 rounded-lg shadow-md transform hover:scale-105 transition-transform duration-300">
+          <p className="text-lg text-gray-600 mb-2">Customers</p>
+          <h4 className="text-3xl text-maroon-600 font-bold mb-2">150+</h4>
+          <p className="text-lg text-gray-600">Total Customers</p>
+        </div>
+   
+     
+        <div className="stat-item text-center p-6 bg-gray-100 rounded-lg shadow-md transform hover:scale-105 transition-transform duration-300">
+          <p className="text-lg text-gray-600 mb-2">Tickets</p>
+          <h4 className="text-3xl text-maroon-600 font-bold mb-2">5,000+</h4>
+          <p className="text-lg text-gray-600">Total Vehicles</p>
+        </div>
+      
+        <div className="stat-item text-center p-6 bg-gray-100 rounded-lg shadow-md transform hover:scale-105 transition-transform duration-300">
+          <p className="text-lg text-gray-600 mb-2">Routes</p>
+          <h4 className="text-3xl text-maroon-600 font-bold mb-2">200+</h4>
+          <p className="text-lg text-gray-600">Total Routes</p>
+        </div>
+        
+        <div className="stat-item text-center p-6 bg-gray-100 rounded-lg shadow-md transform hover:scale-105 transition-transform duration-300">
+          <p className="text-lg text-gray-600 mb-2">Vehicles</p>
+          <h4 className="text-3xl text-maroon-600 font-bold mb-2">1,000+</h4>
+          <p className="text-lg text-gray-600">Total Vehicles</p>
         </div>
       </div>
     </div>
