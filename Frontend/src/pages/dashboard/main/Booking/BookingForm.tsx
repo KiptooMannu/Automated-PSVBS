@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useFetchCarSpecsQuery, Vehicle } from "../../../../features/vehicles/vehicleAPI";
 import MapSeatModal from "./MapSeat";
-import { toast } from "react-toastify";
 
 const BookingForm: React.FC = () => {
   const [vehicleType, setVehicleType] = useState<string>(""); // State for filtering by type
