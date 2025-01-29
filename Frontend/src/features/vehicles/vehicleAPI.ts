@@ -8,6 +8,7 @@ export interface Vehicle {
   capacity: number;
   vehicle_type: string;
   model_year?: number;
+  cost: number;
   current_location: string;
   is_active: boolean;
   image_url: string;

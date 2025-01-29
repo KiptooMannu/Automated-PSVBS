@@ -176,7 +176,7 @@ const filteredVehicles = vehicles?.filter((vehicle) => {
                         <p>Destination: {vehicle.departure}</p>
                         <p>Departure Location: {vehicle.destination}</p>
                         <p><strong>Remaining seats: {}</strong></p>
-                        <p><strong>Cost: 1600</strong></p>
+                        <p><strong>Cost: {vehicle.cost}</strong></p>
                       </div>
                       <button
                         type="button"

@@ -65,6 +65,7 @@ const VehiclesPage: React.FC = () => {
             <p className="text-white mb-2 flex items-center justify-between">{vehicle.registration_number}</p>
             <h2 className="text-2xl font-semibold text-white mb-4">{vehicle.capacity}</h2>
             <p className="text-white mb-2 flex items-center justify-between">{vehicle.current_location}</p>
+            <p className="text-white mb-2 flex items-center justify-between">{vehicle.cost}</p>
             <p className="text-white mb-2 flex items-center justify-between">{vehicle.license_plate}</p>
             <div className="text-sm text-white mb-2 flex items-center justify-between">
               <strong>{vehicle.vehicle_type}</strong>{' '}

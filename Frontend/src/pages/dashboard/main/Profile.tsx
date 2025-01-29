@@ -59,6 +59,7 @@ const Profile = () => {
         email: userData.email,
         phone_number: userData.phone_number,
         image_url: userData.image_url,
+        isVerified: userData.is_verified,
       });
     }
   }, [userData, reset]);
@@ -118,7 +119,7 @@ const Profile = () => {
               className="rounded-full h-32 w-32 object-cover border-4 border-white"
               alt="User Avatar"
             />
-            {userData.isVerified ? (
+            {userData.is_verified ? (
               <div className="absolute bottom-0 right-0 p-1 bg-green-700 rounded-full border-2 border-white">
                 <MdCheckCircle className="text-green-600 w-6 h-6" title="Verified" />
               </div>
@@ -138,7 +139,7 @@ const Profile = () => {
             </h1>
             <div className="space-y-2">
               <div className="flex items-center">
-                <MdEmail className="text-blue-400 mr-2" />
+                <MdEmail className="text-red-600 mr-2" />
                 <p className="text-lg font-semibold">Email:</p>
                 <p className="text-lg ml-2">{userData.email}</p>
               </div>

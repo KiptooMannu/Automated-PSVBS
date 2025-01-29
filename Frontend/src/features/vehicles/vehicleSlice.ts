@@ -14,6 +14,7 @@ type vehicles = {
     current_location: string;
     capacity: number;
     image_url: string;
+    cost: number;
     destination: string;
     departure: string;
 };
