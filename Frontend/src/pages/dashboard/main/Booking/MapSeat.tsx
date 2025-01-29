@@ -73,15 +73,15 @@
 //   const { register, handleSubmit,formState: { errors }} = useForm<bookingData>({ resolver: yupResolver(schema) });
 
 
-//   // Transform seats into a grid structure (5 seats per row)
-//   // const seats = seatsData
-//   //   ? seatsData.reduce((rows: string[][], seat: any, index: number) => {
-//   //       const rowIndex = Math.floor(index / 5);
-//   //       if (!rows[rowIndex]) rows[rowIndex] = [];
-//   //       rows[rowIndex].push(seat.seat_number);
-//   //       return rows;
-//   //     }, [])
-//   //   : [];
+// Transform seats into a grid structure (5 seats per row)
+// const seats = seatsData
+//   ? seatsData.reduce((rows: string[][], seat: any, index: number) => {
+//       const rowIndex = Math.floor(index / 5);
+//       if (!rows[rowIndex]) rows[rowIndex] = [];
+//       rows[rowIndex].push(seat.seat_number);
+//       return rows;
+//     }, [])
+//   : [];
 
 //   // const handleSeatClick = (seat: string) => {
 //   //   setSelectedSeats((prevSelected) =>
@@ -96,7 +96,7 @@
 //       ...externalData,
 //       ...formData
 //   }
-  
+
 //   try {
 //     setIsSubmitting(true);
 //    await bookingDetails(dataToSubmit).unwrap();
@@ -120,7 +120,7 @@
 //   if (!vehicle) {
 //     return <div>No vehicle data available</div>;
 //   }
-  
+
 
 //   return (
 //     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
@@ -261,6 +261,7 @@ import { useSelector } from 'react-redux';
 import { Vehicle } from '../../../../features/vehicles/vehicleAPI';
 import { useCreateBookingVehicleMutation } from '../../../../features/booking/bookingAPI';
 import { toast } from 'sonner';
+// import { useGetSeatsQuery } from '../../../../features/seats/seatsAPI';
 
 interface MapSeatModalProps {
   vehicle: Vehicle;
@@ -293,6 +294,11 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose }) => {
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  //   //fetch seats
+  // const { data: seatsData, isLoading } = useGetSeatsQuery();
+  // console.log(seatsData);
+  const seatsData = ["A1", "A2", "A3", "B1", "B2", "B3", "C1", "C2", "C3"]
+
   const navigate = useNavigate();
   const [createBooking] = useCreateBookingVehicleMutation();
   // console.log('create booking:' ,createBooking);
@@ -305,7 +311,8 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose }) => {
 
   };
 
-  const { register, handleSubmit, formState: { errors } } = useForm<BookingData>({ resolver: yupResolver(schema)
+  const { register, handleSubmit, formState: { errors } } = useForm<BookingData>({
+    resolver: yupResolver(schema)
   });
 
   const onSubmit: SubmitHandler<BookingData> = async (formData) => {
@@ -331,21 +338,40 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose }) => {
       setIsSubmitting(false);
     }
   };
-   const calculateRemainingSeats = (vehicle: Vehicle) => {
-      //logic is vehicle.capacity - booked seats
-      // if booked seats is not available then vehicle.capacity
-      const bookedSeats = 0;
-      if (vehicle.capacity - bookedSeats > 0) {
-        return vehicle.capacity - bookedSeats;
-      } else {
-        return vehicle.capacity;
-      }
-    };
-    // console.log('remaining seats', calculateRemainingSeats(vehicle));
-    const remainingSeats = calculateRemainingSeats(vehicle);
-    // calculate total amount
-    
-    
+  const calculateRemainingSeats = (vehicle: Vehicle) => {
+    //logic is vehicle.capacity - booked seats
+    // if booked seats is not available then vehicle.capacity
+    const bookedSeats = 0;
+    if (vehicle.capacity - bookedSeats > 0) {
+      return vehicle.capacity - bookedSeats;
+    } else {
+      return vehicle.capacity;
+    }
+  };
+  // console.log('remaining seats', calculateRemainingSeats(vehicle));
+  const remainingSeats = calculateRemainingSeats(vehicle);
+  // calculate total amount
+
+  //
+  // Transform seats into a grid structure (5 seats per row)
+  const seats = seatsData
+    ? seatsData.reduce((rows: string[][], seat: any, index: number) => {
+      const rowIndex = Math.floor(index / 5);
+      if (!rows[rowIndex]) rows[rowIndex] = [];
+      rows[rowIndex].push(seat.seat_number);
+      return rows;
+    }, [])
+    : [];
+
+
+  const handleSeatClick = (seat: string) => {
+    setSelectedSeats((prevSelected) =>
+      prevSelected.includes(seat)
+        ? prevSelected.filter((selected) => selected !== seat)
+        : [...prevSelected, seat]
+    );
+  };
+
 
 
 
@@ -356,9 +382,23 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
       <Toaster />
-      <div className="bg-blue-500 p-6 rounded-lg shadow-lg w-full md:w-3/4 lg:w-3/4 max-h-screen overflow-auto">
+      <div className="bg-blue-50 p-6 rounded-lg shadow-lg w-full md:w-3/4 lg:w-3/4 max-h-screen overflow-auto">
         <h2 className="text-xl font-bold mb-4">Select Seats</h2>
-        
+
+        <div className="grid grid-cols-7 gap-2 justify-center p-4 bg-black">
+          {seatsData.map((seat) => (
+            <button
+              key={seat}
+              className={`p-2 rounded-lg border ${selectedSeats.includes(seat) ? "bg-green-500 text-white" : "bg-gray-200"
+                }`}
+              onClick={() => handleSeatClick(seat)}
+            >
+              {seat}
+            </button>
+          ))}
+        </div>
+
+
         {/* Selected Seats Info */}
         <div className="mt-7">
           <h2 className="text-xl font-semibold text-center">Selected Seats</h2>
@@ -375,10 +415,10 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose }) => {
         {/* form */}
         {vehicle.is_active ? (
           <>
-            <h1 className="text-xl font-bold mb-4 text-webcolor text-center p-5">Booking Vehicle</h1>
+            <h1 className="text-xl font-bold mb-4 text-webcolor text-center p-5">Continue Booking...</h1>
             <p className='text-2xl text-center'><strong>Remaining Seats:{remainingSeats}</strong></p>
-            <h4 className='text-center'>Total Amount: {}</h4>
-            <div className="p-5 rounded-lg card lg:w-3/4 border-2  bg-blue-300  m-auto">
+            <h4 className='text-center'>Total Amount: { }</h4>
+            <div className="p-5 rounded-lg card lg:w-3/4 border-2  bg-blue-50  m-auto">
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div className="flex flex-col lg:flex-row space-x-4 w-full">
                   <div className="form-control lg:w-1/2">
@@ -397,7 +437,7 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose }) => {
                   <button
                     type="submit"
                     className="btn bg-webcolor text-text-light hover:text-green border-none w-1/4 m-auto"
-                    // disabled={isSubmitting}
+                  // disabled={isSubmitting}
                   >
                     {isSubmitting ? (
                       <>
