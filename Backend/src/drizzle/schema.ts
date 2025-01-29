@@ -82,7 +82,7 @@ export const bookingTable = pgTable("bookings", {
     booking_id: serial("booking_id").primaryKey(),
     user_id: integer("user_id").notNull().references(() => userTable.user_id, { onDelete: "cascade" }),
     vehicle_id: varchar("vehicle_id").notNull().references(() => vehicleTable.registration_number, { onDelete: "cascade" }),
-    seat_id: integer("seat_id").notNull().references(() => seatTable.seat_id, { onDelete: "cascade" }),
+    seat_ids: integer("seat_ids").array().notNull(), // Array of seat_ids for multiple seats
     departure_date: timestamp("departure_date").notNull(),
     departure_time: varchar("departure_time").notNull(),
     estimated_arrival: varchar("estimated_arrival").notNull(),
