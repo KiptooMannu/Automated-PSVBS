@@ -39,6 +39,7 @@ export const vehicleTable = pgTable("vehicles", {
     license_plate: varchar("license_plate", { length: 20 }).notNull().unique(),
     capacity: integer("capacity").notNull(),
     vehicle_type: varchar("vehicle_type", { length: 50 }).notNull(),
+    cost:integer("cost").notNull(),
     model_year: integer("model_year"),
     current_location: varchar("current_location", { length: 255 }).notNull(),
     departure: varchar("departure").notNull(),
@@ -48,6 +49,7 @@ export const vehicleTable = pgTable("vehicles", {
     created_at: timestamp("created_at").defaultNow(),
     updated_at: timestamp("updated_at").defaultNow(),
     is_deleted: boolean("is_deleted").default(false),
+
 });
 
 // Seats Table
