@@ -4,10 +4,10 @@ async function migration() {
     try {
         console.log("==Migration Started==");
 
-        // Manually alter the vehicles table to add the "cost" column
-        await db.execute(`
-          ALTER TABLE vehicles ADD COLUMN cost INTEGER DEFAULT 0 NOT NULL;
-        `);
+        // // Manually alter the vehicles table to add the "cost" column
+        // await db.execute(`
+        //   ALTER TABLE vehicles ADD COLUMN cost INTEGER DEFAULT 0 NOT NULL;
+        // `);
 
         console.log("==Migration Finished==");
         process.exit(0);

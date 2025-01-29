@@ -5,7 +5,7 @@ CREATE TYPE "public"."ticket_status" AS ENUM('paid', 'failed', 'refunded');--> s
 CREATE TABLE IF NOT EXISTS "auth" (
 	"auth_id" serial PRIMARY KEY NOT NULL,
 	"user_id" integer NOT NULL,
-	"username" varchar(255) NOT NULL,
+	"username" varchar(255),
 	"password_hash" varchar(255) NOT NULL,
 	"role" "user_type" DEFAULT 'user',
 	"created_at" timestamp DEFAULT now(),
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS "bookings" (
 	"booking_id" serial PRIMARY KEY NOT NULL,
 	"user_id" integer NOT NULL,
 	"vehicle_id" varchar NOT NULL,
-	"seat_id" integer NOT NULL,
+	"seat_ids" integer[] NOT NULL,
 	"departure_date" timestamp NOT NULL,
 	"departure_time" varchar NOT NULL,
 	"estimated_arrival" varchar NOT NULL,
@@ -72,6 +72,7 @@ CREATE TABLE IF NOT EXISTS "users" (
 	"last_name" varchar,
 	"email" varchar NOT NULL,
 	"phone_number" varchar,
+	"password" varchar(255) NOT NULL,
 	"image_url" varchar(255),
 	"is_verified" boolean DEFAULT false,
 	"created_at" timestamp DEFAULT now(),
@@ -86,6 +87,7 @@ CREATE TABLE IF NOT EXISTS "vehicles" (
 	"license_plate" varchar(20) NOT NULL,
 	"capacity" integer NOT NULL,
 	"vehicle_type" varchar(50) NOT NULL,
+	"cost" integer NOT NULL,
 	"model_year" integer,
 	"current_location" varchar(255) NOT NULL,
 	"departure" varchar NOT NULL,
@@ -112,12 +114,6 @@ END $$;
 --> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "bookings" ADD CONSTRAINT "bookings_vehicle_id_vehicles_registration_number_fk" FOREIGN KEY ("vehicle_id") REFERENCES "public"."vehicles"("registration_number") ON DELETE cascade ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- ALTER TABLE "bookings" ADD CONSTRAINT "bookings_seat_id_seats_seat_id_fk" FOREIGN KEY ("seat_id") REFERENCES "public"."seats"("seat_id") ON DELETE cascade ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;

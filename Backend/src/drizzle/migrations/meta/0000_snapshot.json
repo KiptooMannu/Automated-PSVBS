@@ -1,5 +1,5 @@
 {
-  "id": "231c6617-c02a-4331-b9c9-ba11345e6bfb",
+  "id": "21bf73ac-2532-4aa4-8bae-929f50bf8dc5",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -24,7 +24,7 @@
           "name": "username",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "password_hash": {
           "name": "password_hash",
@@ -114,9 +114,9 @@
           "primaryKey": false,
           "notNull": true
         },
-        "seat_id": {
-          "name": "seat_id",
-          "type": "integer",
+        "seat_ids": {
+          "name": "seat_ids",
+          "type": "integer[]",
           "primaryKey": false,
           "notNull": true
         },
@@ -211,19 +211,6 @@
           ],
           "columnsTo": [
             "registration_number"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "bookings_seat_id_seats_seat_id_fk": {
-          "name": "bookings_seat_id_seats_seat_id_fk",
-          "tableFrom": "bookings",
-          "tableTo": "seats",
-          "columnsFrom": [
-            "seat_id"
-          ],
-          "columnsTo": [
-            "seat_id"
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
@@ -534,6 +521,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "password": {
+          "name": "password",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
         "image_url": {
           "name": "image_url",
           "type": "varchar(255)",
@@ -616,6 +609,12 @@
         "vehicle_type": {
           "name": "vehicle_type",
           "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cost": {
+          "name": "cost",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
