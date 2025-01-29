@@ -40,6 +40,7 @@ export const vehicleTable = pgTable("vehicles", {
     capacity: integer("capacity").notNull(),
     vehicle_type: varchar("vehicle_type", { length: 50 }).notNull(),
     model_year: integer("model_year"),
+    cost:integer("cost").notNull(),
     current_location: varchar("current_location", { length: 255 }).notNull(),
     departure: varchar("departure").notNull(),
     destination: varchar("destination").notNull(),
