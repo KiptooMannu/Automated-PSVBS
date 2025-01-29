@@ -14,6 +14,7 @@ export interface Vehicle {
   created_at?: string;
   updated_at?: string;
   is_deleted?: boolean;
+  cost: number; 
 }
 
 export const vehicleAPI = createApi({
