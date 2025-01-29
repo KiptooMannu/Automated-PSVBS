@@ -22,21 +22,23 @@ const BookingForm: React.FC = () => {
   // console.log("Selected Vehicle:", selectedVehicle);
 
   // Filter vehicles based on search criteria
-  const filteredVehicles = vehicles?.filter((vehicle) => {
-    const matchesType = vehicleType
-      ? vehicle.vehicle_type.toLowerCase().includes(vehicleType.toLowerCase())
-      : true;
-    const matchesLocation = currentLocation
-      ? vehicle.current_location.toLowerCase().includes(currentLocation.toLowerCase())
-      : true;
-    const matchesDeparture = departure
-      ? vehicle.departure.toLowerCase().includes(departure.toLowerCase())
-      : true;
-    const matchesDestination = destination
-      ? vehicle.destination.toLowerCase().includes(destination.toLowerCase())
-      : true;
-    return matchesType && matchesLocation;
-  });
+// Filter vehicles based on search criteria
+const filteredVehicles = vehicles?.filter((vehicle) => {
+  const matchesType = vehicleType
+    ? vehicle.vehicle_type?.toLowerCase().includes(vehicleType.toLowerCase()) // Safe optional chaining
+    : true;
+  const matchesLocation = currentLocation
+    ? vehicle.current_location?.toLowerCase().includes(currentLocation.toLowerCase()) // Safe optional chaining
+    : true;
+  const matchesDeparture = departure
+    ? vehicle.departure?.toLowerCase().includes(departure.toLowerCase()) // Safe optional chaining
+    : true;
+  const matchesDestination = destination
+    ? vehicle.destination?.toLowerCase().includes(destination.toLowerCase()) // Safe optional chaining
+    : true;
+
+  return matchesType && matchesLocation && matchesDeparture && matchesDestination;
+});
   //calculate remaining seats
  
 
@@ -147,11 +149,11 @@ const BookingForm: React.FC = () => {
                     }`}
                     onClick={() => setSelectedVehicle(vehicle)}
                   >
-                    {/* <img
+                    <img
                       src={vehicle.image_url}
                       alt={vehicle.vehicle_name}
                       className="w-full h-40 object-cover rounded-lg mb-4"
-                    /> */}
+                    />
                     <div className="p-4">
                       <h3 className="text-xl font-semibold text-gray-800 mb-2">
                         {vehicle.vehicle_name}

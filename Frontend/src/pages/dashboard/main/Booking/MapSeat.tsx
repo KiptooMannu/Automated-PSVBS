@@ -278,7 +278,7 @@ interface BookingData {
 const schema = yup.object().shape({
   // seat_number: yup.string().required('Seat number is required'),
   booking_date: yup.string().required('Booking date is required'),
-  // booking_time: yup.string().required('Booking time is required'),
+  booking_time: yup.string().required('Booking time is required'),
   // departure_time: yup.string().required('Departure time is required'),
   // booking_status: yup.string().required('Booking status is required'),
   departure: yup.string().required('Departure is required'),
