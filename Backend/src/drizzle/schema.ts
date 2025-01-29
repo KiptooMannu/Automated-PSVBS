@@ -134,6 +134,3 @@ export type TSPayments = typeof paymentsTable.$inferSelect;
 
 export type TIAuth = typeof authTable.$inferInsert;
 export type TSAuth = typeof authTable.$inferSelect;
-
-
-//==========================================================================================================
