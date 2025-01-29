@@ -15,14 +15,15 @@ export interface Tbooking {
   user_id: number;
   vehicle_id: number;
   seat_id: number;
+  booking_date: string;
+  departure_time: string;
   departure: string;
   destination: string;
+  
+  total_price: number;
   departure_date: string;
-  departure_time: string;
   estimated_arrival: string;
   price: number;
-  total_price: number;
-  booking_date: string;
   booking_status: string;
   is_active: string;
   payments: Payment[];
