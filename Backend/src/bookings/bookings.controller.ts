@@ -14,7 +14,8 @@ export const createBookingController = async (c: Context) => {
             user_id, 
             vehicle_id, 
             seat_ids, 
-            departure_date, 
+            booking_date,  // Explicitly expect booking_date
+            departure_date,  // Keep departure_date separately
             departure_time, 
             estimated_arrival,
             price, 
@@ -22,7 +23,7 @@ export const createBookingController = async (c: Context) => {
         } = await c.req.json();
 
         // Ensure all required fields are provided
-        if (!user_id || !vehicle_id || !seat_ids?.length || !price || !total_price) {
+        if (!user_id || !vehicle_id || !seat_ids?.length || !price || !total_price || !booking_date || !departure_date || !departure_time) {
             return c.json({ message: "Missing required booking details." }, 400);
         }
 
@@ -31,7 +32,8 @@ export const createBookingController = async (c: Context) => {
             user_id,
             vehicle_id,
             seat_ids,
-            departure_date,
+            booking_date,  // Pass booking_date as is
+            departure_date,  // Pass departure_date as is
             departure_time,
             estimated_arrival,
             price,
@@ -87,7 +89,8 @@ export const updateBookingController = async (c: Context) => {
             user_id, 
             vehicle_id, 
             seat_ids, 
-            departure_date, 
+            booking_date,  // Explicitly expect booking_date
+            departure_date,  // Keep departure_date separately
             departure_time, 
             estimated_arrival,
             price,
@@ -99,7 +102,7 @@ export const updateBookingController = async (c: Context) => {
         }
 
         // Ensure required fields are provided
-        if (!user_id || !vehicle_id || !seat_ids?.length || !price || !total_price) {
+        if (!user_id || !vehicle_id || !seat_ids?.length || !price || !total_price || !booking_date || !departure_date || !departure_time) {
             return c.json({ message: "Missing required booking details." }, 400);
         }
 
@@ -107,7 +110,8 @@ export const updateBookingController = async (c: Context) => {
             user_id,
             vehicle_id,
             seat_ids,
-            departure_date,
+            booking_date,  // Pass booking_date as is
+            departure_date,  // Pass departure_date as is
             departure_time,
             estimated_arrival,
             price,

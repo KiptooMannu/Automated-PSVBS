@@ -4,6 +4,10 @@ import { eq, inArray } from "drizzle-orm";  // Ensure inArray is imported here
 export const createBookingService = async (booking: TIBookings): Promise<string> => {
     console.log("Received booking data:", JSON.stringify(booking, null, 2));
 
+    if (!booking.booking_date) {
+        throw new Error("Missing required fields: booking_date");
+    }
+    
     const requiredFields: (keyof TIBookings)[] = ['user_id', 'vehicle_id', 'seat_ids', 'booking_date', 'departure_time'];
     const missingFields = requiredFields.filter(field => !(field in booking));
 
