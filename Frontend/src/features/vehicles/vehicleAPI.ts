@@ -17,7 +17,8 @@ export interface Vehicle {
   is_deleted?: boolean;
   booked_Seats?: number;
   departure:string;
-  destination:string;  
+  destination:string; 
+  price:number; 
 }
 
 export const vehicleAPI = createApi({

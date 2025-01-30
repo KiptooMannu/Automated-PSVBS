@@ -17,17 +17,13 @@ interface MapSeatModalProps {
 interface BookingData {
   booking_date: string;
   departure_time: string;
-  departure: string;
-  destination: string;
-  cost: number;
+  departure_date: string;
 }
 
 const schema = yup.object().shape({
   booking_date: yup.date().required("Booking date is required").min(new Date(), "Booking date cannot be in the past"),
   departure_time: yup.string().required('Departure time is required'),
-  // departure: yup.string().required('Departure is required'),
-  // destination: yup.string().required('Destination is required'),
-  // cost: yup.number().required('Cost is required'),
+  departure_date: yup.date().required("Departure date is required")
 });
 
 const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose }) => {
@@ -39,10 +35,8 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose }) => {
 
   const externalData = {
     user_id: user.user?.user_id,
-    // vehicle_id: Number(vehicle.registration_number),
     vehicle_id: vehicle.registration_number,
-    
-    };
+  };
 
   const {
     register,
@@ -58,15 +52,22 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose }) => {
       return;
     }
 
+    const formattedBookingDate = new Date(formData.booking_date).toISOString();
+    const formattedDepartureDate = new Date(formData.departure_date).toISOString();
+
     const dataToSubmit = {
       ...externalData,
       ...formData,
-      seat_ids: selectedSeats.map((seat) => Number(seat.replace('S', ''))), // Convert seat IDs to numbers
+      booking_date: formattedBookingDate, 
+      departure_date: formattedDepartureDate,
+      seat_ids: selectedSeats.map((seat) => Number(seat.replace('S', ''))),
       departure: vehicle.departure,
       destination: vehicle.destination,
-      cost: totalAmount,
+      price: vehicle.cost,  // Price for one seat
+      total_price: selectedSeats.length * vehicle.cost,  // Total price for selected seats
     };
-    console.log('Payload:', dataToSubmit);
+
+    console.log("Data to submit:", dataToSubmit);
 
     try {
       setIsSubmitting(true);
@@ -76,18 +77,19 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose }) => {
     } catch (err) {
       toast.error('Error creating booking');
       console.error('Error creating booking:', err);
+      console.log(err?.data);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const calculateRemainingSeats = () => {
-    const bookedSeats = vehicle.booked_Seats ?? 0; // Fallback to 0 if booked_seats is undefined
+    const bookedSeats = vehicle.booked_Seats ?? 0;
     return vehicle.capacity - bookedSeats > 0 ? vehicle.capacity - bookedSeats : 0;
   };
 
   const remainingSeats = calculateRemainingSeats();
-  const totalAmount = selectedSeats.length * vehicle.cost;
+  const totalAmount = selectedSeats.length * vehicle.cost;  // Price for one seat * number of selected seats
 
   const seats = Array.from({ length: vehicle.capacity }, (_, i) => `S${i + 1}`);
   const seatRows = [];
@@ -145,18 +147,19 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose }) => {
             <p className="text-lg text-center">
               <strong>Remaining Seats: {remainingSeats}</strong>
             </p>
-            {/* Add hidden fields for derived values */}
-            <input type="hidden" {...register('departure')} value={vehicle.departure} />
-              <input type="hidden" {...register('destination')} value={vehicle.destination} />
-              <input type="hidden" {...register('cost')} value={totalAmount} />
 
             <div className="p-5 bg-gray-50 rounded-lg shadow-md mt-4">
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div className="flex flex-col md:flex-row gap-4">
                   <div className="flex-1">
-                    <label className="font-semibold">Departure Date</label>
+                    <label className="font-semibold">Booking Date</label>
                     <input type="date" className="w-full p-2 border rounded" {...register('booking_date')} />
                     <p className="text-red-500 text-sm">{errors.booking_date?.message}</p>
+                  </div>
+                  <div className="flex-1">
+                    <label className="font-semibold">Departure Date</label>
+                    <input type="date" className="w-full p-2 border rounded" {...register('departure_date')} />
+                    <p className="text-red-500 text-sm">{errors.departure_date?.message}</p>
                   </div>
                   <div className="flex-1">
                     <label className="font-semibold">Departure Time</label>
