@@ -53,20 +53,7 @@ export const vehicleTable = pgTable("vehicles", {
 
 });
 
-// Seats Table
-export const seatTable = pgTable("seats", {
-    seat_id: serial("seat_id").primaryKey(),
-    vehicle_id: varchar("vehicle_id")
-        .notNull()
-        .references(() => vehicleTable.registration_number, { onDelete: "cascade" }),
-    seat_number: varchar("seat_number").notNull(),
-    is_available: boolean("is_available").default(true),
-    seat_type: varchar("seat_type").default("regular"),
-    price: decimal("price").notNull(),
-    created_at: timestamp("created_at").defaultNow(),
-    updated_at: timestamp("updated_at").defaultNow(),
-});
-// Tickets Table
+
 export const ticketTable = pgTable("tickets", {
     ticket_id: serial("ticket_id").primaryKey(),
     user_id: integer("user_id").notNull().references(() => userTable.user_id, { onDelete: "cascade" }),
@@ -77,25 +64,7 @@ export const ticketTable = pgTable("tickets", {
     updated_at: timestamp("updated_at").defaultNow(),
 });
 
-// Bookings Table
-export const bookingTable = pgTable("bookings", {
-    booking_id: serial("booking_id").primaryKey(),
-    user_id: integer("user_id").notNull().references(() => userTable.user_id, { onDelete: "cascade" }),
-    vehicle_id: varchar("vehicle_id").notNull().references(() => vehicleTable.registration_number, { onDelete: "cascade" }),
-    seat_ids: integer("seat_ids").array().notNull(), // Array of seat_ids for multiple seats
-    departure_date: timestamp("departure_date").notNull(),
-    departure_time: varchar("departure_time").notNull(),
-    estimated_arrival: varchar("estimated_arrival").notNull(),
-    price: decimal("price").notNull(),
-    total_price: decimal("total_price").notNull(),
-    booking_status: bookingStatusEnum("booking_status").default("pending"),
-    booking_date: timestamp("booking_date").defaultNow(),
-    is_active: boolean("is_active").default(true),
-    created_at: timestamp("created_at").defaultNow(),
-    updated_at: timestamp("updated_at").defaultNow(),
-});
 
-// Payments Table
 export const paymentsTable = pgTable("payments", {
     payment_id: serial("payment_id").primaryKey(),
     booking_id: integer("booking_id")
@@ -108,6 +77,38 @@ export const paymentsTable = pgTable("payments", {
     payment_date: timestamp("payment_date").defaultNow(),
     ticket_id: integer("ticket_id")
         .references(() => ticketTable.ticket_id, { onDelete: "cascade" }),
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+});
+
+
+
+export const seatTable = pgTable("seats", {
+    seat_id: serial("seat_id").primaryKey(),
+    vehicle_id: varchar("vehicle_id")
+        .notNull()
+        .references(() => vehicleTable.registration_number, { onDelete: "cascade" }),
+    seat_number: varchar("seat_number").notNull(),
+    is_available: boolean("is_available").default(true),
+    seat_type: varchar("seat_type").default("regular"),
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+});
+
+
+export const bookingTable = pgTable("bookings", {
+    booking_id: serial("booking_id").primaryKey(),
+    user_id: integer("user_id").notNull().references(() => userTable.user_id, { onDelete: "cascade" }),
+    vehicle_id: varchar("vehicle_id").notNull().references(() => vehicleTable.registration_number, { onDelete: "cascade" }),
+    seat_ids: integer("seat_ids").array().notNull(), // Handles both single & multiple seats
+    departure_date: timestamp("departure_date").notNull(),
+    departure_time: varchar("departure_time").notNull(),
+    estimated_arrival: varchar("estimated_arrival"),
+    price: decimal("price").notNull(), // Price for **one seat** (per vehicle)
+    total_price: decimal("total_price").notNull(), // `price * seat_ids.length`
+    booking_status: bookingStatusEnum("booking_status").default("pending"),
+    booking_date: timestamp("booking_date").defaultNow(),
+    is_active: boolean("is_active").default(true),
     created_at: timestamp("created_at").defaultNow(),
     updated_at: timestamp("updated_at").defaultNow(),
 });

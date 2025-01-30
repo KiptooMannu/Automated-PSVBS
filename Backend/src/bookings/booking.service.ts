@@ -1,7 +1,54 @@
-
 import db from "../drizzle/db";
-import { TIBookings, bookingTable, seatTable } from "../drizzle/schema"; // Assuming TBooking type and BookingTable schema
-import { eq } from "drizzle-orm";
+import { TIBookings, bookingTable, seatTable } from "../drizzle/schema"; // Assuming TIBooking type and BookingTable schema
+import { eq, inArray } from "drizzle-orm";  // Ensure inArray is imported here
+export const createBookingService = async (booking: TIBookings): Promise<string> => {
+    console.log("Received booking data:", JSON.stringify(booking, null, 2));
+
+    const requiredFields: (keyof TIBookings)[] = ['user_id', 'vehicle_id', 'seat_ids', 'booking_date', 'departure_time'];
+    const missingFields = requiredFields.filter(field => !(field in booking));
+
+    if (missingFields.length > 0) {
+        console.error(`Missing required fields: ${missingFields.join(", ")}`);
+        throw new Error(`Missing required fields: ${missingFields.join(", ")}`);
+    }
+
+    const seatIds = booking.seat_ids; // Array of seat IDs (could be a single seat or multiple)
+
+    console.log(`Checking availability for seat IDs: ${seatIds.join(", ")}`);
+
+    const unavailableSeats = await db.query.seatTable.findMany({
+        where: inArray(seatTable.seat_id, seatIds),
+    });
+
+    const unavailableSeatsIds = unavailableSeats.filter(seat => !seat.is_available).map(seat => seat.seat_id);
+
+    if (unavailableSeatsIds.length > 0) {
+        console.error(`Unavailable seats: ${unavailableSeatsIds.join(", ")}`);
+        throw new Error(`Seats not available: ${unavailableSeatsIds.join(", ")}`);
+    }
+
+    console.log("All seats are available, proceeding with booking.");
+
+    // If estimated_arrival is not provided, it will automatically be undefined and you can leave it out
+    const { estimated_arrival } = booking; // Will be undefined if not provided
+    // Proceed with inserting the booking (no need to pass departure_date)
+    const { departure_date, ...restOfBooking } = booking; // Remove departure_date if present
+
+    // Proceed with inserting the booking
+    await db.insert(bookingTable).values({
+        ...booking,
+        estimated_arrival: estimated_arrival ?? null,  // If not provided, set it as null
+    });
+
+    // Mark the selected seats as unavailable after booking
+    await db.update(seatTable)
+        .set({ is_available: false })
+        .where(inArray(seatTable.seat_id, seatIds));
+
+    console.log("Booking created successfully with seat IDs:", seatIds.join(", "));
+    return "Booking created successfully";
+};
+
 
 // Get all bookings
 export const getAllBookingsService = async (): Promise<TIBookings[] | null> => {
@@ -15,37 +62,6 @@ export const getBookingByIdService = async (booking_id: number): Promise<TIBooki
         where: eq(bookingTable.booking_id, booking_id),
     });
     return booking;
-};
-
-// Create booking
-export const createBookingService = async (booking: TIBookings): Promise<string> => {
-    const seatIds = booking.seat_ids;  // Array of seat IDs
-
-    // Check availability for all seats
-    const unavailableSeats = [];
-    for (const seat_id of seatIds) {
-        const seat = await db.query.seatTable.findFirst({
-            where: eq(seatTable.seat_id, seat_id),
-        });
-
-        if (!seat || !seat.is_available) {
-            unavailableSeats.push(seat_id);
-        }
-    }
-
-    // if (unavailableSeats.length > 0) {
-    //     throw new Error(`Seats not available: ${unavailableSeats.join(", ")}`);
-    // }
-
-    // Proceed with creating the booking
-    await db.insert(bookingTable).values(booking);
-
-    // Mark the seats as unavailable after booking
-    for (const seat_id of seatIds) {
-        await db.update(seatTable).set({ is_available: false }).where(eq(seatTable.seat_id, seat_id));
-    }
-
-    return "Booking created successfully";
 };
 
 // Update booking

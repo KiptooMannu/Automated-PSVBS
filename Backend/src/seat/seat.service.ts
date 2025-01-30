@@ -2,11 +2,13 @@ import  db  from "../drizzle/db";
 import { seatTable,TISeats,TSSeats } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 
+
 // Get all seats
-export const getAllSeatsService = async (): Promise<TSSeats[] | null> => {
+export const getAllSeatsService = async (): Promise<TSSeats[]> => {
   const seats = await db.query.seatTable.findMany();
-  return seats;
+  return seats ?? []; // Ensure it always returns an array
 };
+
 
 // Get seat by ID
 export const getSeatByIdService = async (seat_id: number): Promise<TSSeats | undefined> => {
@@ -34,10 +36,9 @@ export const deleteSeatService = async (seat_id: number): Promise<string> => {
   return "Seat deleted successfully";
 };
 
-// get seat by getSeatByVehicleIdService
-export const getSeatByVehicleIdService = async (vehicle_id: string): Promise<TSSeats[] | null> => {
-  const seats = await db.query.seatTable.findMany({
-    where: eq(seatTable.vehicle_id, vehicle_id),
+// Get seats by vehicle ID
+export const getSeatByVehicleIdService = async (vehicle_id: string): Promise<TSSeats[]> => {
+  return await db.query.seatTable.findMany({
+      where: eq(seatTable.vehicle_id, vehicle_id),
   });
-  return seats;
 };

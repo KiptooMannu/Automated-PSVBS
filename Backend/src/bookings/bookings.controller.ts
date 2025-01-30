@@ -1,105 +1,140 @@
-// booking.controller.ts
-import { Context } from "hono";
-import {
+import { Context } from 'hono';
+import { 
+    createBookingService,
     getAllBookingsService,
     getBookingByIdService,
-    createBookingService,
     updateBookingService,
     deleteBookingService
-} from "./booking.service";
+} from './booking.service';
 
-// Get all bookings
+// Create booking controller
+export const createBookingController = async (c: Context) => {
+    try {
+        const { 
+            user_id, 
+            vehicle_id, 
+            seat_ids, 
+            departure_date, 
+            departure_time, 
+            estimated_arrival,
+            price, 
+            total_price
+        } = await c.req.json();
+
+        // Ensure all required fields are provided
+        if (!user_id || !vehicle_id || !seat_ids?.length || !price || !total_price) {
+            return c.json({ message: "Missing required booking details." }, 400);
+        }
+
+        // Call the service to create the booking
+        const result = await createBookingService({
+            user_id,
+            vehicle_id,
+            seat_ids,
+            departure_date,
+            departure_time,
+            estimated_arrival,
+            price,
+            total_price,
+        });
+
+        return c.json({ message: result }, 201); // Return success message
+
+    } catch (error) {
+        console.error("Error creating booking:", error);
+        return c.json({ message: "Internal server error." }, 500);
+    }
+};
+
+// Get all bookings controller
 export const getAllBookingsController = async (c: Context) => {
     try {
         const bookings = await getAllBookingsService();
-        if (!bookings || bookings.length === 0) {
-            return c.text("No bookings found😒", 404);
-        }
-        return c.json(bookings, 200);
-    } catch (error: any) {
-        return c.json({ error: error?.message }, 500);
+        return c.json({ bookings }, 200); // Return all bookings
+
+    } catch (error) {
+        console.error("Error fetching all bookings:", error);
+        return c.json({ message: "Internal server error." }, 500);
     }
 };
 
-
-// Create booking
-export const createBookingController = async (c: Context) => {
-    try {
-        const booking = await c.req.json();
-        // Convert date fields to Date objects
-        if (booking.departure_date) {
-            booking.departure_date = new Date(booking.departure_date);
-        }
-        if (booking.booking_date) {
-            booking.booking_date = new Date(booking.booking_date);
-        }
-        const newBooking = await createBookingService(booking);
-        // check if booking was created successfully
-        if (newBooking === undefined) return c.json({ message: "Booking creation failed😒" }, 400);
-        return c.json({ message: "Booking created successfully🥳", booking: newBooking }, 201);
-    } catch (error: any) {
-        return c.json({ error: error?.message }, 500);
-    }
-};
-
-//get booking by id
+// Get booking by ID controller
 export const getBookingByIdController = async (c: Context) => {
     try {
-        const id = parseInt(c.req.param("id"));
-        if (isNaN(id)) return c.text("Invalid booking id😒", 400);
-        const booking = await getBookingByIdService(id);
-        if (booking === undefined) return c.json({ message: "No booking found with this id😒" }, 404);
-        return c.json(booking, 200);
-    } catch (error: any) {
-        return c.json({ error: error?.message }, 500);
-    }
-}
+        const bookingId = c.req.param('id'); // Get booking ID from URL param
+        if (!bookingId) {
+            return c.json({ message: "Booking ID is required." }, 400);
+        }
 
-// Update booking
+        const booking = await getBookingByIdService(Number(bookingId));
+        if (!booking) {
+            return c.json({ message: "Booking not found." }, 404);
+        }
+
+        return c.json({ booking }, 200);
+
+    } catch (error) {
+        console.error("Error fetching booking by ID:", error);
+        return c.json({ message: "Internal server error." }, 500);
+    }
+};
+
+// Update booking controller
 export const updateBookingController = async (c: Context) => {
     try {
-        const id = parseInt(c.req.param("id"));
-        if (isNaN(id)) return c.text("Invalid booking id😒", 400);
-        const booking = await c.req.json();
-        // Convert date fields to Date objects
-        if (booking.departure_date) {
-            booking.departure_date = new Date(booking.departure_date);
+        const bookingId = c.req.param('id'); // Get booking ID from URL param
+        const { 
+            user_id, 
+            vehicle_id, 
+            seat_ids, 
+            departure_date, 
+            departure_time, 
+            estimated_arrival,
+            price,
+            total_price 
+        } = await c.req.json();
+
+        if (!bookingId) {
+            return c.json({ message: "Booking ID is required." }, 400);
         }
-        if (booking.booking_date) {
-            booking.booking_date = new Date(booking.booking_date);
+
+        // Ensure required fields are provided
+        if (!user_id || !vehicle_id || !seat_ids?.length || !price || !total_price) {
+            return c.json({ message: "Missing required booking details." }, 400);
         }
-        const updatedBooking = await updateBookingService(id, booking);
-        if (updatedBooking === undefined) return c.json({ message: "No booking found with this id😒" }, 404);
-        return c.json({ message: "Booking updated successfully🥳", booking: updatedBooking }, 200);
-    } catch (error: any) {
-        return c.json({ error: error?.message }, 500);
+
+        const result = await updateBookingService(Number(bookingId), {
+            user_id,
+            vehicle_id,
+            seat_ids,
+            departure_date,
+            departure_time,
+            estimated_arrival,
+            price,
+            total_price,
+        });
+
+        return c.json({ message: result }, 200); // Return success message
+
+    } catch (error) {
+        console.error("Error updating booking:", error);
+        return c.json({ message: "Internal server error." }, 500);
     }
 };
 
-// Delete /cancel booking
+// Delete booking controller
 export const deleteBookingController = async (c: Context) => {
     try {
-        const id = parseInt(c.req.param("id"));
-        if (isNaN(id)) return c.text("Invalid booking id", 400);
-        const deletedBooking = await deleteBookingService(id);
-        if (deletedBooking === undefined) return c.json({ message: "No booking found with this id😒" }, 404);
-        return c.json({ message: "Booking deleted successfully🥳", booking: deletedBooking }, 200);
-    } catch (error: any) {
-        return c.json({ error: error?.message }, 500);
+        const bookingId = c.req.param('id'); // Get booking ID from URL param
+        if (!bookingId) {
+            return c.json({ message: "Booking ID is required." }, 400);
+        }
+
+        const result = await deleteBookingService(Number(bookingId));
+        return c.json({ message: result }, 200);
+
+    } catch (error) {
+        console.error("Error deleting booking:", error);
+        return c.json({ message: "Internal server error." }, 500);
     }
 };
-
-
-
-// export const cancelBooking = async (c: Context) => {
-//     const bookingId = parseInt(c.req.param("booking_id"));
-//     try{
-//         if(isNaN(bookingId)) return c.text("Invalid booking id", 400);
-//         // cancel booking by id
-//         const cancelledBooking = await cancelBookingService(bookingId);
-//         if(cancelledBooking===undefined) return c.json({message: "No booking found with this id"},404);
-//         return c.json({message: "Booking cancelled successfully", booking: cancelledBooking}, 200);
-//     } catch(error: any){
-//         return c.text(error?.message, 400);
-//     }
-// }
