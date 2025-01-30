@@ -18,7 +18,6 @@ export interface Vehicle {
   booked_Seats?: number;
   departure:string;
   destination:string;  
-  
 }
 
 export const vehicleAPI = createApi({

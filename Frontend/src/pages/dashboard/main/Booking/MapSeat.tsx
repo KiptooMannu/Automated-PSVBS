@@ -1,15 +1,13 @@
 import { useState } from 'react';
-import { Toaster } from 'sonner';
+import { Toaster, toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-import { useForm, SubmitHandler } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
+import { useForm, SubmitHandler } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
 import { RootState } from '../../../../app/store';
 import { useSelector } from 'react-redux';
 import { Vehicle } from '../../../../features/vehicles/vehicleAPI';
 import { useCreateBookingVehicleMutation } from '../../../../features/booking/bookingAPI';
-import { toast } from 'sonner';
-// import { useGetSeatsQuery } from '../../../../features/seats/seatsAPI';
 
 interface MapSeatModalProps {
   vehicle: Vehicle;
@@ -17,195 +15,169 @@ interface MapSeatModalProps {
 }
 
 interface BookingData {
-  seat_number: string;
   booking_date: string;
-  booking_time: string;
   departure_time: string;
-  booking_status: string;
+  departure: string;
+  destination: string;
+  cost: number;
 }
 
 const schema = yup.object().shape({
-  // seat_number: yup.string().required('Seat number is required'),
-  booking_date: yup.string().required('Booking date is required'),
-  booking_time: yup.string().required('Booking time is required'),
-  // departure_time: yup.string().required('Departure time is required'),
-  // booking_status: yup.string().required('Booking status is required'),
-  departure: yup.string().required('Departure is required'),
-  destination: yup.string().required('Destination is required'),
-  // estimated_arrival: yup.string().required('Estimated arrival time is required'),
-  price: yup.number().required('Price is required'),
-  total_price: yup.number().required('Total price is required')
+  booking_date: yup.date().required("Booking date is required").min(new Date(), "Booking date cannot be in the past"),
+  departure_time: yup.string().required('Departure time is required'),
+  // departure: yup.string().required('Departure is required'),
+  // destination: yup.string().required('Destination is required'),
+  // cost: yup.number().required('Cost is required'),
 });
 
 const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose }) => {
   const user = useSelector((state: RootState) => state.user);
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  //   //fetch seats
-  // const { data: seatsData, isLoading } = useGetSeatsQuery();
-  // console.log(seatsData);
-  const seatsData = ["A1", "A2", "A3", "B1", "B2", "B3", "C1", "C2", "C3"]
-
   const navigate = useNavigate();
   const [createBooking] = useCreateBookingVehicleMutation();
-  // console.log('create booking:' ,createBooking);
 
   const externalData = {
     user_id: user.user?.user_id,
+    // vehicle_id: Number(vehicle.registration_number),
     vehicle_id: vehicle.registration_number,
-    seat_id: 1,//edit this
-    departure: vehicle.departure,
-    destination: vehicle.destination,
-  };
-  console.log('external data', externalData);
+    
+    };
 
-  const { register, handleSubmit, formState: { errors } } = useForm<BookingData>({
-    resolver: yupResolver(schema)
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<BookingData>({
+    resolver: yupResolver(schema),
   });
 
   const onSubmit: SubmitHandler<BookingData> = async (formData) => {
+    if (selectedSeats.length === 0) {
+      toast.error('Please select at least one seat.');
+      return;
+    }
+
     const dataToSubmit = {
       ...externalData,
-      ...formData
+      ...formData,
+      seat_ids: selectedSeats.map((seat) => Number(seat.replace('S', ''))), // Convert seat IDs to numbers
+      departure: vehicle.departure,
+      destination: vehicle.destination,
+      cost: totalAmount,
     };
-    console.log("Payload:", dataToSubmit);
+    console.log('Payload:', dataToSubmit);
 
     try {
       setIsSubmitting(true);
       await createBooking(dataToSubmit).unwrap();
-      console.log("Data to submit:", dataToSubmit);
-      toast.success("Booking created successfully");
-
-      setTimeout(() => {
-        navigate('/dashboard/payments');
-      }, 1000);
+      toast.success(`Booking created successfully for seat(s): ${selectedSeats.join(', ')}`);
+      setTimeout(() => navigate('/dashboard/payments'), 1000);
     } catch (err) {
-      toast.error("Error creating booking");
-      console.error("Error creating booking:", err);
+      toast.error('Error creating booking');
+      console.error('Error creating booking:', err);
     } finally {
       setIsSubmitting(false);
     }
   };
-  const calculateRemainingSeats = (vehicle: Vehicle) => {
-    //logic is vehicle.capacity - booked seats
-    // if booked seats is not available then vehicle.capacity
-    const bookedSeats = 0;
-    if (vehicle.capacity - bookedSeats > 0) {
-      return vehicle.capacity - bookedSeats;
-    } else {
-      return vehicle.capacity;
-    }
+
+  const calculateRemainingSeats = () => {
+    const bookedSeats = vehicle.booked_Seats ?? 0; // Fallback to 0 if booked_seats is undefined
+    return vehicle.capacity - bookedSeats > 0 ? vehicle.capacity - bookedSeats : 0;
   };
-  // console.log('remaining seats', calculateRemainingSeats(vehicle));
-  const remainingSeats = calculateRemainingSeats(vehicle);
 
-  // calculate total amount
-  const calculateTotalAmount = (vehicle:Vehicle)=> {
-    const seatPrice =  vehicle.cost;
-    return selectedSeats.length * seatPrice;
+  const remainingSeats = calculateRemainingSeats();
+  const totalAmount = selectedSeats.length * vehicle.cost;
+
+  const seats = Array.from({ length: vehicle.capacity }, (_, i) => `S${i + 1}`);
+  const seatRows = [];
+  for (let i = 0; i < seats.length; i += 4) {
+    seatRows.push(seats.slice(i, i + 4));
   }
-  const TotalPay = calculateTotalAmount(vehicle);
-  console.log(TotalPay);
-
-
-  //
-  // Transform seats into a grid structure (5 seats per row)
-  const seats = seatsData
-    ? seatsData.reduce((rows: string[][], seat: any, index: number) => {
-      const rowIndex = Math.floor(index / 5);
-      if (!rows[rowIndex]) rows[rowIndex] = [];
-      rows[rowIndex].push(seat.seat_number);
-      return rows;
-    }, [])
-    : [];
-
 
   const handleSeatClick = (seat: string) => {
-    setSelectedSeats((prevSelected) =>
-      prevSelected.includes(seat)
+    setSelectedSeats((prevSelected) => {
+      const updatedSelected = prevSelected.includes(seat)
         ? prevSelected.filter((selected) => selected !== seat)
-        : [...prevSelected, seat]
-    );
+        : [...prevSelected, seat];
+      return updatedSelected;
+    });
   };
-
-
-
-
-  if (!vehicle) {
-    return <div>No vehicle data available</div>;
-  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
       <Toaster />
-      <div className="bg-blue-50 p-6 rounded-lg shadow-lg w-full md:w-3/4 lg:w-3/4 max-h-screen overflow-auto">
-        <h2 className="text-xl font-bold mb-4">Select Seats</h2>
+      <div className="bg-white p-6 rounded-lg shadow-lg w-full md:w-3/4 lg:w-1/2 max-h-screen overflow-auto">
+        <h2 className="text-xl font-bold mb-4 text-center">Select Seats</h2>
 
-        <div className="grid grid-cols-7 gap-2 justify-center p-4 bg-black">
-          {seatsData.map((seat) => (
-            <button
-              key={seat}
-              className={`p-2 rounded-lg border ${selectedSeats.includes(seat) ? "bg-green-500 text-white" : "bg-gray-200"
-                }`}
-              onClick={() => handleSeatClick(seat)}
-            >
-              {seat}
-            </button>
+        {/* Seat Layout */}
+        <div className="flex flex-col items-center bg-gray-100 p-4 rounded-md">
+          {seatRows.map((row, rowIndex) => (
+            <div key={rowIndex} className="flex gap-2 mb-2">
+              {row.map((seat) => (
+                <button
+                  key={seat}
+                  className={`p-3 w-12 h-12 rounded-lg border font-semibold transition ${
+                    selectedSeats.includes(seat) ? 'bg-green-500 text-white' : 'bg-gray-300 hover:bg-gray-400'
+                  }`}
+                  onClick={() => handleSeatClick(seat)}
+                  disabled={remainingSeats === 0 || (selectedSeats.length >= remainingSeats && !selectedSeats.includes(seat))}
+                >
+                  {seat}
+                </button>
+              ))}
+            </div>
           ))}
         </div>
 
-
         {/* Selected Seats Info */}
-        <div className="mt-7">
-          <h2 className="text-xl font-semibold text-center">Selected Seats</h2>
-          <p className="text-lg text-center">
-            {selectedSeats.length > 0 ? selectedSeats.join(', ') : 'No seats selected'}
-          </p>
-          <p className="text-center">Total Seats: {selectedSeats.length}</p>
-          <p className="text-center">Total Amount: {}</p>
+        <div className="mt-5 text-center">
+          <h2 className="text-lg font-semibold">Selected Seats</h2>
+          <p className="text-md">{selectedSeats.length > 0 ? selectedSeats.join(', ') : 'No seats selected'}</p>
+          <p className="text-md font-semibold">Total Seats: {selectedSeats.length}</p>
+          <p className="text-lg font-bold">Total Cost: ${totalAmount}</p>
         </div>
 
-        {/* Error Message */}
-        {errors && <p className="text-red-500 text-sm mt-4">{errors.seat_number?.message}</p>}
-
-        {/* form */}
+        {/* Booking Form */}
         {vehicle.is_active ? (
           <>
-            <h1 className="text-xl font-bold mb-4 text-webcolor text-center p-5">Continue Booking...</h1>
-            <p className='text-2xl text-center'><strong>Remaining Seats:{remainingSeats}</strong></p>
-            <h4 className='text-center'>Total Amount: { }</h4>
-            <div className="p-5 rounded-lg card lg:w-3/4 border-2  bg-blue-50  m-auto">
+            <h1 className="text-xl font-bold text-center mt-6">Continue Booking</h1>
+            <p className="text-lg text-center">
+              <strong>Remaining Seats: {remainingSeats}</strong>
+            </p>
+            {/* Add hidden fields for derived values */}
+            <input type="hidden" {...register('departure')} value={vehicle.departure} />
+              <input type="hidden" {...register('destination')} value={vehicle.destination} />
+              <input type="hidden" {...register('cost')} value={totalAmount} />
+
+            <div className="p-5 bg-gray-50 rounded-lg shadow-md mt-4">
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <div className="flex flex-col lg:flex-row space-x-4 w-full">
-                  <div className="form-control lg:w-1/2">
-                    <label htmlFor="booking_date" className="label">Departure Date</label>
-                    <input type="date" id="booking_date" className="input input-bordered" {...register("booking_date")} />
-                    <p className="text-red-500">{errors.booking_date?.message}</p>
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="flex-1">
+                    <label className="font-semibold">Departure Date</label>
+                    <input type="date" className="w-full p-2 border rounded" {...register('booking_date')} />
+                    <p className="text-red-500 text-sm">{errors.booking_date?.message}</p>
                   </div>
-                  <div className="form-control lg:w-1/2">
-                    <label htmlFor="departure_time" className="label">Departure Time</label>
-                    <input type="time" id="departure_time" className="input input-bordered" {...register("departure_time")} />
-                    <p className="text-red-500">{errors.departure_time?.message}</p>
+                  <div className="flex-1">
+                    <label className="font-semibold">Departure Time</label>
+                    <input type="time" className="w-full p-2 border rounded" {...register('departure_time')} />
+                    <p className="text-red-500 text-sm">{errors.departure_time?.message}</p>
                   </div>
                 </div>
 
-                <div className="flex justify-between mt-6 space-x-2">
+                <div className="flex justify-between mt-6">
                   <button
                     type="submit"
-                    className="btn bg-webcolor text-text-light hover:text-green border-none w-1/4 m-auto"
-                  // disabled={isSubmitting}
+                    className="bg-blue-600 text-white py-2 px-6 rounded hover:bg-blue-700 transition w-full"
+                    disabled={isSubmitting || selectedSeats.length === 0}
                   >
-                    {isSubmitting ? (
-                      <>
-                        <span className="loading loading-spinner text-text-light"></span>
-                        <span className="text-text-light">Submitting...</span>
-                      </>
-                    ) : (
-                      "Create Booking"
-                    )}
+                    {isSubmitting ? 'Submitting...' : 'Create Booking'}
                   </button>
-                  <button type="button" onClick={onClose} className="btn bg-gray-300 text-gray-800 hover:text-gray-900">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="bg-gray-400 text-white py-2 px-6 rounded hover:bg-gray-500 transition w-full"
+                  >
                     Cancel
                   </button>
                 </div>
@@ -215,8 +187,12 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose }) => {
         ) : (
           <div className="text-center p-5">
             <p className="text-xl">Vehicle is not available for booking</p>
-            <button type="button" onClick={onClose} className="btn bg-gray-300 text-gray-800 hover:text-gray-900">
-              Cancel
+            <button
+              type="button"
+              onClick={onClose}
+              className="bg-gray-400 text-white py-2 px-6 rounded hover:bg-gray-500 transition"
+            >
+              Close
             </button>
           </div>
         )}

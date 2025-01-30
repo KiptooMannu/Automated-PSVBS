@@ -42,10 +42,15 @@ const Profile = () => {
 
   const { data: userData, isLoading, error, refetch } = usersAPI.useGetUserByIdQuery(user_id, {
     pollingInterval: 6000,
+    skip: !user_id,
     refetchOnMountOrArgChange: true,
     refetchOnFocus: true,
     refetchOnReconnect: true,
   });
+
+  if (isLoading) {
+    return <div>Loading user data...</div>;
+  }
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<UserFormData>({
     resolver: yupResolver(schema),
@@ -59,7 +64,7 @@ const Profile = () => {
         email: userData.email,
         phone_number: userData.phone_number,
         image_url: userData.image_url,
-        isVerified: userData.is_verified,
+        // isVerified: userData.is_verified,
       });
     }
   }, [userData, reset]);
