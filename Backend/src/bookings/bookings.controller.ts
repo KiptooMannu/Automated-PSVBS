@@ -7,6 +7,7 @@ import {
     deleteBookingService
 } from './booking.service';
 
+
 // Create booking controller
 export const createBookingController = async (c: Context) => {
     try {
@@ -27,13 +28,21 @@ export const createBookingController = async (c: Context) => {
             return c.json({ message: "Missing required booking details." }, 400);
         }
 
+        // Convert booking_date and departure_date to Date objects if they are not already
+        const bookingDateObj = new Date(booking_date);
+        const departureDateObj = new Date(departure_date);
+
+        if (isNaN(bookingDateObj.getTime()) || isNaN(departureDateObj.getTime())) {
+            return c.json({ message: "Invalid date format." }, 400);
+        }
+
         // Call the service to create the booking
         const result = await createBookingService({
             user_id,
             vehicle_id,
             seat_ids,
-            booking_date,  // Pass booking_date as is
-            departure_date,  // Pass departure_date as is
+            booking_date: bookingDateObj,  // Pass booking_date as a Date object
+            departure_date: departureDateObj,  // Pass departure_date as a Date object
             departure_time,
             estimated_arrival,
             price,
