@@ -32,6 +32,9 @@ importers:
       jsonwebtoken:
         specifier: ^9.0.2
         version: 9.0.2
+      neon:
+        specifier: ^2.0.0
+        version: 2.0.0
       nodemailer:
         specifier: ^6.9.16
         version: 6.9.16
@@ -910,6 +913,9 @@ packages:
 
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
+
+  neon@2.0.0:
+    resolution: {integrity: sha512-maODYM+0IkYDPOD0VAuptjrAXowLAPLpRuBdTroj29ZpQWwtwehXAI6nQvb4+10qipE0ZwweVv2F0tuQvpIVFA==}
 
   node-addon-api@5.1.0:
     resolution: {integrity: sha512-eh0GgfEkpnoWDq+VY8OyvYhFEzBk6jIYbRKdIlyTiAXIVJ8PyBaKb0rp7oDtoddbdoHWhq8wwr+XZ81F1rpNdA==}
@@ -1802,6 +1808,8 @@ snapshots:
   mkdirp@1.0.4: {}
 
   ms@2.1.3: {}
+
+  neon@2.0.0: {}
 
   node-addon-api@5.1.0: {}
 

@@ -1,12 +1,13 @@
 import { Context } from 'hono';
 import { 
     createBookingService,
-    getAllBookingsService,
-    getBookingByIdService,
+    // getAllBookingsService,
+    // getBookingByIdService,
     updateBookingService,
-    deleteBookingService
+    deleteBookingService,
+    createBookingSeatService,
+    deleteBookingSeatsService
 } from './booking.service';
-
 
 // Create booking controller
 export const createBookingController = async (c: Context) => {
@@ -37,19 +38,25 @@ export const createBookingController = async (c: Context) => {
         }
 
         // Call the service to create the booking
-        const result = await createBookingService({
+        const bookingResult = await createBookingService({
             user_id,
             vehicle_id,
-            seat_ids,
-            booking_date: bookingDateObj,  // Pass booking_date as a Date object
-            departure_date: departureDateObj,  // Pass departure_date as a Date object
+            booking_date: bookingDateObj, 
+            departure_date: departureDateObj,  
             departure_time,
             estimated_arrival,
             price,
             total_price,
         });
 
-        return c.json({ message: result }, 201); // Return success message
+        const bookingId = bookingResult.booking_id;  // Assuming this is returned
+
+        // Insert seats into bookings_seats table
+        for (const seat_id of seat_ids) {
+            await createBookingSeatService(bookingId, seat_id);
+        }
+
+        return c.json({ message: 'Booking created successfully!' }, 201); // Return success message
 
     } catch (error) {
         console.error("Error creating booking:", error);
@@ -57,38 +64,38 @@ export const createBookingController = async (c: Context) => {
     }
 };
 
-// Get all bookings controller
-export const getAllBookingsController = async (c: Context) => {
-    try {
-        const bookings = await getAllBookingsService();
-        return c.json({ bookings }, 200); // Return all bookings
+// // Get all bookings controller
+// export const getAllBookingsController = async (c: Context) => {
+//     try {
+//         const bookings = await getAllBookingsService();
+//         return c.json({ bookings }, 200); // Return all bookings
 
-    } catch (error) {
-        console.error("Error fetching all bookings:", error);
-        return c.json({ message: "Internal server error." }, 500);
-    }
-};
+//     } catch (error) {
+//         console.error("Error fetching all bookings:", error);
+//         return c.json({ message: "Internal server error." }, 500);
+//     }
+// };
 
 // Get booking by ID controller
-export const getBookingByIdController = async (c: Context) => {
-    try {
-        const bookingId = c.req.param('id'); // Get booking ID from URL param
-        if (!bookingId) {
-            return c.json({ message: "Booking ID is required." }, 400);
-        }
+// export const getBookingByIdController = async (c: Context) => {
+//     try {
+//         const bookingId = c.req.param('id'); // Get booking ID from URL param
+//         if (!bookingId) {
+//             return c.json({ message: "Booking ID is required." }, 400);
+//         }
 
-        const booking = await getBookingByIdService(Number(bookingId));
-        if (!booking) {
-            return c.json({ message: "Booking not found." }, 404);
-        }
+//         const booking = await getBookingByIdService(Number(bookingId));
+//         if (!booking) {
+//             return c.json({ message: "Booking not found." }, 404);
+//         }
 
-        return c.json({ booking }, 200);
+//         return c.json({ booking }, 200);
 
-    } catch (error) {
-        console.error("Error fetching booking by ID:", error);
-        return c.json({ message: "Internal server error." }, 500);
-    }
-};
+//     } catch (error) {
+//         console.error("Error fetching booking by ID:", error);
+//         return c.json({ message: "Internal server error." }, 500);
+//     }
+// };
 
 // Update booking controller
 export const updateBookingController = async (c: Context) => {
@@ -115,10 +122,10 @@ export const updateBookingController = async (c: Context) => {
             return c.json({ message: "Missing required booking details." }, 400);
         }
 
-        const result = await updateBookingService(Number(bookingId), {
+        // Update the booking (without seats)
+        const updatedBooking = await updateBookingService(Number(bookingId), {
             user_id,
             vehicle_id,
-            seat_ids,
             booking_date,  // Pass booking_date as is
             departure_date,  // Pass departure_date as is
             departure_time,
@@ -127,7 +134,15 @@ export const updateBookingController = async (c: Context) => {
             total_price,
         });
 
-        return c.json({ message: result }, 200); // Return success message
+        // Clear existing seat associations (if needed)
+        await deleteBookingSeatsService(Number(bookingId));
+
+        // Insert new seats into bookings_seats table
+        for (const seat_id of seat_ids) {
+            await createBookingSeatService(Number(bookingId), seat_id);
+        }
+
+        return c.json({ message: 'Booking updated successfully!' }, 200); // Return success message
 
     } catch (error) {
         console.error("Error updating booking:", error);

@@ -96,11 +96,10 @@ export const seatTable = pgTable("seats", {
 });
 
 
-export const bookingTable = pgTable("bookings", {
+export const bookingTable = pgTable("bookings", { 
     booking_id: serial("booking_id").primaryKey(),
     user_id: integer("user_id").notNull().references(() => userTable.user_id, { onDelete: "cascade" }),
     vehicle_id: varchar("vehicle_id").notNull().references(() => vehicleTable.registration_number, { onDelete: "cascade" }),
-    seat_ids: integer("seat_ids").array().notNull(), // Handles both single & multiple seats
     departure_date: timestamp("departure_date").notNull(),
     departure_time: varchar("departure_time").notNull(),
     estimated_arrival: varchar("estimated_arrival"),
@@ -112,6 +111,14 @@ export const bookingTable = pgTable("bookings", {
     created_at: timestamp("created_at").defaultNow(),
     updated_at: timestamp("updated_at").defaultNow(),
 });
+
+
+export const bookingsSeatsTable = pgTable("bookings_seats", {
+    booking_seat_id: serial("booking_seat_id").primaryKey(),
+    booking_id: integer("booking_id").notNull().references(() => bookingTable.booking_id, { onDelete: "cascade" }),
+    seat_id: integer("seat_id").notNull().references(() => seatTable.seat_id, { onDelete: "cascade" }),
+});
+
 
 
 // Define types for insertion and selection
@@ -135,3 +142,6 @@ export type TSPayments = typeof paymentsTable.$inferSelect;
 
 export type TIAuth = typeof authTable.$inferInsert;
 export type TSAuth = typeof authTable.$inferSelect;
+
+export type TIBookingSeat = typeof bookingsSeatsTable.$inferInsert;
+export type TSBookingSeat = typeof bookingsSeatsTable.$inferSelect;
