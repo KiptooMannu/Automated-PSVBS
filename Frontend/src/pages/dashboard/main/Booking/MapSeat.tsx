@@ -52,15 +52,17 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose }) => {
       return;
     }
 
+    // Convert booking date and departure date to ISO strings
     const formattedBookingDate = new Date(formData.booking_date).toISOString();
     const formattedDepartureDate = new Date(formData.departure_date).toISOString();
 
+    // Prepare data to be submitted
     const dataToSubmit = {
       ...externalData,
       ...formData,
-      booking_date: formattedBookingDate, 
+      booking_date: formattedBookingDate,
       departure_date: formattedDepartureDate,
-      seat_ids: selectedSeats.map((seat) => Number(seat.replace('S', ''))),
+      seat_ids: selectedSeats.map((seat) => Number(seat.replace('S', ''))), // Convert seat ID to number
       departure: vehicle.departure,
       destination: vehicle.destination,
       price: vehicle.cost,  // Price for one seat
