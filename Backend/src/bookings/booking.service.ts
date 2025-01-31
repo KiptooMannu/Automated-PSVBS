@@ -9,6 +9,8 @@ export const createBookingService = async ({
     booking_date,
     departure_date,
     departure_time,
+    departure,
+    destination,
     estimated_arrival,
     price,
     total_price,
@@ -18,6 +20,8 @@ export const createBookingService = async ({
     booking_date: Date;
     departure_date: Date;
     departure_time: string;
+    destination: string;
+    departure: string;
     estimated_arrival: string | null;
     price: string; // Ensure price is passed as string
     total_price: string; // Ensure total_price is passed as string
@@ -29,6 +33,8 @@ export const createBookingService = async ({
             booking_date,
             departure_date,
             departure_time,
+            departure,
+            destination,
             estimated_arrival,
             price,
             total_price,

@@ -20,6 +20,8 @@ export const createBookingController = async (c: Context) => {
             departure_date,  // Keep departure_date separately
             departure_time, 
             estimated_arrival,
+            destination,
+            departure,
             price, 
             total_price
         } = await c.req.json();
@@ -45,6 +47,8 @@ export const createBookingController = async (c: Context) => {
             departure_date: departureDateObj,  
             departure_time,
             estimated_arrival,
+            destination,
+            departure,
             price,
             total_price,
         });

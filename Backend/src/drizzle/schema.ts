@@ -103,6 +103,8 @@ export const bookingTable = pgTable("bookings", {
     departure_date: timestamp("departure_date").notNull(),
     departure_time: varchar("departure_time").notNull(),
     estimated_arrival: varchar("estimated_arrival"),
+    departure: varchar("departure"),
+    destination: varchar("destination"),
     price: decimal("price").notNull(), // Price for **one seat** (per vehicle)
     total_price: decimal("total_price").notNull(), // `price * seat_ids.length`
     booking_status: bookingStatusEnum("booking_status").default("pending"),

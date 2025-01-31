@@ -1,13 +1,16 @@
+
+
 // import db from './db';
 
 // async function migration() {
 //     try {
 //         console.log("==Migration Started==");
 
-//         // // Manually alter the vehicles table to add the "cost" column
-//         // await db.execute(`
-//         //   ALTER TABLE vehicles ADD COLUMN cost INTEGER DEFAULT 0 NOT NULL;
-//         // `);
+//         // Add the "seat_ids" column to the "bookings" table
+//         await db.execute(`
+//             ALTER TABLE bookings
+//             ADD COLUMN IF NOT EXISTS seat_ids INTEGER[] NOT NULL;
+//         `);
 
 //         console.log("==Migration Finished==");
 //         process.exit(0);
@@ -28,10 +31,10 @@ async function migration() {
     try {
         console.log("==Migration Started==");
 
-        // Add the "seat_ids" column to the "bookings" table
+        // Drop the "seat_id" column if it exists
         await db.execute(`
             ALTER TABLE bookings
-            ADD COLUMN IF NOT EXISTS seat_ids INTEGER[] NOT NULL;
+            DROP COLUMN IF EXISTS seat_id;
         `);
 
         console.log("==Migration Finished==");
