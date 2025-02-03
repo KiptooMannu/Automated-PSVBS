@@ -9,9 +9,9 @@ const secret = process.env.SECRET!;
 const expiresIn = process.env.EXPIRESIN!;
 
 export const registerUser = async (user: any) => {
-  console.log("🟢 Registering user:", user); // ✅ Debugging Log
+  console.log("🟢 Registering user:", user); // ✅ Log input data
 
-  registerSchema.parse(user); // Validate input schema
+  registerSchema.parse(user);
 
   const existingUser = await db
     .select()
@@ -26,6 +26,7 @@ export const registerUser = async (user: any) => {
 
   const hashedPassword = await bcrypt.hash(user.password, 10);
 
+  console.log("🔵 Inserting new user into DB...");
   const newUser = await db
     .insert(userTable)
     .values({
@@ -34,7 +35,7 @@ export const registerUser = async (user: any) => {
       email: user.email,
       phone_number: user.phone_number,
       image_url: user.image_url,
-      password: hashedPassword, // ✅ Hash password before storing
+      password: hashedPassword,
     })
     .returning({ id: userTable.user_id })
     .execute();
@@ -42,36 +43,25 @@ export const registerUser = async (user: any) => {
   console.log("✅ User saved in DB:", newUser);
 
   if (!newUser.length) {
-    console.error("❌ User insertion failed!"); 
+    console.error("❌ User insertion failed!");
     throw new Error("Failed to register user");
   }
 
   const userId = newUser[0].id;
 
-  if (!user.username) {
-    console.error("❌ Username is missing. Deleting user...");
-    await db.delete(userTable).where(eq(userTable.user_id, userId)).execute();
-    throw new Error("Username is required for registration");
-  }
+  console.log("🔵 Inserting authentication record...");
+  await db
+    .insert(authTable)
+    .values({
+      user_id: userId,
+      username: user.username,
+      password_hash: hashedPassword,
+      role: user.role || "user",
+    })
+    .execute();
 
-  try {
-    await db
-      .insert(authTable)
-      .values({
-        user_id: userId,
-        username: user.username,
-        password_hash: hashedPassword,
-        role: user.role || "user",
-      })
-      .execute();
-
-    console.log("✅ User authentication saved in DB.");
-    return "User registered successfully";
-  } catch (error) {
-    console.error("❌ Error saving auth record:", error);
-    await db.delete(userTable).where(eq(userTable.user_id, userId)).execute();
-    throw new Error("Registration failed. Please try again.");
-  }
+  console.log("✅ User authentication record saved.");
+  return "User registered successfully";
 };
 
 export const loginUser = async (email: string, password: string) => {
