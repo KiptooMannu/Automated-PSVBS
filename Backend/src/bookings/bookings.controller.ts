@@ -1,8 +1,8 @@
 import { Context } from 'hono';
 import { createBookingService, getAllVehiclesWithBookingsService } from './booking.service';
 import db from '../drizzle/db';
-import { bookingsSeatsTable, bookingTable } from '../drizzle/schema';
-import { eq } from "drizzle-orm";
+import { bookingsSeatsTable, bookingTable ,vehicleTable } from '../drizzle/schema';
+import { eq, desc } from "drizzle-orm";
 
 // Helper function to validate and parse dates
 const parseValidDate = (date: any): Date | null => {
@@ -13,6 +13,7 @@ const parseValidDate = (date: any): Date | null => {
 
 // ✅ Create Booking Controller
 export const createBookingController = async (c: Context) => {
+    
     try {
         const {
             user_id,
@@ -40,9 +41,20 @@ export const createBookingController = async (c: Context) => {
             total_price: string;
         } = await c.req.json();
 
-        if (!user_id || !vehicle_id || !seat_numbers.length || !price || !total_price || !booking_date || !departure_date || !departure_time) {
+        console.log("🕒 Final departure_time:", departure_time); // ✅ Log departure_time
+
+
+        if (!user_id || !vehicle_id || !seat_numbers.length || !price || !total_price || !booking_date || !departure_date) {
             return c.json({ message: "Missing required booking details." }, 400);
-        }
+          }
+          
+               // ✅ Auto-fetch departure_time if missing
+               const latestBooking = await db.query.bookingTable.findFirst({
+                where: eq(bookingTable.vehicle_id, vehicle_id),
+                orderBy: desc(bookingTable.departure_date), 
+            });
+            const departureTime = latestBooking?.departure_time || "00:00"; 
+    
 
         // ✅ Convert dates to valid Date objects
         const formattedBookingDate = parseValidDate(booking_date);
@@ -92,7 +104,6 @@ export const getBookedSeatsController = async (c: Context) => {
             return c.json({ message: "Missing vehicle_id." }, 400);
         }
 
-        // ✅ Retrieve all booked seat IDs for the vehicle (No DB validation required)
         const bookedSeats = await db.query.bookingsSeatsTable.findMany({
             where: eq(bookingsSeatsTable.vehicle_id, vehicle_id),
             columns: { seat_id: true }
@@ -101,9 +112,10 @@ export const getBookedSeatsController = async (c: Context) => {
         return c.json({ booked_seats: bookedSeats.map(bs => `S${bs.seat_id}`) }, 200);
     } catch (error) {
         console.error("Error retrieving booked seats:", error);
-        return c.json({ message: "Internal server error." }, 500);
+        return c.json({ message: "Internal server error" }, 500);
     }
 };
+
 
 // ✅ Fetch All Vehicles With Bookings (Departure Date & Time)
 export const getAllVehiclesWithBookingsController = async (c: Context) => {

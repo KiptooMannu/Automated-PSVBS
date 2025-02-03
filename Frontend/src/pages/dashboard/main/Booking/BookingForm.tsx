@@ -1,6 +1,5 @@
 import React, { useState , useEffect } from "react";
 import { useFetchCarSpecsQuery, Vehicle } from "../../../../features/vehicles/vehicleAPI";
-import { useGetBookingVehicleQuery ,Tbooking } from "../../../../features/booking/bookingAPI";
 import MapSeatModal from "./MapSeat";
 
 const BookingForm: React.FC = () => {
@@ -10,25 +9,10 @@ const BookingForm: React.FC = () => {
   const [departure, setDeparture] = useState<string>(""); // State for filtering by departure
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null); // Selected vehicle
   const [isMapSeatModalOpen, setIsMapSeatModalOpen] = useState(false); // Modal state
-  const [departureTime, setDepartureTime] = useState<Record<string, string>>({});
+
 
   const { data: vehicles, isLoading, isError } = useFetchCarSpecsQuery();
   // console.log("Vehicles:", vehicles);
-
-   // Fetch bookings (departure times)
-   const { data: bookings } = useGetBookingVehicleQuery();
-
-   // Map departure times to vehicle IDs
-   useEffect(() => {
-    if (bookings) {
-      const timesMap: Record<string, string> = {};
-      bookings.forEach((booking: Tbooking) => {
-        timesMap[booking.vehicle_id] = booking.departure_time;
-      });
-      setDepartureTime(timesMap);
-    }
-  }, [bookings]);
-  
 
   // Handle Map Seat Modal
   const handleMapSeatModal = (vehicle: Vehicle) => {
@@ -182,7 +166,7 @@ const filteredVehicles = vehicles?.filter((vehicle) => {
                         <p>Location: {vehicle.current_location}</p>
                         <p>Destination: {vehicle.departure}</p>
                         <p>Departure Location: {vehicle.destination}</p>
-                        <p><strong>Departure Time: {departureTime[vehicle.registration_number] || "Not Available"}</strong></p>
+                        <p><strong>Departure Time: {vehicle.departure_time}</strong></p>
                         <p><strong>Cost: {vehicle.cost}</strong></p>
                  
                       </div>

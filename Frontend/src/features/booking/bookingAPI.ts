@@ -57,15 +57,18 @@ export const bookingVehicleAPI = createApi({
           : [{ type: TagTypes.BookingVehicle, id: "LIST" }],
     }),
 
-    // Create a new booking
     createBookingVehicle: builder.mutation<Tbooking, Partial<Tbooking>>({
       query: (newBooking) => ({
         url: "bookings",
         method: "POST",
-        body: newBooking,
+        body: {
+          ...newBooking,
+          departure_time: newBooking.departure_time || "", // ✅ Ensure departure_time is passed
+        },
       }),
       invalidatesTags: [{ type: TagTypes.BookingVehicle, id: "LIST" }],
     }),
+    
 
     // Update a booking
     updateBookingVehicle: builder.mutation<Tbooking, Partial<Tbooking & { booking_id: number }>>({

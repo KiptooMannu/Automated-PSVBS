@@ -9,7 +9,9 @@ const secret = process.env.SECRET!;
 const expiresIn = process.env.EXPIRESIN!;
 
 export const registerUser = async (user: any) => {
-  registerSchema.parse(user);
+  console.log("🟢 Registering user:", user); // ✅ Debugging Log
+
+  registerSchema.parse(user); // Validate input schema
 
   const existingUser = await db
     .select()
@@ -18,6 +20,7 @@ export const registerUser = async (user: any) => {
     .execute();
 
   if (existingUser.length > 0) {
+    console.log("❌ User already exists in DB:", existingUser);
     throw new Error("User already exists");
   }
 
@@ -31,18 +34,25 @@ export const registerUser = async (user: any) => {
       email: user.email,
       phone_number: user.phone_number,
       image_url: user.image_url,
-      password: hashedPassword,// Hash the password before storing it
+      password: hashedPassword, // ✅ Hash password before storing
     })
     .returning({ id: userTable.user_id })
     .execute();
 
+  console.log("✅ User saved in DB:", newUser);
+
+  if (!newUser.length) {
+    console.error("❌ User insertion failed!"); 
+    throw new Error("Failed to register user");
+  }
+
   const userId = newUser[0].id;
 
   if (!user.username) {
-    // Clean up and throw an error if username is missing
+    console.error("❌ Username is missing. Deleting user...");
     await db.delete(userTable).where(eq(userTable.user_id, userId)).execute();
     throw new Error("Username is required for registration");
-}
+  }
 
   try {
     await db
@@ -51,13 +61,14 @@ export const registerUser = async (user: any) => {
         user_id: userId,
         username: user.username,
         password_hash: hashedPassword,
-        role: user.role || "user", // Default role should be 'user'
+        role: user.role || "user",
       })
       .execute();
 
+    console.log("✅ User authentication saved in DB.");
     return "User registered successfully";
   } catch (error) {
-    console.log('Registration Error!!:' ,error);
+    console.error("❌ Error saving auth record:", error);
     await db.delete(userTable).where(eq(userTable.user_id, userId)).execute();
     throw new Error("Registration failed. Please try again.");
   }

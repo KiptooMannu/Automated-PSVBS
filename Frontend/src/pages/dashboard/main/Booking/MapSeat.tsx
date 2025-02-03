@@ -65,7 +65,7 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose }) => {
   useEffect(() => {
     const fetchBookedSeats = async () => {
       try {
-        const response = await fetch(`/api/booked-seats?vehicle_id=${vehicle.registration_number}`);
+        const response = await fetch(`http://localhost:8081/booked-seats?vehicle_id=${vehicle.registration_number}`);
         const data = await response.json();
         setBookedSeats(data.booked_seats || []);
       } catch (error) {
@@ -83,6 +83,9 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose }) => {
       toast.error('Please select at least one seat.');
       return;
     }
+
+      // ✅ Auto-fetch departure_time from vehicle if available
+  const departureTime = vehicle.departure_time || "00:00"; // Default fallback
   
     // Helper function to parse date and prevent errors
     const parseDate = (date: string | Date): string | null => {
@@ -109,6 +112,7 @@ const dataToSubmit = {
   ...formData,
   booking_date: bookingDateString,
   departure_date: departureDateString,
+  departure_time: departureTime, // ✅ Automatically fetched
   seat_numbers: selectedSeats, // Sending seat numbers directly
   departure: vehicle.departure,
   destination: vehicle.destination,
