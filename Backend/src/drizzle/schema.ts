@@ -41,7 +41,6 @@ export const vehicleTable = pgTable("vehicles", {
     vehicle_type: varchar("vehicle_type", { length: 50 }).notNull(),
     cost:integer("cost").notNull(),
     model_year: integer("model_year"),
-
     current_location: varchar("current_location", { length: 255 }).notNull(),
     departure: varchar("departure").notNull(),
     destination: varchar("destination").notNull(),
@@ -83,27 +82,28 @@ export const paymentsTable = pgTable("payments", {
 
 
 
+// 🚀 1️⃣ Seat Table (Seats are generic across vehicles)
 export const seatTable = pgTable("seats", {
     seat_id: serial("seat_id").primaryKey(),
-    vehicle_id: varchar("vehicle_id")
-        .notNull()
-        .references(() => vehicleTable.registration_number, { onDelete: "cascade" }),
     seat_number: varchar("seat_number").notNull(),
-    is_available: boolean("is_available").default(true),
+    is_available: boolean("is_available").default(true), 
     seat_type: varchar("seat_type").default("regular"),
     created_at: timestamp("created_at").defaultNow(),
     updated_at: timestamp("updated_at").defaultNow(),
 });
 
 
+// Booking Table: Stores each booking request
 export const bookingTable = pgTable("bookings", { 
     booking_id: serial("booking_id").primaryKey(),
     user_id: integer("user_id").notNull().references(() => userTable.user_id, { onDelete: "cascade" }),
-    vehicle_id: varchar("vehicle_id").notNull().references(() => vehicleTable.registration_number, { onDelete: "cascade" }),
+    vehicle_id: varchar("vehicle_id").notNull(), // No FK to enforce flexibility
     departure_date: timestamp("departure_date").notNull(),
     departure_time: varchar("departure_time").notNull(),
+    departure: varchar("departure"),
+    destination: varchar("destination"),
     estimated_arrival: varchar("estimated_arrival"),
-    price: decimal("price").notNull(), // Price for **one seat** (per vehicle)
+    price: decimal("price").notNull(), // Price for **one seat**
     total_price: decimal("total_price").notNull(), // `price * seat_ids.length`
     booking_status: bookingStatusEnum("booking_status").default("pending"),
     booking_date: timestamp("booking_date").defaultNow(),
@@ -112,14 +112,15 @@ export const bookingTable = pgTable("bookings", {
     updated_at: timestamp("updated_at").defaultNow(),
 });
 
-
+// 🚀 3️⃣ Bookings Seats Table (Tracks seat selection per booking)
 export const bookingsSeatsTable = pgTable("bookings_seats", {
     booking_seat_id: serial("booking_seat_id").primaryKey(),
     booking_id: integer("booking_id").notNull().references(() => bookingTable.booking_id, { onDelete: "cascade" }),
-    seat_id: integer("seat_id").notNull().references(() => seatTable.seat_id, { onDelete: "cascade" }),
-});
-
-
+    seat_id: integer("seat_id").notNull(), // ✅ Seat ID is stored, NOT seat number
+    vehicle_id: varchar("vehicle_id").notNull(), // ✅ Ensures seat is linked to a specific vehicle
+}, (table) => ({
+    uniqueBookingSeat: { unique: [table.booking_id, table.seat_id, table.vehicle_id] } // ✅ Allows the same seat to be used in different vehicles
+}));
 
 // Define types for insertion and selection
 export type TIUsers = typeof userTable.$inferInsert;

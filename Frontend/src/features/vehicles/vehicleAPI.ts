@@ -19,6 +19,9 @@ export interface Vehicle {
   departure:string;
   destination:string; 
   price:number; 
+  departure_date:string;
+  departure_time:string;
+  
 }
 
 export const vehicleAPI = createApi({
@@ -28,9 +31,10 @@ export const vehicleAPI = createApi({
   tagTypes: ["Vehicles"], 
   endpoints: (builder) => ({
     fetchCarSpecs: builder.query<Vehicle[], void>({
-      query: () => "vehicles", 
+      query: () => "vehicles-with-bookings", 
       providesTags: ["Vehicles"],
     }),
+
     createVehicle: builder.mutation<Vehicle, Partial<Vehicle>>({
       query: (newVehicle) => ({
         url: "vehicles",
@@ -39,6 +43,7 @@ export const vehicleAPI = createApi({
       }),
       invalidatesTags: ["Vehicles"], // Consistent tag invalidation
     }),
+
     updateVehicle: builder.mutation<
       Vehicle,
       Partial<Vehicle & { registration_number: string }>
@@ -50,6 +55,7 @@ export const vehicleAPI = createApi({
       }),
       invalidatesTags: ["Vehicles"],
     }),
+
     deleteVehicle: builder.mutation<{ success: boolean }, string>({
       query: (registration_number) => ({
         url: `vehicles/${registration_number}`, // Updated to use registration_number

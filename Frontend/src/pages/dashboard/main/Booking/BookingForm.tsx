@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState , useEffect } from "react";
 import { useFetchCarSpecsQuery, Vehicle } from "../../../../features/vehicles/vehicleAPI";
+import { useGetBookingVehicleQuery ,Tbooking } from "../../../../features/booking/bookingAPI";
 import MapSeatModal from "./MapSeat";
 
 const BookingForm: React.FC = () => {
@@ -9,9 +10,25 @@ const BookingForm: React.FC = () => {
   const [departure, setDeparture] = useState<string>(""); // State for filtering by departure
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null); // Selected vehicle
   const [isMapSeatModalOpen, setIsMapSeatModalOpen] = useState(false); // Modal state
+  const [departureTime, setDepartureTime] = useState<Record<string, string>>({});
 
   const { data: vehicles, isLoading, isError } = useFetchCarSpecsQuery();
   // console.log("Vehicles:", vehicles);
+
+   // Fetch bookings (departure times)
+   const { data: bookings } = useGetBookingVehicleQuery();
+
+   // Map departure times to vehicle IDs
+   useEffect(() => {
+    if (bookings) {
+      const timesMap: Record<string, string> = {};
+      bookings.forEach((booking: Tbooking) => {
+        timesMap[booking.vehicle_id] = booking.departure_time;
+      });
+      setDepartureTime(timesMap);
+    }
+  }, [bookings]);
+  
 
   // Handle Map Seat Modal
   const handleMapSeatModal = (vehicle: Vehicle) => {
@@ -19,7 +36,10 @@ const BookingForm: React.FC = () => {
     setIsMapSeatModalOpen(true); // Open the modal
   };
   // console.log("Selected Vehicle:", selectedVehicle);
-
+  useEffect(() => {
+    console.log("Fetched Vehicles from API:", vehicles);
+  }, [vehicles]);
+  
   // Filter vehicles based on search criteria
 // Filter vehicles based on search criteria
 const filteredVehicles = vehicles?.filter((vehicle) => {
@@ -38,19 +58,7 @@ const filteredVehicles = vehicles?.filter((vehicle) => {
 
   return matchesType && matchesLocation && matchesDeparture && matchesDestination;
 });
-  //calculate remaining seats
- 
 
-
-  // Handle form submission
-  // const handleSubmit = (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   if (!selectedVehicle) {
-  //     alert("Please select a vehicle.");
-  //     return;
-  //   }
-  //   toast.success(`Booking confirmed for vehicle: ${selectedVehicle.vehicle_name}`);
-  // };
 
   if (isLoading)
     return <p className="text-center text-gray-500">Loading vehicles...</p>;
@@ -174,8 +182,9 @@ const filteredVehicles = vehicles?.filter((vehicle) => {
                         <p>Location: {vehicle.current_location}</p>
                         <p>Destination: {vehicle.departure}</p>
                         <p>Departure Location: {vehicle.destination}</p>
-                        {/* <p><strong>Remaining seats: {}</strong></p> */}
+                        <p><strong>Departure Time: {departureTime[vehicle.registration_number] || "Not Available"}</strong></p>
                         <p><strong>Cost: {vehicle.cost}</strong></p>
+                 
                       </div>
                       <button
                         type="button"

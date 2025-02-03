@@ -42,10 +42,17 @@ app.get('/', async (c) => {
     }
 });
 
+const PORT = process.env.PORT ? Number(process.env.PORT) : 3000; // Fallback to 3000 if undefined
+
+assert(PORT, 'PORT is required and must be a number');
+
 serve({
     fetch: app.fetch,
-    port: Number(process.env.PORT)
+    port: PORT
 });
+
+console.log(`✅ Server is running on http://localhost:${PORT}`);
+
 
 console.log('Routes registered:', app.routes);
 console.log(`Server is running🚀 on http://localhost:${process.env.PORT} 🌍🎉`);

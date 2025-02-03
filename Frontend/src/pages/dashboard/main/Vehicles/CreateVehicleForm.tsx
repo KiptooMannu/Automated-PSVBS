@@ -17,7 +17,13 @@ const CreateVehicleSchema = yup.object().shape({
   capacity: yup.number().required('Capacity is required'),
   vehicle_type: yup.string().required('Vehicle type is required'),
   current_location: yup.string().required('Current location is required'),
+  cost: yup.number().required('Cost per seat is required').positive('Cost must be a positive number'),
+  departure: yup.string().required('Departure location is required'),
+  destination: yup.string().required('Destination is required'),
+  departure_date: yup.date().required('Departure date is required').min(new Date(), 'Departure date cannot be in the past'),
+  departure_time: yup.string().required('Departure time is required'),
   image_url: yup.mixed().required('Image URL is required'), 
+
 });
 
 const CreateVehicleModal: React.FC<CreateVehicleModalProps> = ({ onClose }) => {
@@ -71,23 +77,29 @@ const CreateVehicleModal: React.FC<CreateVehicleModalProps> = ({ onClose }) => {
         image_url: imageUrl, // Ensure that the field is named image_url
       };
 
-      // Send data to backend for creation
-      const createdVehicle = await createVehicle(resourceData).unwrap();
+ 
+      await createVehicle(resourceData).unwrap();
 
-      // Display image preview after creation
-      if (createdVehicle?.image_url) {
-        setImagePreview(createdVehicle.image_url); // Update state with the image URL
-      }
+      // ✅ Success Toast in GREEN
+      toast.success('🚀 Vehicle created successfully!', {
+        duration: 3000,
+        style: { background: 'green', color: 'white' },
+      });
 
-      toast.success('Vehicle created successfully');
       onClose();
     } catch (error) {
       console.error('Failed to create vehicle', error);
-      toast.error('Failed to create vehicle');
+
+      // ❌ Error Toast in RED
+      toast.error('❌ Failed to create vehicle. Please try again!', {
+        duration: 4000,
+        style: { background: 'red', color: 'white' },
+      });
     } finally {
       setIsUploading(false);
     }
   };
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
@@ -172,6 +184,59 @@ const CreateVehicleModal: React.FC<CreateVehicleModalProps> = ({ onClose }) => {
               <p className="text-red-500 text-sm">{errors.current_location.message}</p>
             )}
           </div>
+
+ {/* ✅ Departure Location */}
+ <div className="form-control">
+            <input
+              id="departure"
+              {...register('departure')}
+              className="input input-bordered"
+              placeholder="Departure Location"
+            />
+            {errors.departure && <p className="text-red-500 text-sm">{errors.departure.message}</p>}
+          </div>
+
+          {/* ✅ Destination */}
+          <div className="form-control">
+            <input
+              id="destination"
+              {...register('destination')}
+              className="input input-bordered"
+              placeholder="Destination"
+            />
+            {errors.destination && <p className="text-red-500 text-sm">{errors.destination.message}</p>}
+          </div>
+
+{/* ✅ Departure Time */}
+<div className="form-control">
+  <label htmlFor="departure_time" className="label">
+    <span className="label-text">Departure Time</span>
+  </label>
+  <input
+    id="departure_time"
+    type="time"
+    {...register('departure_time')}
+    className="input input-bordered"
+    placeholder="Select Departure Time"
+  />
+  {errors.departure_time && <p className="text-red-500 text-sm">{errors.departure_time.message}</p>}
+</div>
+
+{/* ✅ Cost Field */}
+<div className="form-control">
+  <label htmlFor="cost" className="label">
+    <span className="label-text">Cost Per Seat</span>
+  </label>
+  <input
+    id="cost"
+    type="number"
+    {...register('cost')}
+    className="input input-bordered"
+    placeholder="Enter cost per seat"
+  />
+  {errors.cost && <p className="text-red-500 text-sm">{errors.cost.message}</p>}
+</div>
+
 
           {/* Image Upload */}
           <div className="form-control">

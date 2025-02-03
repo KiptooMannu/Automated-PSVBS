@@ -23,13 +23,24 @@ export const register = async (c: Context) => {
 
 export const login = async (c: Context) => {
     try {
-        const { email, password } = await c.req.json();
-        const { token, user } = await loginUser(email, password);
+        const body = await c.req.json();
+        console.log("Received login request:", body);
+
+        if (!body.email || !body.password) {
+            console.error("Missing email or password");
+            return c.json({ message: "Email and password are required" }, 400);
+        }
+
+        const { token, user } = await loginUser(body.email, body.password);
+
+        console.log("Login successful:", user);
         return c.json({ token, user }, 200);
     } catch (error: any) {
+        console.error("Login error:", error.message);
         return c.json({ error: error.message }, 400);
     }
 };
+
 
 export const getUsers = async (c: Context) => {
     try {
