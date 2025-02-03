@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-// import { useGetResourcesQuery, Resource } from '../../../../features/resources/resourcesAPI';
+
 import { useFetchCarSpecsQuery,Vehicle } from '../../../../features/vehicles/vehicleAPI';
 import CreateVehicleButton from './CreateVehicleButton';
 import CreateVehicleModal from './CreateVehicleForm';
 import EditVehicleModal from './EditVehicle';
 import DeleteVehicleModal from './DeleteVehicle';
-// import TagBadge from '../../../../components/TagBadge';
 import { SyncLoader } from 'react-spinners';
 
 const VehiclesPage: React.FC = () => {

@@ -18,8 +18,8 @@ const EditVehicleSchema = yup.object().shape({
   capacity: yup.number().typeError('Capacity must be a number').nullable(),
   vehicle_type: yup.string().required('Vehicle type is required'),
   current_location: yup.string().required('Current location is required'),
-  // destination: yup.string().required('Destination is required'),
-  // departure: yup.string().required('Departure location is required'),
+  destination: yup.string().required('Destination is required'),
+  departure: yup.string().required('Departure location is required'),
   cost: yup.number().typeError('cost must be a number'),
   image_url: yup.mixed().notRequired(), // Optional image
 });
@@ -42,8 +42,8 @@ const EditVehicleModal: React.FC<EditVehicleModalProps> = ({ vehicle, onClose })
       setValue('capacity', vehicle.capacity || undefined);
       setValue('vehicle_type', vehicle.vehicle_type || '');
       setValue('current_location', vehicle.current_location || '');
-      // setValue('destination', vehicle.destination || '');
-      // setValue('departure', vehicle.departure || '');
+      setValue('destination', vehicle.destination || '');
+      setValue('departure', vehicle.departure || '');
       setImagePreview(vehicle.image_url || null);
     }
   }, [vehicle, setValue]);
@@ -138,12 +138,12 @@ const EditVehicleModal: React.FC<EditVehicleModalProps> = ({ vehicle, onClose })
         <h2 className="text-xl font-bold mb-4">Edit Vehicle</h2>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Fields */}
-          {(['registration_number', 'vehicle_name', 'license_plate', 'capacity', 'vehicle_type', 'current_location' , 'cost'] as const).map((field) => (
+          {(['registration_number', 'vehicle_name','current_location', 'license_plate', 'capacity', 'vehicle_type', 'departure','destination', 'cost'] as const).map((field) => (
             <div key={field} className="form-control lg:mr-8">
               <input
                 id={field}
                 {...register(field)}
-                className="input input-bordered"
+                className="input input-bordered text-color-orange"
                 placeholder={field.replace('_', ' ').toUpperCase()}
               />
               {errors[field] && (
