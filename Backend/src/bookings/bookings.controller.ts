@@ -117,9 +117,30 @@ export const getAllVehiclesWithBookingsController = async (c: Context) => {
 };
 
 // ✅ Fetch All Bookings
+import { sql } from "drizzle-orm"; // ✅ Use raw SQL aggregation
+
+
 export const getAllBookingsController = async (c: Context) => {
     try {
-        const bookings = await db.query.bookingTable.findMany();
+        const bookings = await db
+            .select({
+                booking_id: bookingTable.booking_id,
+                user_id: bookingTable.user_id,
+                vehicle_id: bookingTable.vehicle_id,
+                departure_date: bookingTable.departure_date,
+                departure_time: bookingTable.departure_time,
+                departure: bookingTable.departure,
+                destination: bookingTable.destination,
+                total_price: bookingTable.total_price,
+                booking_status: bookingTable.booking_status,
+                booking_date: bookingTable.booking_date,
+                seat_ids: sql<string>`COALESCE(STRING_AGG(${bookingsSeatsTable.seat_id}::TEXT, ','), 'N/A')`.as("seat_ids"), // ✅ Fix: Use STRING_AGG
+            })
+            .from(bookingTable)
+            .leftJoin(bookingsSeatsTable, eq(bookingTable.booking_id, bookingsSeatsTable.booking_id))
+            .groupBy(bookingTable.booking_id) // ✅ Group bookings so seat IDs aggregate correctly
+            .execute();
+
         return c.json(bookings, 200);
     } catch (error) {
         console.error("Error fetching bookings:", error);
