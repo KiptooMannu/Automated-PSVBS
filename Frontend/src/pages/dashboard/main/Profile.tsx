@@ -48,6 +48,7 @@ const Profile = () => {
     refetchOnReconnect: true,
   });
 
+
   if (isLoading) {
     return <div>Loading user data...</div>;
   }
@@ -68,7 +69,7 @@ const Profile = () => {
       });
     }
   }, [userData, reset]);
-  // console.log('userData:', userData);
+  console.log('userData:', userData);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -119,11 +120,12 @@ const Profile = () => {
       <div className="overflow-x-auto bg-gradient-to-r from-blue-100 via-blue-200 to-white min-h-screen shadow-lg flex flex-col items-center justify-center">
         <div className="flex flex-col items-center md:flex-row md:items-start border-b-2 border-green-600 pb-6">
           <div className="relative mb-6 md:mb-0 md:mr-8 flex justify-center items-center">
-            <img
-              src={userData.image_url || userIcon}
-              className="rounded-full h-32 w-32 object-cover border-4 border-white"
-              alt="User Avatar"
-            />
+          <img
+  src={userData?.image_url || userIcon}
+  className="rounded-full h-32 w-32 object-cover border-4 border-white"
+  alt="User Avatar"
+/>
+
             {userData.is_verified ? (
               <div className="absolute bottom-0 right-0 p-1 bg-green-700 rounded-full border-2 border-white">
                 <MdCheckCircle className="text-green-600 w-6 h-6" title="Verified" />

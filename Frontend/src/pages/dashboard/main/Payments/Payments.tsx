@@ -132,7 +132,7 @@ const Payment = () => {
     return <div>Error loading vehicle data</div>;
   }
 
-  if (!bookingData || !user_id ||!bookingData.data || bookingData.length === 0) {
+  if (!bookingData || bookingData.length === 0) {
     return (
       <div className="flex flex-col">
         <h2 className="text-center text-xl p-2 rounded-t-md text-webcolor font-bold border-b-2 border-slate-500">
@@ -180,37 +180,37 @@ const Payment = () => {
               </tr>
             </thead>
             <tbody>
-              {bookingData.map((booking:BookingData) => (
-                <tr key={booking.booking_id} className="border-b border-slate-950">
-                  <td className='px-4 py-2'>{booking.user_id}</td>
-                  {/* <td className='px-4 py-2'>{getTicketByUserId(booking.user_id)}</td> */}
-                  <td className="px-4 py-2">{booking.booking_id}</td>
-                  <td className="px-4 py-2">{booking.vehicle_id}</td>
-                  <td className="px-4 py-2">{formatDate(booking.payment_date)}</td>
-                  <td className="px-4 py-2">{booking.total_price}</td>
-                  <td className="px-4 py-2">{booking.booking_status}</td>
-                  <td className="px-4 py-2">
-                    {booking.payment_status === 'completed' ? 'Paid' : 'Not Paid'}
-                  </td>
-                  <td className="px-4 py-2">
-                    <button
-                      className="btn bg-blue-950 text-text-light hover:text-black border-none"
-                      onClick={() => handleMakePayment(booking.booking_id, booking.price)}
-                      disabled={isPaymentLoading === booking.booking_id || ( booking.payment_status === 'Paid')}
-                    >
-                      {isPaymentLoading === booking.booking_id ? (
-                        <div className="flex items-center">
-                          <span className="loading loading-spinner text-text-light"></span>
-                          <span> Processing...</span>
-                        </div>
-                      ) : (
-                        'Make Payment'
-                      )}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+  {bookingData?.map((booking: BookingData) => (
+    <tr key={booking.booking_id} className="border-b border-slate-950">
+      <td className="px-4 py-2">{booking.user_id}</td>
+      <td className="px-4 py-2">{booking.booking_id}</td>
+      <td className="px-4 py-2">{booking.vehicle_id}</td>
+      <td className="px-4 py-2">{formatDate(booking.payment_date)}</td>
+      <td className="px-4 py-2">{booking.total_price}</td>
+      <td className="px-4 py-2">{booking.booking_status}</td>
+      <td className="px-4 py-2">
+        {booking.payment_status === "completed" ? "Paid" : "Not Paid"}
+      </td>
+      <td className="px-4 py-2">
+        <button
+          className="btn bg-blue-950 text-text-light hover:text-black border-none"
+          onClick={() => handleMakePayment(booking.booking_id, booking.total_price)}
+          disabled={isPaymentLoading === booking.booking_id || booking.payment_status === "Paid"}
+        >
+          {isPaymentLoading === booking.booking_id ? (
+            <div className="flex items-center">
+              <span className="loading loading-spinner text-text-light"></span>
+              <span> Processing...</span>
+            </div>
+          ) : (
+            "Make Payment"
+          )}
+        </button>
+      </td>
+    </tr>
+  ))}
+</tbody>
+
           </table>
         </div>
       </div>

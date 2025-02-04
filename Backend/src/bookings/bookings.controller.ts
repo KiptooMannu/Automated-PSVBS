@@ -159,3 +159,61 @@ export const getAllBookingsController = async (c: Context) => {
         return c.json({ message: "Internal server error" }, 500);
     }
 };
+//fetch all bookings by user id
+export const getUserBookingsByUserIdController = async (c: Context) => {
+    try {
+        const user_id = Number(c.req.param("id"));
+        if (isNaN(user_id)) {
+            return c.json({ message: "Invalid user_id. Must be a number." }, 400);
+        }
+
+        const bookings = await db
+            .select({
+                booking_id: bookingTable.booking_id,
+                user_id: bookingTable.user_id,
+                vehicle_id: bookingTable.vehicle_id,
+                departure_date: bookingTable.departure_date,
+                departure_time: bookingTable.departure_time,
+                departure: bookingTable.departure,
+                destination: bookingTable.destination,
+                total_price: bookingTable.total_price,
+                booking_status: bookingTable.booking_status,
+                booking_date: bookingTable.booking_date,
+                seat_ids: sql<string>`COALESCE(STRING_AGG(${bookingsSeatsTable.seat_id}::TEXT, ','), 'N/A')`.as("seat_ids"),
+            })
+            .from(bookingTable)
+            .leftJoin(bookingsSeatsTable, eq(bookingTable.booking_id, bookingsSeatsTable.booking_id))
+            .where(eq(bookingTable.user_id, user_id)) // ✅ Now user_id is correctly typed
+            .groupBy(bookingTable.booking_id)
+            .execute();
+
+        return c.json(bookings, 200);
+    } catch (error) {
+        console.error("Error fetching bookings:", error);
+        return c.json({ message: "Internal server error" }, 500);
+    }
+};
+// ✅ Update Booking Status Controller
+// export const updateBookingStatusController = async (c: Context) => {
+//     try {
+//         const { booking_id, booking_status }: { booking_id: number; booking_status: string } = await c.req.json();
+
+//         if (!booking_id || !booking_status) {
+//             return c.json({ message: "Missing required fields." }, 400);
+//         }
+
+//         const updatedBooking = await db.bookingsTable.update({
+//             where: eq(bookingTable.booking_id, booking_id),
+//             set: { booking_status },
+//         });
+
+//         if (!updatedBooking) {
+//             return c.json({ message: "Booking not found." }, 404);
+//         }
+
+//         return c.json({ message: "Booking status updated successfully!" }, 200);
+//     } catch (error) {
+//         console.error("Error updating booking status:", error);
+//         return c.json({ message: "Internal server error" }, 500);
+//     }
+// };
