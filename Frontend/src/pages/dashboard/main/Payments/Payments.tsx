@@ -2,13 +2,17 @@ import { useState} from 'react';
 import { useSelector } from 'react-redux';
 import { format } from 'date-fns';
 import { RootState } from '../../../../app/store';
-import { useFetchCarSpecsQuery } from '../../../../features/vehicles/vehicleAPI';
 import { toast, Toaster } from 'sonner';
 import { loadStripe } from '@stripe/stripe-js';
 import { paymentAPI } from '../../../../features/payments/paymentAPI';
 import { Link } from 'react-router-dom';
 import { bookingVehicleAPI} from '../../../../features/booking/bookingAPI';
-// import { useGetTicketsQuery } from '../../../../features/tickets/ticketsAPI';
+import { Tbooking } from '../../../../features/booking/bookingAPI';
+
+
+
+
+
 
 // Stripe Promise initialization
 const stripePromise = loadStripe('pk_test_51PbJt2DCaCRrBDN9JDhg6tno1Va2kCyCSjiEAFoaRwfSRafu2VRevSyI84JGwVrXtWRXybqZoMtmW134wvE6xJGt00m45tNU5L');
@@ -18,20 +22,10 @@ const Payment = () => {
   const user_id = user.user?.user_id || 0; // Get user id, fallback to 0 if not available
   console.log('User ID is:', user_id);
 
-  //get bookings data
-  const { data: bookingData, isLoading: bookingLoading, error: bookingError } = bookingVehicleAPI.useGetBookingVehicleQuery(user_id
-    // ,{refetchOnMountOrArgChange: true, refetchOnReconnect: true, refetchOnFocus: true,}
-  );
-  // console.log('Booking Data:', bookingData);
-
-  //fetch tickets data
-  // const { data: tickets, isLoading: ticketsLoading, error: ticketsError } = useGetTicketsQuery();
-  // console.log('Tickets Data:', tickets);
+  const { data: bookingData } = bookingVehicleAPI.useGetUserBookingQuery(user_id);
 
 
-  // Fetch vehicles data
-  const { data: vehicle, isLoading: vehicleLoading, error: vehicleError } = useFetchCarSpecsQuery();
-  // console.log('Vehicle Data:', vehicle);
+
 
   const [createPayment] = paymentAPI.useCreatePaymentMutation();
   const [isPaymentLoading, setIsPaymentLoading] = useState<number | null>(null);
@@ -43,47 +37,53 @@ const Payment = () => {
     return format(date, 'MM/dd/yyyy');
   };
   
+  const sortedBookingData = bookingData
+  ?.slice()
+  .sort((a, b) => {
+    const aPaid = a.payments?.some(p => p.payment_status === "completed");
+    const bPaid = b.payments?.some(p => p.payment_status === "completed");
+    
+    // Show unpaid bookings first
+    if (aPaid && !bPaid) return 1;
+    if (!aPaid && bPaid) return -1;
+    
+    // If both are unpaid or both are paid, sort by latest booking date
+    return new Date(b.booking_date).getTime() - new Date(a.booking_date).getTime();
+  });
 
-  // Function to get tickets by user_id
-  // const getTicketByUserId = (user_id: number) => {
-  //   if (tickets) {
-  //     console.log('Tickets Data:', tickets);
-  //     const ticket = tickets.find((t: { ticket_id: number; }) => t.ticket_id === user_id);
-  //     if (ticket) {
-  //       return ticket;
+
+
+  const recentUnpaidBooking = bookingData
+  ?.slice()
+  .sort((a, b) => new Date(b.booking_date).getTime() - new Date(a.booking_date).getTime()) // Sort by newest first
+  .find(booking => !booking.payments?.some(p => p.payment_status === "completed")); // Find first unpaid booking
+
+  // // Function to get bookings by user_id
+  // const getBookingByUserId = (user_id: number) => {
+  //   if (bookingData) {
+  //     console.log('Booking Data:', bookingData);
+  //     const booking = bookingData.find((b: { booking_id: number; }) => b.booking_id === user_id);
+  //     if (booking) {
+  //       return booking;
   //     } else {
-  //       console.log(`Ticket with user ID ${user_id} not found`);
+  //       console.log(`Booking with user ID ${user_id} not found`);
   //     }
   //   }
-  //   return 'Ticket ID not found';
+  //   return 'Booking ID not found';
   // };
 
-  // Function to get bookings by user_id
-  const getBookingByUserId = (user_id: number) => {
-    if (bookingData) {
-      console.log('Booking Data:', bookingData);
-      const booking = bookingData.find((b: { booking_id: number; }) => b.booking_id === user_id);
-      if (booking) {
-        return booking;
-      } else {
-        console.log(`Booking with user ID ${user_id} not found`);
-      }
-    }
-    return 'Booking ID not found';
-  };
-
-  // Function to get vehicle details by registration number
-  const getVehicleDetails = (registration_number: string) => {
-    if (vehicle) {
-      const vehicleDetails = vehicle.find((v: { registration_number: string; }) => v.registration_number === registration_number);
-      if (vehicleDetails) {
-        return vehicleDetails;
-      } else {
-        console.log(`Vehicle with ID ${registration_number} not found`);
-      }
-    }
-    return 'Vehicle not found';
-  };
+  // // Function to get vehicle details by registration number
+  // const getVehicleDetails = (registration_number: string) => {
+  //   if (vehicle) {
+  //     const vehicleDetails = vehicle.find((v: { registration_number: string; }) => v.registration_number === registration_number);
+  //     if (vehicleDetails) {
+  //       return vehicleDetails;
+  //     } else {
+  //       console.log(`Vehicle with ID ${registration_number} not found`);
+  //     }
+  //   }
+  //   return 'Vehicle not found';
+  // };
 
   const handleMakePayment = async (booking_id: number, total_price: string) => {
     console.log('Initiating payment with booking_id:', booking_id, 'and amount:', total_price);
@@ -123,14 +123,14 @@ const Payment = () => {
     }
   };
   
-  // Render loading or error states
-  if (vehicleLoading) {
-    return <div>Loading data...</div>;
-  }
+  // // Render loading or error states
+  // if (vehicleLoading) {
+  //   return <div>Loading data...</div>;
+  // }
 
-  if (vehicleError) {
-    return <div>Error loading vehicle data</div>;
-  }
+  // if (vehicleError) {
+  //   return <div>Error loading vehicle data</div>;
+  // }
 
   if (!bookingData || bookingData.length === 0) {
     return (
@@ -165,8 +165,8 @@ const Payment = () => {
         </h2>
 
         <div className="overflow-x-auto">
-          <table className="table-auto w-full">
-            <thead>
+        <table className="table-auto w-full border-collapse">
+        <thead>
               <tr className="bg-blue-700">
               <th className="px-4 py-2 text-left text-text-light">User ID</th>
               {/* <th className="px-4 py-2 text-left text-text-light">Ticket ID</th> */}
@@ -180,36 +180,69 @@ const Payment = () => {
               </tr>
             </thead>
             <tbody>
-  {bookingData?.map((booking: BookingData) => (
-    <tr key={booking.booking_id} className="border-b border-slate-950">
-      <td className="px-4 py-2">{booking.user_id}</td>
-      <td className="px-4 py-2">{booking.booking_id}</td>
-      <td className="px-4 py-2">{booking.vehicle_id}</td>
-      <td className="px-4 py-2">{formatDate(booking.payment_date)}</td>
-      <td className="px-4 py-2">{booking.total_price}</td>
-      <td className="px-4 py-2">{booking.booking_status}</td>
-      <td className="px-4 py-2">
-        {booking.payment_status === "completed" ? "Paid" : "Not Paid"}
-      </td>
-      <td className="px-4 py-2">
-        <button
-          className="btn bg-blue-950 text-text-light hover:text-black border-none"
-          onClick={() => handleMakePayment(booking.booking_id, booking.total_price)}
-          disabled={isPaymentLoading === booking.booking_id || booking.payment_status === "Paid"}
-        >
-          {isPaymentLoading === booking.booking_id ? (
-            <div className="flex items-center">
-              <span className="loading loading-spinner text-text-light"></span>
-              <span> Processing...</span>
-            </div>
-          ) : (
-            "Make Payment"
-          )}
-        </button>
-      </td>
-    </tr>
-  ))}
+
+
+              
+ {sortedBookingData?.slice()
+ .sort((a, b) => new Date(b.booking_date).getTime() - new Date(a.booking_date).getTime()) // Sort newest first
+    .map((booking: Tbooking) => (
+<tr key={booking.booking_id} 
+    className={`border-b border-slate-950 ${booking === recentUnpaidBooking ? 'bg-yellow-200' : ''} relative h-25`}>
+
+        <td className="px-4 py-2">{booking.user_id}</td>
+        <td className="px-4 py-2">{booking.booking_id}</td>
+        <td className="px-4 py-2">{booking.vehicle_id}</td>
+        <td className="px-4 py-2">{formatDate(booking.booking_date)}</td>
+        <td className="px-4 py-2">{booking.total_price}</td>
+        <td className="px-4 py-2">{booking.booking_status}</td>
+    
+        <td 
+  className={`px-4 py-2 text-center font-bold rounded-md cursor-pointer relative group hover:animate-none 
+    ${booking.payments?.some(p => p.payment_status === "completed") 
+      ? "text-green-600 bg-green-100 px-2 py-1" 
+      : booking.payments?.some(p => p.payment_status === "paid") 
+      ? "text-blue-600 bg-blue-100 px-2 py-1" 
+      : "text-red-600 bg-red-100 px-2 py-1 animate-blink group-hover:animate-none"}`}
+>
+
+
+  {booking.payments?.some(p => p.payment_status === "completed") 
+    ? "🏁 Completed" 
+    : booking.payments?.some(p => p.payment_status === "paid") 
+    ? "✅ Paid" 
+    : "⚠️ Not Paid"}
+
+  {/* Tooltip (Appears on Hover) */}
+{/* Tooltip (Appears on Hover) */}
+<span className="absolute hidden group-hover:flex bg-black text-white text-sm font-medium px-4 py-2 rounded-lg shadow-lg 
+                left-1/2 transform -translate-x-1/2 bottom-full mb-2 whitespace-nowrap min-w-[300px] text-center z-50">
+
+  {booking.payments?.some(p => p.payment_status === "completed") 
+    ? "Your payment has been fully processed."
+    : booking.payments?.some(p => p.payment_status === "paid") 
+    ? "Your payment is being processed."
+    : "You have not completed payment for this booking."}
+</span>
+
+</td>
+
+
+
+        <td className="px-4 py-2">
+          <button
+            className={`btn text-white border-none 
+              ${booking === recentUnpaidBooking ? 'animate-flash bg-red-600' : 'bg-blue-950'}
+              hover:text-black`}
+            onClick={() => handleMakePayment(booking.booking_id, booking.total_price.toString())}
+            disabled={isPaymentLoading === booking.booking_id || (booking.payments?.length > 0 && booking.payments.some(p => p.payment_status === "completed"))}
+          >
+            {isPaymentLoading === booking.booking_id ? 'Processing...' : 'Make Payment'}
+          </button>
+        </td>
+      </tr>
+    ))}
 </tbody>
+
 
           </table>
         </div>

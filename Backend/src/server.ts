@@ -5,7 +5,7 @@ import { cors } from "hono/cors";
 import { readFile } from 'fs/promises';
 import  assert from 'assert' 
 import { userAuthRouter } from './auth/auth.router';
-import { paymentRouter } from './payments/Payment.Router';  // from main
+import  paymentRouter from './payments/Payment.Router';  // from main
 import TicketingRouter from './Ticketing/Ticketing.Router';  // from main
 import bookingRouter from './bookings/booking.router';  // decide the correct file name
 import vehicleRouter from './vehicle/vehicle.routes';  // from origin/main

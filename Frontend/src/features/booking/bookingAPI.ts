@@ -57,6 +57,9 @@ export const bookingVehicleAPI = createApi({
           : [{ type: TagTypes.BookingVehicle, id: "LIST" }],
     }),
 
+
+
+
     createBookingVehicle: builder.mutation<Tbooking, Partial<Tbooking>>({
       query: (newBooking) => ({
         url: "bookings",
@@ -89,6 +92,8 @@ export const bookingVehicleAPI = createApi({
       invalidatesTags: (_, __, booking_id) => [{ type: TagTypes.BookingVehicle, id: booking_id }],
     }),
 
+
+    
     // Fetch bookings for a specific user
     getUserBooking: builder.query<Tbooking[], number>({
       query: (user_id) => `bookings/user/${user_id}`, // ✅ Fixed incorrect URL syntax
