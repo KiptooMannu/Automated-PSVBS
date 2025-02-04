@@ -2,8 +2,12 @@ import { Context } from "hono";
 import { getAllPaymentsService, getPaymentByIdService, createPaymentService, updatePaymentService, deletePaymentService } from "./Payment.Service";
 import Stripe from "stripe";
 import { stripe } from "../drizzle/db"; // Ensure stripe is correctly set up
-import { ClientURL } from "./utils"; // Define your client URL for redirects
+// import { ClientURL } from "./utils"; // Define your client URL for redirects
 import {createTicket} from "../Ticketing/Ticketing.Service"
+import { paymentsTable } from "../drizzle/schema";
+import db from "../drizzle/db";
+import { eq } from "drizzle-orm";
+
 
 // Get all payments
 export const getAllPaymentsController = async (c: Context) => {
@@ -87,6 +91,34 @@ export const deletePaymentController = async (c: Context) => {
         return c.json({ error: error?.message }, 500);
     }
 };
+//get all user payments by user id
+export const getUserPaymentsByUserIdController = async (c: Context) => {
+    try {
+        const user_id = Number(c.req.param("id"));
+        if (isNaN(user_id)) {
+            return c.json({ message: "Invalid user_id. Must be a number." }, 400);
+        }
+
+        const payments = await db
+            .select({
+                payment_id: paymentsTable.payment_id,
+                amount: paymentsTable.amount,
+                payment_date: paymentsTable.payment_date,
+                payment_method: paymentsTable.payment_method,
+                transaction_id: paymentsTable.transaction_reference,
+                transaction_reference: paymentsTable.transaction_reference,
+            })
+            .from(paymentsTable)
+            .where(eq(paymentsTable.payment_id, user_id)) // ✅ Now user_id is correctly typed
+            .execute();
+
+        return c.json(payments, 200);
+    } catch (error) {
+        console.error("Error fetching payments:", error);
+        return c.json({ message: "Internal server error" }, 500);
+    }
+}
+
 
 // Checkout session (for Stripe)
 export const createCheckoutSessionController = async (c: Context) => {
@@ -154,5 +186,54 @@ export const createCheckoutSessionController = async (c: Context) => {
     } catch (error: any) {
         console.error("Error creating checkout session:", error);
         return c.json({ message: error.message }, 400);
+    }
+};
+// Webhook handler (for Stripe)
+export const stripeWebhookController = async (c: Context) => {
+    try {
+        const payload = await c.req.text(); // Ensure we await the text() response
+        const sig = c.req.header('stripe-signature');
+
+        if (!sig) {
+            console.error("Error verifying webhook signature: No signature provided");
+            return c.json({ message: "Webhook signature verification failed" }, 400);
+        }
+
+        let event: Stripe.Event;
+        try {
+            event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET as string || '');
+        } catch (error: any) {
+            console.error("Error verifying webhook signature:", error);
+            return c.json({ message: "Webhook signature verification failed" }, 400);
+        }
+
+        // Handle the event
+        switch (event.type) {
+            case 'checkout.session.completed':
+                const session = event.data.object as Stripe.Checkout.Session;
+
+                // Ensure correct ID type (number/string)
+                const payment = await getPaymentByIdService(Number(session.id)); // Convert to number if necessary
+                if (!payment) {
+                    console.error("Payment not found for session:", session.id);
+                    return c.json({ message: "Payment not found" }, 404);
+                }
+
+                // Update payment status
+                const updatedPayment = await updatePaymentService(payment.payment_id, { payment_status: 'completed' });
+                if (!updatedPayment) {
+                    console.error("Error updating payment status for session:", session.id);
+                    return c.json({ message: "Error updating payment status" }, 500);
+                }
+
+                return c.json({ message: "Payment updated successfully" }, 200);
+            default:
+                console.log(`Unhandled event type: ${event.type}`);
+        }
+
+        return c.json({ message: "Event handled successfully" }, 200);
+    } catch (error) {
+        console.error("Unexpected error in webhook:", error);
+        return c.json({ message: "Internal server error" }, 500);
     }
 };
