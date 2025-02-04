@@ -11,13 +11,13 @@ import Profile from './pages/dashboard/main/Profile';
 import BookingForm from './pages/dashboard/main/Booking/BookingForm';
 import AllBookings from './pages/dashboard/main/Booking/AllBookings';
 import MyBookings from './pages/dashboard/main/Booking/MyBookings';
-import MapSeat from './pages/dashboard/main/Booking/MapSeat';
 import Tickets from './pages/dashboard/main/Tickets/MyTickets';
 import VehiclesPage from './pages/dashboard/main/Vehicles/VehiclesPage';
 import PaymentFailed from './pages/dashboard/main/Payments/PaymentFailed';
 import SuccessPayment from './pages/dashboard/main/Payments/PaymentSuccess';
 import Payment from './pages/dashboard/main/Payments/Payments';
 import AllTickets from './pages/dashboard/main/Tickets/AllTickets';
+import Analytics from './pages/dashboard/main/Analytics/Analytics';
 
 function App() {
   const router = createBrowserRouter([
@@ -103,6 +103,10 @@ function App() {
       {
         path: 'all_tickets',
         element: <AllTickets />
+      },
+      {
+        path: 'analytics',
+        element: <Analytics />
       },
     ]
   }
