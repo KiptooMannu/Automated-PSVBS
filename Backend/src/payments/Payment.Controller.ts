@@ -50,17 +50,24 @@ export const getPaymentByIdController = async (c: Context) => {
 export const createPaymentController = async (c: Context) => {
     try {
         const payment = await c.req.json();
-        // Convert date fields to Date objects
-        payment.payment_date = new Date(payment.payment_date);
-        const newPayment = await createPaymentService(payment);
+
+        // Ensure correct default payment status
+        const newPayment = await createPaymentService({
+            ...payment,
+            payment_date: new Date(),
+            payment_status: "pending", // Ensure all new payments start as "pending"
+        });
+
         if (!newPayment) {
             return c.text("Payment not created", 400);
         }
-        return c.json({ message: "Payment created successfully" }, 201);
+
+        return c.json({ message: "Payment created successfully", payment: newPayment }, 201);
     } catch (error: any) {
         return c.json({ error: error?.message }, 500);
     }
 };
+
 
 // Update payment
 export const updatePaymentController = async (c: Context) => {
@@ -144,7 +151,7 @@ export const createCheckoutSessionController = async (c: Context) => {
         return c.json({ message: "Booking not found" }, 404);
     }
 
-    // Validate booking data
+    // ✅ Ensure booking_id is provided
     if (!booking.booking_id) {
         return c.json({ message: "Booking id is required" }, 400);
     }
@@ -167,7 +174,7 @@ export const createCheckoutSessionController = async (c: Context) => {
             mode: 'payment',
             metadata: {
                 booking_id: booking.booking_id.toString(), 
-                user_id: booking.user_id.toString(),
+                user_id: booking.user_id.toString(), // Store as string, convert later
             },
             success_url: "http://localhost:5173/dashboard/payment-success",
             cancel_url: "http://localhost:5173/dashboard/payment-canceled",
@@ -175,20 +182,7 @@ export const createCheckoutSessionController = async (c: Context) => {
         
         const session: Stripe.Checkout.Session = await stripe.checkout.sessions.create(sessionParams);
 
-
-        
-        // Create a support ticket after successful payment
-        const ticketDetails = {
-            user_id: booking.user_id,
-            subject: `Payment received for booking ${booking.booking_id}`,
-            description: `Payment of ${booking.total_price} received for booking ${booking.booking_id}. Payment reference: ${session.id}`,
-            status: 'paid' as 'paid' | 'failed' | 'refunded' | null,
-            created_at: new Date(), 
-        };
-    
-        // Call the service to create the ticket
-        await createTicket(ticketDetails);
-
+        // ✅ Return session details to frontend, but DO NOT create a ticket yet
         return c.json({ sessionId: session.id, url: session.url }, 200);
 
     } catch (error: any) {
@@ -196,8 +190,10 @@ export const createCheckoutSessionController = async (c: Context) => {
         return c.json({ message: error.message }, 400);
     }
 };
+
 // Webhook handler (for Stripe)
 // ✅ Webhook for Stripe Payments
+// ✅ Ensure payment status updates to "completed" on successful checkout
 export const stripeWebhookController = async (c: Context) => {
     try {
         const payload = await c.req.text();
@@ -208,6 +204,8 @@ export const stripeWebhookController = async (c: Context) => {
             return c.json({ message: "Webhook signature verification failed" }, 400);
         }
 
+        console.log("🔍 Incoming Webhook Event: ", payload);
+
         let event: Stripe.Event;
         try {
             event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET as string || '');
@@ -216,78 +214,65 @@ export const stripeWebhookController = async (c: Context) => {
             return c.json({ message: "Webhook signature verification failed" }, 400);
         }
 
-        switch (event.type) {
-            case 'checkout.session.completed':
+        console.log(`✅ Stripe Event Received: ${event.type}`);
 
-            
-                const session = event.data.object as Stripe.Checkout.Session;
-                console.log("✅ Stripe checkout completed. Session ID:", session.id);
+        if (event.type === 'checkout.session.completed') {
+            const session = event.data.object as Stripe.Checkout.Session;
+            console.log("✅ Stripe checkout completed. Session ID:", session.id);
 
+            const booking_id = Number(session.metadata?.booking_id);
+            const user_id = session.metadata?.user_id ? Number(session.metadata.user_id) : 0;
+            const amount = session.amount_total ? (session.amount_total / 100).toString() : "0";
 
-        
-                const booking_id = Number(session.metadata?.booking_id);
-                const amount = session.amount_total ? (session.amount_total / 100).toString() : "0";
+            console.log(`🔍 Processing Payment for Booking ID: ${booking_id}, Amount: ${amount}`);
 
-                if (!booking_id || amount === "0") {
-                    console.error("❌ Missing required fields from Stripe session.");
-                    return c.json({ message: "Invalid payment data" }, 400);
-                }
+            if (!booking_id || amount === "0") {
+                console.error("❌ Missing required fields from Stripe session.");
+                return c.json({ message: "Invalid payment data" }, 400);
+            }
 
-                // ✅ Fetch `user_id` from the `bookingTable`
-                const booking = await db.query.bookingTable.findFirst({
-                    where: eq(bookingTable.booking_id, booking_id),
+            // ✅ Fetch the payment record from the database
+            const existingPayment = await db.query.paymentsTable.findFirst({
+                where: eq(paymentsTable.booking_id, booking_id),
+            });
+
+            if (existingPayment?.payment_status === "completed") {
+                console.log(`ℹ️ Payment ID ${existingPayment.payment_id} is already completed.`);
+                return c.json({ message: "Payment already completed" }, 200);
+            }
+
+            // ✅ Update or create payment record with transaction reference
+            if (existingPayment?.payment_id) {
+                console.log(`ℹ️ Updating payment status for payment ID: ${existingPayment.payment_id}`);
+                await updatePaymentService(existingPayment.payment_id, {
+                    payment_status: "completed",
+                    transaction_reference: session.id, // 🔍 Ensure transaction reference is stored
+                    updated_at: new Date(),
                 });
-
-                if (!booking) {
-                    console.error(`❌ No booking found for booking_id: ${booking_id}`);
-                    return c.json({ message: "Booking not found" }, 404);
-                }
-
-                const user_id = booking.user_id; // ✅ Get `user_id` from the booking
-
-                // ✅ Check if a payment already exists
-                const existingPayment = await db.query.paymentsTable.findFirst({
-                    where: eq(paymentsTable.booking_id, booking_id),
+            } else {
+                console.log(`ℹ️ Creating new payment record for booking ${booking_id}`);
+                await createPaymentService({
+                    booking_id,
+                    amount,
+                    payment_date: new Date(),
+                    payment_method: 'card',
+                    transaction_reference: session.id, // 🔍 Ensure transaction reference is stored
+                    payment_status: "completed",
                 });
+            }
 
+            // ✅ Update booking status to "confirmed"
+            console.log(`🔄 Updating Booking ID ${booking_id} to "confirmed"`);
+            await db.update(bookingTable)
+                .set({ booking_status: "confirmed" })
+                .where(eq(bookingTable.booking_id, booking_id))
+                .execute();
 
-                if (existingPayment?.payment_status === "completed") {
-                    console.log(`ℹ️ Payment ID ${existingPayment.payment_id} is already completed. Skipping update.`);
-                    return c.json({ message: "Payment already completed" }, 200);
-                }
-                
-
-                if (existingPayment?.payment_id) {
-                    console.log(`ℹ️ Updating payment status for payment ID: ${existingPayment.payment_id}`);
-                    await updatePaymentService(existingPayment.payment_id, {
-                        payment_status: "completed",
-                        updated_at: new Date(),
-                    });
-                } else {
-                    console.log(`ℹ️ Creating new payment for booking ${booking_id}`);
-                    const newPayment = await createPaymentService({
-                        booking_id, // ✅ Keep only necessary fields
-                        amount,
-                        payment_date: new Date(),
-                        payment_method: 'card',
-                        transaction_reference: session.id,
-                        payment_status: "completed",
-                    });
-
-                    if (!newPayment) {
-                        console.error(`❌ Error creating payment for session ${session.id}`);
-                        return c.json({ message: "Error creating payment record" }, 500);
-                    }
-                    console.log("✅ Payment successfully created:", newPayment);
-                }
-
-                return c.json({ message: "Payment recorded successfully" }, 200);
-
-            default:
-                console.log(`Unhandled event type: ${event.type}`);
+            console.log(`✅ Payment and booking status updated successfully.`);
+            return c.json({ message: "Payment recorded successfully" }, 200);
         }
 
-        return c.json({ message: "Event handled successfully" }, 200);
+        return c.json({ message: "Unhandled event type" }, 200);
     } catch (error) {
         console.error("❌ Unexpected error in webhook:", error);
         return c.json({ message: "Internal server error" }, 500);
