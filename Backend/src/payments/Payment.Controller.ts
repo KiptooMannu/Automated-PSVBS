@@ -49,14 +49,15 @@ export const getPaymentByIdController = async (c: Context) => {
 // Create payment
 export const createPaymentController = async (c: Context) => {
     try {
-        const payment = await c.req.json();
+      
 
-        // Ensure correct default payment status
+        const payment = await c.req.json();
         const newPayment = await createPaymentService({
             ...payment,
             payment_date: new Date(),
-            payment_status: "pending", // Ensure all new payments start as "pending"
+            payment_status: payment.payment_status ?? "pending", // Ensure "pending" is set if null/undefined
         });
+        
 
         if (!newPayment) {
             return c.text("Payment not created", 400);
@@ -236,38 +237,38 @@ export const stripeWebhookController = async (c: Context) => {
                 where: eq(paymentsTable.booking_id, booking_id),
             });
 
-            if (existingPayment?.payment_status === "completed") {
-                console.log(`ℹ️ Payment ID ${existingPayment.payment_id} is already completed.`);
-                return c.json({ message: "Payment already completed" }, 200);
-            }
-
-            // ✅ Update or create payment record with transaction reference
-            if (existingPayment?.payment_id) {
-                console.log(`ℹ️ Updating payment status for payment ID: ${existingPayment.payment_id}`);
-                await updatePaymentService(existingPayment.payment_id, {
-                    payment_status: "completed",
-                    transaction_reference: session.id, // 🔍 Ensure transaction reference is stored
-                    updated_at: new Date(),
-                });
-            } else {
-                console.log(`ℹ️ Creating new payment record for booking ${booking_id}`);
+            if (!existingPayment) {
+                console.error(`❌ No existing payment found for booking ${booking_id}. Creating new one.`);
                 await createPaymentService({
                     booking_id,
                     amount,
                     payment_date: new Date(),
                     payment_method: 'card',
-                    transaction_reference: session.id, // 🔍 Ensure transaction reference is stored
+                    transaction_reference: session.id, 
                     payment_status: "completed",
                 });
+
+
+            } else {
+                console.log(`ℹ️ Updating existing payment ID: ${existingPayment.payment_id}`);
+                await updatePaymentService(existingPayment.payment_id, {
+                    payment_status: "completed",
+                    transaction_reference: session.id, 
+                    updated_at: new Date(),
+                });
             }
-
             // ✅ Update booking status to "confirmed"
-            console.log(`🔄 Updating Booking ID ${booking_id} to "confirmed"`);
-            await db.update(bookingTable)
-                .set({ booking_status: "confirmed" })
-                .where(eq(bookingTable.booking_id, booking_id))
-                .execute();
-
+            const updateResult = await db.update(bookingTable)
+            .set({ booking_status: "confirmed" })
+            .where(eq(bookingTable.booking_id, booking_id))
+            .execute();
+        
+        if (!updateResult) {
+            console.error(`❌ Booking status update failed for Booking ID ${booking_id}`);
+        } else {
+            console.log(`✅ Booking status successfully updated to 'confirmed' for Booking ID ${booking_id}`);
+        }
+        
             console.log(`✅ Payment and booking status updated successfully.`);
             return c.json({ message: "Payment recorded successfully" }, 200);
         }
