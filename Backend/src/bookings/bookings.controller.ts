@@ -217,3 +217,36 @@ export const getUserBookingsByUserIdController = async (c: Context) => {
 //         return c.json({ message: "Internal server error" }, 500);
 //     }
 // };
+// ✅ Confirm Booking Controller
+export const confirmBookingController = async (c: Context) => {
+    try {
+        const { booking_id }: { booking_id: number } = await c.req.json();
+
+        if (!booking_id) {
+            return c.json({ message: "Booking ID is required." }, 400);
+        }
+
+        // ✅ Check if the booking exists
+        const existingBooking = await db.query.bookingTable.findFirst({
+            where: eq(bookingTable.booking_id, booking_id),
+        });
+
+        if (!existingBooking) {
+            return c.json({ message: "Booking not found." }, 404);
+        }
+
+        if (existingBooking.booking_status === "confirmed" || existingBooking.booking_status === "completed") {
+            return c.json({ message: "Booking is already confirmed or completed." }, 200);
+        }
+
+        // ✅ Update the booking status to "confirmed"
+        await db.update(bookingTable)
+            .set({ booking_status: "confirmed" })
+            .where(eq(bookingTable.booking_id, booking_id));
+
+        return c.json({ message: "Booking confirmed successfully.", success: true }, 200);
+    } catch (error) {
+        console.error("Error confirming booking:", error);
+        return c.json({ message: "Internal server error" }, 500);
+    }
+};

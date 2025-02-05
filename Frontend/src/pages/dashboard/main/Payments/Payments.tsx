@@ -8,7 +8,7 @@ import { paymentAPI } from '../../../../features/payments/paymentAPI';
 import { Link } from 'react-router-dom';
 import { bookingVehicleAPI} from '../../../../features/booking/bookingAPI';
 import { Tbooking } from '../../../../features/booking/bookingAPI';
-const [confirmBooking] = bookingVehicleAPI.useConfirmBookingMutation();
+
 
 // Stripe Promise initialization
 const stripePromise = loadStripe('pk_test_51PbJt2DCaCRrBDN9JDhg6tno1Va2kCyCSjiEAFoaRwfSRafu2VRevSyI84JGwVrXtWRXybqZoMtmW134wvE6xJGt00m45tNU5L');
@@ -17,7 +17,8 @@ const Payment = () => {
   const user = useSelector((state: RootState) => state.user);
   const user_id = user.user?.user_id || 0; // Get user id, fallback to 0 if not available
   console.log('User ID is:', user_id);
- 
+
+  const [confirmBooking] = bookingVehicleAPI.useConfirmBookingMutation();
   const { data: bookingData, refetch } = bookingVehicleAPI.useGetUserBookingQuery(user_id); 
   const [createPayment] = paymentAPI.useCreatePaymentMutation();
   const [isPaymentLoading, setIsPaymentLoading] = useState<number | null>(null);
@@ -50,32 +51,6 @@ const Payment = () => {
   .sort((a, b) => new Date(b.booking_date).getTime() - new Date(a.booking_date).getTime()) // Sort by newest first
   .find(booking => !booking.payments?.some(p => p.payment_status === "completed")); // Find first unpaid booking
 
-  // // Function to get bookings by user_id
-  // const getBookingByUserId = (user_id: number) => {
-  //   if (bookingData) {
-  //     console.log('Booking Data:', bookingData);
-  //     const booking = bookingData.find((b: { booking_id: number; }) => b.booking_id === user_id);
-  //     if (booking) {
-  //       return booking;
-  //     } else {
-  //       console.log(`Booking with user ID ${user_id} not found`);
-  //     }
-  //   }
-  //   return 'Booking ID not found';
-  // };
-
-  // // Function to get vehicle details by registration number
-  // const getVehicleDetails = (registration_number: string) => {
-  //   if (vehicle) {
-  //     const vehicleDetails = vehicle.find((v: { registration_number: string; }) => v.registration_number === registration_number);
-  //     if (vehicleDetails) {
-  //       return vehicleDetails;
-  //     } else {
-  //       console.log(`Vehicle with ID ${registration_number} not found`);
-  //     }
-  //   }
-  //   return 'Vehicle not found';
-  // };
 
   const handleMakePayment = async (booking_id: number, total_price: string) => {
     console.log('Processing booking confirmation for booking_id:', booking_id);
@@ -90,8 +65,8 @@ const Payment = () => {
     setIsPaymentLoading(booking_id);
   
     try {
-      // ✅ Step 1: Confirm Booking First
-      const confirmResponse = await confirmBooking(booking_id).unwrap();
+      // ✅ Step 1: Confirm Booking Before Proceeding
+      const confirmResponse = await confirmBooking({ booking_id }).unwrap();
   
       if (!confirmResponse.success) {
         toast.error('Booking confirmation failed. Please try again.');
@@ -100,14 +75,14 @@ const Payment = () => {
   
       toast.success('✅ Booking confirmed! Proceeding to payment...');
   
-      // ✅ Step 2: Proceed to Payment AFTER Booking Confirmation
+      // ✅ Step 2: Proceed to Payment After Confirmation
       const payload = { booking_id, total_price: amountNumber, user_id };
       console.log('Payment payload:', payload);
   
       const paymentResponse = await createPayment(payload).unwrap();
       console.log('Payment response:', paymentResponse);
       toast.success('💳 Payment session created successfully. Redirecting to Stripe...');
-  
+
       const stripe = await stripePromise;
       if (paymentResponse.url && stripe) {
         const { error } = await stripe.redirectToCheckout({
@@ -133,6 +108,7 @@ const Payment = () => {
       setIsPaymentLoading(null);
     }
   };
+
   
 
   if (!bookingData || bookingData.length === 0) {

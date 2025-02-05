@@ -95,14 +95,14 @@ export const bookingVehicleAPI = createApi({
       providesTags: (_, __, user_id) => [{ type: TagTypes.BookingVehicle, id: user_id }],
     }),
 
-    // ✅ Confirm Booking - NEW ENDPOINT (You need to implement this in your backend)
-    confirmBooking: builder.mutation<{ success: boolean; booking_id: number }, number>({
-      query: (booking_id) => ({
-        url: `bookings/confirm/${booking_id}`, // Ensure backend supports this route
+    confirmBooking: builder.mutation<{ success: boolean; booking_id: number }, { booking_id: number }>({
+      query: ({ booking_id }) => ({
+        url: `bookings/confirm`, // ✅ Correct endpoint
         method: "POST",
+        body: { booking_id }, // ✅ Send booking_id in the request body
       }),
-      invalidatesTags: (_, __, booking_id) => [{ type: TagTypes.BookingVehicle, id: booking_id }],
     }),
+    
   }),
 });
 
