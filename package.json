@@ -1,5 +1,9 @@
 {
 	"dependencies": {
-		"neon": "^2.0.0"
+		"neon": "^2.0.0",
+		"recharts": "^2.15.1"
+	},
+	"devDependencies": {
+		"@types/recharts": "^1.8.29"
 	}
 }

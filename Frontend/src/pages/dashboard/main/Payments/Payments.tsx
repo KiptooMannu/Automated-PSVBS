@@ -8,11 +8,7 @@ import { paymentAPI } from '../../../../features/payments/paymentAPI';
 import { Link } from 'react-router-dom';
 import { bookingVehicleAPI} from '../../../../features/booking/bookingAPI';
 import { Tbooking } from '../../../../features/booking/bookingAPI';
-
-
-
-
-
+const [confirmBooking] = bookingVehicleAPI.useConfirmBookingMutation();
 
 // Stripe Promise initialization
 const stripePromise = loadStripe('pk_test_51PbJt2DCaCRrBDN9JDhg6tno1Va2kCyCSjiEAFoaRwfSRafu2VRevSyI84JGwVrXtWRXybqZoMtmW134wvE6xJGt00m45tNU5L');
@@ -21,12 +17,8 @@ const Payment = () => {
   const user = useSelector((state: RootState) => state.user);
   const user_id = user.user?.user_id || 0; // Get user id, fallback to 0 if not available
   console.log('User ID is:', user_id);
-
-  const { data: bookingData } = bookingVehicleAPI.useGetUserBookingQuery(user_id);
-
-
-
-
+ 
+  const { data: bookingData, refetch } = bookingVehicleAPI.useGetUserBookingQuery(user_id); 
   const [createPayment] = paymentAPI.useCreatePaymentMutation();
   const [isPaymentLoading, setIsPaymentLoading] = useState<number | null>(null);
 
@@ -86,51 +78,62 @@ const Payment = () => {
   // };
 
   const handleMakePayment = async (booking_id: number, total_price: string) => {
-    console.log('Initiating payment with booking_id:', booking_id, 'and amount:', total_price);
+    console.log('Processing booking confirmation for booking_id:', booking_id);
+  
     const amountNumber = parseFloat(total_price);
     if (isNaN(amountNumber)) {
       toast.error('Invalid amount');
       console.error('Invalid amount:', total_price);
       return;
     }
-    const payload = { booking_id, total_price: amountNumber, user_id };
-    console.log('Payment payload:', payload);
+  
     setIsPaymentLoading(booking_id);
-
-    //create payment session
+  
     try {
+      // ✅ Step 1: Confirm Booking First
+      const confirmResponse = await confirmBooking(booking_id).unwrap();
+  
+      if (!confirmResponse.success) {
+        toast.error('Booking confirmation failed. Please try again.');
+        return;
+      }
+  
+      toast.success('✅ Booking confirmed! Proceeding to payment...');
+  
+      // ✅ Step 2: Proceed to Payment AFTER Booking Confirmation
+      const payload = { booking_id, total_price: amountNumber, user_id };
+      console.log('Payment payload:', payload);
+  
       const paymentResponse = await createPayment(payload).unwrap();
       console.log('Payment response:', paymentResponse);
-      toast.success('Payment initiated successfully');
-
+      toast.success('💳 Payment session created successfully. Redirecting to Stripe...');
+  
       const stripe = await stripePromise;
-      //Redirect to stripe checkout url
       if (paymentResponse.url && stripe) {
         const { error } = await stripe.redirectToCheckout({
           sessionId: paymentResponse.sessionId,
         });
+  
         if (error) {
           console.error('Error redirecting to checkout:', error);
           toast.error('Error redirecting to checkout');
         }
       }
-
+  
+      // ✅ Step 3: Refresh Payment Status After Completion
+      setTimeout(() => {
+        if (refetch) {
+          refetch();
+        }
+      }, 3000);
     } catch (error) {
-      console.error('Error initiating payment:', error);
-      toast.error('Error initiating payment');
+      console.error('Error in payment process:', error);
+      toast.error('❌ Payment process failed. Please try again.');
     } finally {
       setIsPaymentLoading(null);
     }
   };
   
-  // // Render loading or error states
-  // if (vehicleLoading) {
-  //   return <div>Loading data...</div>;
-  // }
-
-  // if (vehicleError) {
-  //   return <div>Error loading vehicle data</div>;
-  // }
 
   if (!bookingData || bookingData.length === 0) {
     return (
@@ -182,7 +185,7 @@ const Payment = () => {
             <tbody>
 
 
-              
+   
  {sortedBookingData?.slice()
  .sort((a, b) => new Date(b.booking_date).getTime() - new Date(a.booking_date).getTime()) // Sort newest first
     .map((booking: Tbooking) => (
@@ -194,50 +197,72 @@ const Payment = () => {
         <td className="px-4 py-2">{booking.vehicle_id}</td>
         <td className="px-4 py-2">{formatDate(booking.booking_date)}</td>
         <td className="px-4 py-2">{booking.total_price}</td>
-        <td className="px-4 py-2">{booking.booking_status}</td>
-    
-        <td 
-  className={`px-4 py-2 text-center font-bold rounded-md cursor-pointer relative group hover:animate-none 
-    ${booking.payments?.some(p => p.payment_status === "completed") 
-      ? "text-green-600 bg-green-100 px-2 py-1" 
-      : booking.payments?.some(p => p.payment_status === "paid") 
-      ? "text-blue-600 bg-blue-100 px-2 py-1" 
-      : "text-red-600 bg-red-100 px-2 py-1 animate-blink group-hover:animate-none"}`}
->
+        <td className={`px-4 py-2 text-center font-bold rounded-md cursor-pointer ${
+  booking.booking_status === "pending"
+    ? "text-orange-700 bg-orange-200 border border-orange-500 shadow-sm"
+    : booking.booking_status === "confirmed"
+    ? "text-blue-700 bg-blue-200 border border-blue-500 shadow-sm"
+    : booking.booking_status === "completed"
+    ? "text-green-700 bg-green-200 border border-green-500 shadow-sm"
+    : "text-gray-700 bg-gray-200 border border-gray-500 shadow-sm"
+}`}>
+  {booking.booking_status === "pending"
+    ? "🕒 Pending"
+    : booking.booking_status === "confirmed"
+    ? "📌 Confirmed"
+    : booking.booking_status === "completed"
+    ? "✅ Completed"
+    : "❌ Cancelled"}
 
 
-  {booking.payments?.some(p => p.payment_status === "completed") 
-    ? "🏁 Completed" 
-    : booking.payments?.some(p => p.payment_status === "paid") 
-    ? "✅ Paid" 
-    : "⚠️ Not Paid"}
-
-  {/* Tooltip (Appears on Hover) */}
-{/* Tooltip (Appears on Hover) */}
-<span className="absolute hidden group-hover:flex bg-black text-white text-sm font-medium px-4 py-2 rounded-lg shadow-lg 
-                left-1/2 transform -translate-x-1/2 bottom-full mb-2 whitespace-nowrap min-w-[300px] text-center z-50">
-
-  {booking.payments?.some(p => p.payment_status === "completed") 
-    ? "Your payment has been fully processed."
-    : booking.payments?.some(p => p.payment_status === "paid") 
-    ? "Your payment is being processed."
-    : "You have not completed payment for this booking."}
+<span className="absolute hidden group-hover:flex bg-gray-900 text-white text-xs font-medium px-4 py-2 rounded-lg shadow-lg 
+                left-1/2 transform -translate-x-1/2 bottom-full mb-2 whitespace-nowrap min-w-[280px] text-center z-50">
+  {booking.payments?.some(p => p.payment_status === "completed")
+    ? "✅ Payment confirmed. Thank you!"
+    : booking.payments?.some(p => p.payment_status === "pending")
+    ? "⏳ Payment is in process, please wait."
+    : booking.payments?.some(p => p.payment_status === "failed")
+    ? "❌ Payment failed. Please try again."
+    : "💳 Your payment has been refunded."}
 </span>
 
 </td>
 
+    
+  
+        <td className={`px-4 py-2 text-center font-bold rounded-md cursor-pointer relative group ${
+  booking.payments?.some(p => p.payment_status === "completed")
+    ? "text-green-700 bg-green-200 border border-green-500 shadow-sm"
+    : booking.payments?.some(p => p.payment_status === "pending")
+    ? "text-yellow-700 bg-yellow-200 border border-yellow-500 shadow-sm"
+    : booking.payments?.some(p => p.payment_status === "failed")
+    ? "text-red-700 bg-red-200 border border-red-500 shadow-md animate-blink"
+    : "text-blue-700 bg-blue-200 border border-blue-500 shadow-sm"
+}`}>
+  {booking.payments?.some(p => p.payment_status === "completed")
+    ? "✅ Payment Completed"
+    : booking.payments?.some(p => p.payment_status === "pending")
+    ? "⏳ Payment Pending"
+    : booking.payments?.some(p => p.payment_status === "failed")
+    ? "❌ Payment Failed"
+    : "💳 Refunded"}
+</td>
 
 
         <td className="px-4 py-2">
-          <button
-            className={`btn text-white border-none 
-              ${booking === recentUnpaidBooking ? 'animate-flash bg-red-600' : 'bg-blue-950'}
-              hover:text-black`}
-            onClick={() => handleMakePayment(booking.booking_id, booking.total_price.toString())}
-            disabled={isPaymentLoading === booking.booking_id || (booking.payments?.length > 0 && booking.payments.some(p => p.payment_status === "completed"))}
-          >
-            {isPaymentLoading === booking.booking_id ? 'Processing...' : 'Make Payment'}
-          </button>
+        <button
+  className={`btn text-white border-none px-4 py-2 rounded-md
+    ${booking.payments?.some(p => p.payment_status === "completed")
+      ? "bg-gray-400 cursor-not-allowed"
+      : booking === recentUnpaidBooking
+      ? "animate-pulse bg-red-600"
+      : "bg-blue-950 hover:bg-blue-800 hover:text-white"}`}
+  onClick={() => handleMakePayment(booking.booking_id, booking.total_price.toString())}
+  disabled={isPaymentLoading === booking.booking_id || booking.payments?.some(p => p.payment_status === "completed")}
+>
+  {isPaymentLoading === booking.booking_id ? "⏳ Processing..." : "💳 Make Payment"}
+</button>
+
         </td>
       </tr>
     ))}

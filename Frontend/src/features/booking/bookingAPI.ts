@@ -42,7 +42,7 @@ export const bookingVehicleAPI = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: ApiDomain }),
   tagTypes: [TagTypes.BookingVehicle],
   endpoints: (builder) => ({
-    // Fetch all bookings
+    // ✅ Fetch all bookings
     getBookingVehicle: builder.query<Tbooking[], void>({
       query: () => "bookings",
       providesTags: (result) =>
@@ -57,9 +57,7 @@ export const bookingVehicleAPI = createApi({
           : [{ type: TagTypes.BookingVehicle, id: "LIST" }],
     }),
 
-
-
-
+    // ✅ Create a booking
     createBookingVehicle: builder.mutation<Tbooking, Partial<Tbooking>>({
       query: (newBooking) => ({
         url: "bookings",
@@ -71,33 +69,39 @@ export const bookingVehicleAPI = createApi({
       }),
       invalidatesTags: [{ type: TagTypes.BookingVehicle, id: "LIST" }],
     }),
-    
 
-    // Update a booking
+    // ✅ Update a booking
     updateBookingVehicle: builder.mutation<Tbooking, Partial<Tbooking & { booking_id: number }>>({
       query: ({ booking_id, ...rest }) => ({
-        url: `bookings/${booking_id}`, // ✅ Fixed incorrect URL syntax
+        url: `bookings/${booking_id}`,
         method: "PUT",
         body: rest,
       }),
       invalidatesTags: (_, __, { booking_id }) => [{ type: TagTypes.BookingVehicle, id: booking_id }],
     }),
 
-    // Delete a booking
+    // ✅ Delete a booking
     deleteBookingVehicle: builder.mutation<{ success: boolean; booking_id: number }, number>({
       query: (booking_id) => ({
-        url: `bookings/${booking_id}`, // ✅ Fixed incorrect URL syntax
+        url: `bookings/${booking_id}`,
         method: "DELETE",
       }),
       invalidatesTags: (_, __, booking_id) => [{ type: TagTypes.BookingVehicle, id: booking_id }],
     }),
 
-
-    
-    // Fetch bookings for a specific user
+    // ✅ Fetch bookings for a specific user
     getUserBooking: builder.query<Tbooking[], number>({
-      query: (user_id) => `bookings/user/${user_id}`, // ✅ Fixed incorrect URL syntax
+      query: (user_id) => `bookings/user/${user_id}`,
       providesTags: (_, __, user_id) => [{ type: TagTypes.BookingVehicle, id: user_id }],
+    }),
+
+    // ✅ Confirm Booking - NEW ENDPOINT (You need to implement this in your backend)
+    confirmBooking: builder.mutation<{ success: boolean; booking_id: number }, number>({
+      query: (booking_id) => ({
+        url: `bookings/confirm/${booking_id}`, // Ensure backend supports this route
+        method: "POST",
+      }),
+      invalidatesTags: (_, __, booking_id) => [{ type: TagTypes.BookingVehicle, id: booking_id }],
     }),
   }),
 });
@@ -109,4 +113,5 @@ export const {
   useUpdateBookingVehicleMutation,
   useDeleteBookingVehicleMutation,
   useGetUserBookingQuery,
+  useConfirmBookingMutation, // ✅ Now this exists
 } = bookingVehicleAPI;

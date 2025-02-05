@@ -2,16 +2,15 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { ApiDomain } from "../../utils/ApiDomain";
 
 export interface TPayment {
-  payment_id: number;
   booking_id: number;
   amount: string;
-  payment_status: string;
-  payment_date: string;
   payment_method: string;
   transaction_reference: string;
-  ticket_id: number;
-  created_at: string;
-  updated_at: string;
+  payment_id?: number;
+  created_at?: Date | null;
+  updated_at?: Date | null;
+  payment_status?: "pending" | "completed" | "failed" | "refunded" | null | undefined | string;  // ✅ Allow direct strings
+  payment_date?: Date | null;
 }
 
 export const paymentAPI = createApi({

@@ -22,8 +22,8 @@ export const createPaymentService = async (payment: TIPayments): Promise<string>
     return "Payment created successfully";
 };
 
-// Update payment
-export const updatePaymentService = async (payment_id: number, payment: TIPayments): Promise<string> => {
+// Update paymentexport const updatePaymentService = async (payment_id: number, payment: Partial<TIPayments>): Promise<string> => {
+    export const updatePaymentService = async (payment_id: number, payment: Partial<TIPayments>): Promise<string> => {
     await db.update(paymentsTable).set(payment).where(eq(paymentsTable.payment_id, payment_id));
     return "Payment updated successfully";
 };
