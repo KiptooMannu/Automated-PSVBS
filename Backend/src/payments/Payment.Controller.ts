@@ -201,7 +201,6 @@ export const createCheckoutSessionController = async (c: Context) => {
 };
 
 
-
 export const handleStripeWebhook = async (c: Context) => {
     const sig = c.req.header('stripe-signature');
     const rawBody = await c.req.text();
@@ -221,43 +220,97 @@ export const handleStripeWebhook = async (c: Context) => {
 
     console.log(`✅ Stripe Webhook Event Received: ${event.type}`);
 
-    if (event.type === 'checkout.session.completed') {
-        const session = event.data.object as Stripe.Checkout.Session;
-        const session_id = session.id;
-        console.log(`🔍 Updating payment with transaction_reference: ${session_id}`);
+    switch (event.type) {
+        /*** ✅ 1️⃣ Checkout Session Completed: Mark Payment as Pending ***/
+        case 'checkout.session.completed': {
+            const session = event.data.object as Stripe.Checkout.Session;
+            const session_id = session.id;
+            console.log(`🔍 Updating payment with transaction_reference: ${session_id}`);
 
-        // ✅ Check if payment exists before updating
-        const existingPayment = await db.query.paymentsTable.findFirst({
-            where: eq(paymentsTable.transaction_reference, session_id),
-        });
+            // ✅ Store session ID in transaction_reference
+            const existingPayment = await db.query.paymentsTable.findFirst({
+                where: eq(paymentsTable.transaction_reference, session_id),
+            });
 
-        if (!existingPayment) {
-            console.error(`❌ No payment found for session_id: ${session_id}`);
-            return c.json({ message: "Payment record not found" }, 400);
-        }
-
-        try {
-            const updateStatus = await db.update(paymentsTable)
-                .set({ 
-                    payment_status: "completed" as typeof paymentStatusEnum.enumValues[number], 
-                    updated_at: new Date() 
-                })
-                .where(eq(paymentsTable.transaction_reference, session_id))
-                .execute();
-
-            if (!updateStatus) {
-                console.error("❌ Payment update failed.");
-                return c.json({ message: "Payment update failed" }, 400);
+            if (!existingPayment) {
+                console.error(`❌ No payment found for session_id: ${session_id}`);
+                return c.json({ message: "Payment record not found" }, 400);
             }
 
-            console.log(`✅ Payment updated successfully.`);
-            return c.json({ message: "Payment recorded successfully" }, 200);
-        } catch (error: any) {
-            console.log("❌ Database Error:", error.message);
-            return c.json({ message: `Database Error: ${error.message}` }, 500);
-        }
-    }
+            try {
+                await db.update(paymentsTable)
+                    .set({ 
+                        payment_status: "pending" as typeof paymentStatusEnum.enumValues[number], 
+                        updated_at: new Date() 
+                    })
+                    .where(eq(paymentsTable.transaction_reference, session_id))
+                    .execute();
 
-    console.log(`⚠️ Unhandled event type: ${event.type}`);
-    return c.json({ message: `Unhandled event type ${event.type}` }, 200);
+                console.log(`✅ Payment updated to PENDING.`);
+                return c.json({ message: "Payment marked as pending" }, 200);
+            } catch (error: any) {
+                console.log("❌ Database Error:", error.message);
+                return c.json({ message: `Database Error: ${error.message}` }, 500);
+            }
+        }
+
+        /*** ✅ 2️⃣ Payment Intent Succeeded: Mark Payment as Completed ***/
+        case 'payment_intent.succeeded': {
+            const intent = event.data.object as Stripe.PaymentIntent;
+            console.log(`🔍 Payment Intent ID: ${intent.id}`);
+
+            try {
+                const updateStatus = await db.update(paymentsTable)
+                    .set({ 
+                        payment_status: "completed" as typeof paymentStatusEnum.enumValues[number], 
+                        updated_at: new Date() 
+                    })
+                    .where(eq(paymentsTable.transaction_reference, intent.id))
+                    .execute();
+
+                if (!updateStatus) {
+                    console.error("❌ Payment update failed.");
+                    return c.json({ message: "Payment update failed" }, 400);
+                }
+
+                console.log(`✅ Payment updated to COMPLETED.`);
+                return c.json({ message: "Payment marked as completed" }, 200);
+            } catch (error: any) {
+                console.log("❌ Database Error:", error.message);
+                return c.json({ message: `Database Error: ${error.message}` }, 500);
+            }
+        }
+
+        /*** ✅ 3️⃣ Charge Succeeded: Confirm Payment ***/
+        case 'charge.succeeded': {
+            const charge = event.data.object as Stripe.Charge;
+            console.log(`🔍 Charge ID: ${charge.id}, Payment Intent: ${charge.payment_intent}`);
+
+            try {
+                const updateStatus = await db.update(paymentsTable)
+                    .set({ 
+                        payment_status: "completed" as typeof paymentStatusEnum.enumValues[number], 
+                        updated_at: new Date() 
+                    })
+                    .where(eq(paymentsTable.transaction_reference, charge.payment_intent as string))
+                    .execute();
+
+                if (!updateStatus) {
+                    console.error("❌ Charge update failed.");
+                    return c.json({ message: "Charge update failed" }, 400);
+                }
+
+                console.log(`✅ Payment confirmed via Charge.`);
+                return c.json({ message: "Payment confirmed via charge.succeeded" }, 200);
+            } catch (error: any) {
+                console.log("❌ Database Error:", error.message);
+                return c.json({ message: `Database Error: ${error.message}` }, 500);
+            }
+        }
+
+        /*** ❌ Handle Unhandled Events ***/
+        default:
+            console.log(`⚠️ Unhandled event type: ${event.type}`);
+            return c.json({ message: `Unhandled event type ${event.type}` }, 200);
+    }
 };
