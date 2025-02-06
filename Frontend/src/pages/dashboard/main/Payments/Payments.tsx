@@ -103,10 +103,17 @@ const Payment = () => {
             }
         }
 
-        // ✅ Automatically refresh after webhook updates
-        setTimeout(() => {
-            refetch();
-        }, 5000);
+        // ✅ Poll payment status every 5 seconds until it updates
+        const checkPaymentStatus = async () => {
+          const updatedBooking = await bookingVehicleAPI.useGetUserBookingQuery(user_id).refetch();
+          if (updatedBooking.data?.some(b => b.booking_id === booking_id && b.payments?.some(p => p.payment_status === "completed"))) {
+              toast.success("✅ Payment completed!");
+              refetch();
+          } else {
+              setTimeout(checkPaymentStatus, 5000); // Keep checking
+          }
+      };
+      checkPaymentStatus();
 
     } catch (error) {
         toast.error('Error initiating payment');
@@ -196,30 +203,29 @@ const Payment = () => {
     ? "✅ Completed"
     : "❌ Cancelled"}
 
-
 <span className="absolute hidden group-hover:flex bg-gray-900 text-white text-xs font-medium px-4 py-2 rounded-lg shadow-lg 
                 left-1/2 transform -translate-x-1/2 bottom-full mb-2 whitespace-nowrap min-w-[280px] text-center z-50">
-  {booking.payments?.some(p => p.payment_status === "completed")
-    ? "✅ Payment confirmed. Thank you!"
-    : booking.payments?.some(p => p.payment_status === "pending")
-    ? "⏳ Payment is in process, please wait."
-    : booking.payments?.some(p => p.payment_status === "failed")
-    ? "❌ Payment failed. Please try again."
-    : "💳 Your payment has been refunded."}
+  {booking.payments && booking.payments.length > 0 ? (
+    booking.payments.some(p => p.payment_status === "completed") ? "✅ Payment confirmed. Thank you!"
+    : booking.payments.some(p => p.payment_status === "pending") ? "⏳ Payment is in process, please wait."
+    : booking.payments.some(p => p.payment_status === "failed") ? "❌ Payment failed. Please try again."
+    : booking.payments.some(p => p.payment_status === "refunded") ? "💳 Your payment has been refunded."
+    : "⚠️ Payment status unknown."
+  ) : "💳 No payment found."}
 </span>
 
 </td>
 
     
   
-        <td className={`px-4 py-2 text-center font-bold rounded-md cursor-pointer relative group ${
+<td className={`px-4 py-2 text-center font-bold rounded-md cursor-pointer relative group ${
   booking.payments?.some(p => p.payment_status === "completed")
     ? "text-green-700 bg-green-200 border border-green-500 shadow-sm"
     : booking.payments?.some(p => p.payment_status === "pending")
     ? "text-yellow-700 bg-yellow-200 border border-yellow-500 shadow-sm"
     : booking.payments?.some(p => p.payment_status === "failed")
     ? "text-red-700 bg-red-200 border border-red-500 shadow-md animate-blink"
-    : "text-blue-700 bg-blue-200 border border-blue-500 shadow-sm"
+    : "text-gray-700 bg-gray-200 border border-gray-500 shadow-sm" // ✅ Default is now neutral
 }`}>
   {booking.payments?.some(p => p.payment_status === "completed")
     ? "✅ Payment Completed"
@@ -227,7 +233,7 @@ const Payment = () => {
     ? "⏳ Payment Pending"
     : booking.payments?.some(p => p.payment_status === "failed")
     ? "❌ Payment Failed"
-    : "💳 Refunded"}
+    : "💳 No Payment Data"}   
 </td>
 
 

@@ -7,6 +7,7 @@ import {createTicket} from "../Ticketing/Ticketing.Service"
 import { paymentsTable ,bookingTable} from "../drizzle/schema";
 import db from "../drizzle/db";
 import { eq } from "drizzle-orm";
+import { paymentStatusEnum } from "../drizzle/schema"; // ✅ Import the enum
 
 
 
@@ -125,8 +126,8 @@ export const getUserPaymentsByUserIdController = async (c: Context) => {
                 amount: paymentsTable.amount,
                 payment_date: paymentsTable.payment_date,
                 payment_method: paymentsTable.payment_method,
-                transaction_id: paymentsTable.transaction_reference,
-                transaction_reference: paymentsTable.transaction_reference,
+                transaction_reference: paymentsTable.transaction_reference, // ✅ Ensure transaction_reference is included
+                payment_status: paymentsTable.payment_status, // ✅ Include payment status
                 booking_id: paymentsTable.booking_id,
             })
             .from(paymentsTable)
@@ -152,9 +153,8 @@ export const createCheckoutSessionController = async (c: Context) => {
         return c.json({ message: "Booking not found" }, 404);
     }
 
-    // ✅ Ensure booking_id is provided
     if (!booking.booking_id) {
-        return c.json({ message: "Booking id is required" }, 400);
+        return c.json({ message: "Booking ID is required" }, 400);
     }
 
     try {
@@ -162,7 +162,7 @@ export const createCheckoutSessionController = async (c: Context) => {
             price_data: {
                 currency: 'usd',
                 product_data: {
-                    name: 'Public Service Vehicle Booking',
+                    name: 'Car Rental',
                 },
                 unit_amount: Math.round(booking.total_price * 100), // Convert to cents
             },
@@ -173,109 +173,91 @@ export const createCheckoutSessionController = async (c: Context) => {
             payment_method_types: ['card'],
             line_items,
             mode: 'payment',
-            metadata: {
-                booking_id: booking.booking_id.toString(), 
-                user_id: booking.user_id.toString(), // Store as string, convert later
-            },
-            success_url: "http://localhost:5173/dashboard/payment-success",
-            cancel_url: "http://localhost:5173/dashboard/payment-canceled",
+            success_url: `http://localhost:5173/payment_success`, 
+            cancel_url: `http://localhost:5173/payment_failed`,
+        };  
+
+        const session: Stripe.Checkout.Session = await stripe.checkout.sessions.create(sessionParams);
+        console.log(`Checkout Session URL: ${session.url}`);
+
+        // ✅ Store session_id in `transaction_reference`
+        const paymentDetails = {
+            booking_id: booking.booking_id,
+            amount: booking.total_price.toString(),
+            user_id: booking.user_id,
+            payment_date: new Date(),
+            payment_method: 'card',
+            transaction_reference: session.id, 
+            payment_status: "pending" as typeof paymentStatusEnum.enumValues[number], // ✅ Cast to enum type
         };
         
-        const session: Stripe.Checkout.Session = await stripe.checkout.sessions.create(sessionParams);
 
-        // ✅ Return session details to frontend, but DO NOT create a ticket yet
+
+        await createPaymentService(paymentDetails);
         return c.json({ sessionId: session.id, url: session.url }, 200);
-
     } catch (error: any) {
-        console.error("Error creating checkout session:", error);
         return c.json({ message: error.message }, 400);
     }
 };
 
-// Webhook handler (for Stripe)
-// ✅ Webhook for Stripe Payments
-// ✅ Ensure payment status updates to "completed" on successful checkout
-export const stripeWebhookController = async (c: Context) => {
-    try {
-        const payload = await c.req.text();
-        const sig = c.req.header('stripe-signature');
-
-        if (!sig) {
-            console.error("❌ No signature provided.");
-            return c.json({ message: "Webhook signature verification failed" }, 400);
-        }
-
-        console.log("🔍 Incoming Webhook Event: ", payload);
-
-        let event: Stripe.Event;
-        try {
-            event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET as string || '');
-        } catch (error: any) {
-            console.error("❌ Webhook signature verification failed:", error);
-            return c.json({ message: "Webhook signature verification failed" }, 400);
-        }
-
-        console.log(`✅ Stripe Event Received: ${event.type}`);
-
-        if (event.type === 'checkout.session.completed') {
-            const session = event.data.object as Stripe.Checkout.Session;
-            console.log("✅ Stripe checkout completed. Session ID:", session.id);
-
-            const booking_id = Number(session.metadata?.booking_id);
-            const user_id = session.metadata?.user_id ? Number(session.metadata.user_id) : 0;
-            const amount = session.amount_total ? (session.amount_total / 100).toString() : "0";
-
-            console.log(`🔍 Processing Payment for Booking ID: ${booking_id}, Amount: ${amount}`);
-
-            if (!booking_id || amount === "0") {
-                console.error("❌ Missing required fields from Stripe session.");
-                return c.json({ message: "Invalid payment data" }, 400);
-            }
-
-            // ✅ Fetch the payment record from the database
-            const existingPayment = await db.query.paymentsTable.findFirst({
-                where: eq(paymentsTable.booking_id, booking_id),
-            });
-
-            if (!existingPayment) {
-                console.error(`❌ No existing payment found for booking ${booking_id}. Creating new one.`);
-                await createPaymentService({
-                    booking_id,
-                    amount,
-                    payment_date: new Date(),
-                    payment_method: 'card',
-                    transaction_reference: session.id, 
-                    payment_status: "completed",
-                });
 
 
-            } else {
-                console.log(`ℹ️ Updating existing payment ID: ${existingPayment.payment_id}`);
-                await updatePaymentService(existingPayment.payment_id, {
-                    payment_status: "completed",
-                    transaction_reference: session.id, 
-                    updated_at: new Date(),
-                });
-            }
-            // ✅ Update booking status to "confirmed"
-            const updateResult = await db.update(bookingTable)
-            .set({ booking_status: "confirmed" })
-            .where(eq(bookingTable.booking_id, booking_id))
-            .execute();
-        
-        if (!updateResult) {
-            console.error(`❌ Booking status update failed for Booking ID ${booking_id}`);
-        } else {
-            console.log(`✅ Booking status successfully updated to 'confirmed' for Booking ID ${booking_id}`);
-        }
-        
-            console.log(`✅ Payment and booking status updated successfully.`);
-            return c.json({ message: "Payment recorded successfully" }, 200);
-        }
+export const handleStripeWebhook = async (c: Context) => {
+    const sig = c.req.header('stripe-signature');
+    const rawBody = await c.req.text();
 
-        return c.json({ message: "Unhandled event type" }, 200);
-    } catch (error) {
-        console.error("❌ Unexpected error in webhook:", error);
-        return c.json({ message: "Internal server error" }, 500);
+    if (!sig) {
+        console.log('❌ Signature not provided');
+        return c.json({ message: 'Invalid Signature' }, 400);
     }
+
+    let event: Stripe.Event;
+    try {
+        event = stripe.webhooks.constructEvent(rawBody, sig, process.env.STRIPE_ENDPOINT_SECRET as string);
+    } catch (error: any) {
+        console.log("❌ Webhook Error:", error.message);
+        return c.json({ message: `Webhook Error: ${error.message}` }, 400);
+    }
+
+    console.log(`✅ Stripe Webhook Event Received: ${event.type}`);
+
+    if (event.type === 'checkout.session.completed') {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const session_id = session.id;
+        console.log(`🔍 Updating payment with transaction_reference: ${session_id}`);
+
+        // ✅ Check if payment exists before updating
+        const existingPayment = await db.query.paymentsTable.findFirst({
+            where: eq(paymentsTable.transaction_reference, session_id),
+        });
+
+        if (!existingPayment) {
+            console.error(`❌ No payment found for session_id: ${session_id}`);
+            return c.json({ message: "Payment record not found" }, 400);
+        }
+
+        try {
+            const updateStatus = await db.update(paymentsTable)
+                .set({ 
+                    payment_status: "completed" as typeof paymentStatusEnum.enumValues[number], 
+                    updated_at: new Date() 
+                })
+                .where(eq(paymentsTable.transaction_reference, session_id))
+                .execute();
+
+            if (!updateStatus) {
+                console.error("❌ Payment update failed.");
+                return c.json({ message: "Payment update failed" }, 400);
+            }
+
+            console.log(`✅ Payment updated successfully.`);
+            return c.json({ message: "Payment recorded successfully" }, 200);
+        } catch (error: any) {
+            console.log("❌ Database Error:", error.message);
+            return c.json({ message: `Database Error: ${error.message}` }, 500);
+        }
+    }
+
+    console.log(`⚠️ Unhandled event type: ${event.type}`);
+    return c.json({ message: `Unhandled event type ${event.type}` }, 200);
 };
