@@ -181,41 +181,24 @@ if (!user_id) {
           <div className="mt-8">
             <form onSubmit={handleSubmit(onSubmit)}>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="form-control">
-                  <label htmlFor="first_name" className="label">First Name</label>
-                  <input
-                    id="first_name"
-                    className="input input-bordered"
-                    defaultValue={userData.first_name}
-                    {...register("first_name")}
-                  />
-                </div>
+              <div className="form-control">
+  <label htmlFor="first_name" className="label">First Name</label>
+  <input id="first_name" className="input input-bordered" {...register("first_name")} />
+  {errors.first_name && <p className="text-red-500">{errors.first_name.message}</p>}
+</div>
+
                 <div className="form-control">
                   <label htmlFor="last_name" className="label">Last Name</label>
-                  <input
-                    id="last_name"
-                    className="input input-bordered"
-                    defaultValue={userData.last_name}
-                    {...register("last_name")}
-                  />
+                  <input id="last_name" className="input input-bordered" defaultValue={userData?.last_name || ""} {...register("last_name")} />
                 </div>
                 <div className="form-control">
                   <label htmlFor="email" className="label">Email</label>
-                  <input
-                    id="email"
-                    className="input input-bordered"
-                    defaultValue={userData.email}
-                    {...register("email")}
-                  />
+                  <input id="email" className="input input-bordered" defaultValue={userData?.email || ""} {...register("email")} />
+                  
                 </div>
                 <div className="form-control">
                   <label htmlFor="phone_number" className="label">Phone Number</label>
-                  <input
-                    id="phone_number"
-                    className="input input-bordered"
-                    defaultValue={userData.phone_number}
-                    {...register("phone_number")}
-                  />
+                  <input id="phone_number" className="input input-bordered" defaultValue={userData?.phone_number || ""} {...register("phone_number")} />
                 </div>
                 <div className="form-control">
                   <label htmlFor="password" className="label">Password</label>
@@ -247,7 +230,10 @@ if (!user_id) {
   
               <div className="flex justify-end mt-4 space-x-4">
                 <button type="button" className="btn bg-gray-500 text-white" onClick={() => setIsEditMode(false)}>Cancel</button>
-                <button type="submit" className="btn bg-blue-500 text-white">Update Profile</button>
+                <button type="submit" className="btn bg-blue-500 text-white" disabled={isUpdating}>
+  {isUpdating ? "Updating..." : "Update Profile"}
+</button>
+
               </div>
             </form>
           </div>
