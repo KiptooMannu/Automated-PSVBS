@@ -47,8 +47,12 @@ const Login = () => {
             return;
         }
 
-        dispatch(loginSuccess(responseData));
-        toast.success("Login successful");
+        // ✅ Save user data in localStorage
+localStorage.setItem("user", JSON.stringify(responseData));
+
+dispatch(loginSuccess(responseData));
+toast.success("Login successful");
+
 
       setTimeout(() => {
         navigate('/');

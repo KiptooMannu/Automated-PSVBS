@@ -60,15 +60,15 @@ const Profile = () => {
   useEffect(() => {
     if (userData) {
       reset({
-        first_name: userData.first_name,
-        last_name: userData.last_name,
-        email: userData.email,
-        phone_number: userData.phone_number,
-        image_url: userData.image_url,
-        // isVerified: userData.is_verified,
+        first_name: userData.first_name || "",
+        last_name: userData.last_name || "",
+        email: userData.email || "",
+        phone_number: userData.phone_number || "",
+        image_url: userData.image_url || "",
       });
     }
   }, [userData, reset]);
+  
   console.log('userData:', userData);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,9 +122,10 @@ const Profile = () => {
           <div className="relative mb-6 md:mb-0 md:mr-8 flex justify-center items-center">
           <img
   src={userData?.image_url || userIcon}
-  className="rounded-full h-32 w-32 object-cover border-4 border-white"
+  className="rounded-full h-32 w-32 object-cover border-4 border-white cursor-pointer"
   alt="User Avatar"
 />
+
 
             {userData.is_verified ? (
               <div className="absolute bottom-0 right-0 p-1 bg-green-700 rounded-full border-2 border-white">
