@@ -10,9 +10,9 @@ const Navbar: React.FC = () => {
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const userId = typeof user?.user?.user_id === "number" ? user?.user?.user_id : undefined;
-
   const { data: userData } = usersAPI.useGetUserByIdQuery(userId as number, {
     skip: !userId,
   });
@@ -50,6 +50,17 @@ const Navbar: React.FC = () => {
     navigate("/login");
   };
 
+
+  const toggleProfile = () => {
+    if (location.pathname === "/dashboard/profile") {
+      navigate(-1); // ✅ Go back if already on profile page
+    } else {
+      navigate("/dashboard/profile"); // ✅ Navigate to profile page
+    }
+    setIsProfileOpen(!isProfileOpen); // ✅ Toggle profile state
+  };
+
+  
   return (
     <div className="navbar bg-slate-50 text-black shadow-md h-16 px-4 md:px-12">
       <div className="flex justify-between items-center w-full mx-auto">
@@ -94,13 +105,15 @@ const Navbar: React.FC = () => {
             ) : (
               <li className="flex items-center space-x-4">
               {/* Profile Avatar Clickable */}
-              <Link to="/dashboard/profile" className="flex items-center">
+    {/* Profile Avatar Clickable */}
+<button onClick={toggleProfile} className="flex items-center">
   <img
     src={userData?.image_url || usericon} 
     alt="Profile"
     className="w-8 h-8 rounded-full cursor-pointer border border-gray-300"
   />
-</Link>
+</button>
+
 
               
               {/* Logout Button */}
