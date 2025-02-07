@@ -7,7 +7,7 @@ import {createTicket} from "../Ticketing/Ticketing.Service"
 import { paymentsTable ,bookingTable} from "../drizzle/schema";
 import db from "../drizzle/db";
 import { eq } from "drizzle-orm";
-import { paymentStatusEnum } from "../drizzle/schema"; // ✅ Import the enum
+import { paymentStatusEnum } from "../drizzle/schema"; 
 
 
 

@@ -23,8 +23,8 @@ CREATE TABLE IF NOT EXISTS "bookings" (
 	"departure" varchar,
 	"destination" varchar,
 	"estimated_arrival" varchar,
-	"price" numeric NOT NULL,
-	"total_price" numeric NOT NULL,
+	"price" numeric(10, 2) NOT NULL,
+	"total_price" numeric(10, 2) NOT NULL,
 	"booking_status" "booking_status" DEFAULT 'pending',
 	"booking_date" timestamp DEFAULT now(),
 	"is_active" boolean DEFAULT true,
@@ -42,10 +42,10 @@ CREATE TABLE IF NOT EXISTS "bookings_seats" (
 CREATE TABLE IF NOT EXISTS "payments" (
 	"payment_id" serial PRIMARY KEY NOT NULL,
 	"booking_id" integer NOT NULL,
-	"amount" numeric NOT NULL,
+	"amount" numeric(10, 2) NOT NULL,
 	"payment_method" varchar(50) NOT NULL,
 	"payment_status" "payment_status" DEFAULT 'pending',
-	"transaction_reference" varchar(100) NOT NULL,
+	"transaction_reference" varchar(255) NOT NULL,
 	"payment_date" timestamp DEFAULT now(),
 	"ticket_id" integer,
 	"created_at" timestamp DEFAULT now(),
@@ -141,3 +141,6 @@ DO $$ BEGIN
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "user_id_idx" ON "bookings" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "booking_id_idx" ON "payments" USING btree ("booking_id");

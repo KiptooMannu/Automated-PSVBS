@@ -1,5 +1,16 @@
-import { pgTable, pgEnum, serial, varchar, timestamp, boolean, text, integer, decimal } from "drizzle-orm/pg-core";
-
+import { 
+    pgTable, 
+    pgEnum, 
+    serial, 
+    varchar, 
+    timestamp, 
+    boolean, 
+    text, 
+    integer, 
+    numeric, 
+    index 
+  } from "drizzle-orm/pg-core";
+  
 // Enums
 export const roleEnum = pgEnum("user_type", ["user", "admin", "super_admin", "disabled"]);
 export const bookingStatusEnum = pgEnum("booking_status", ["pending", "confirmed", "completed", "cancelled"]);
@@ -64,21 +75,39 @@ export const ticketTable = pgTable("tickets", {
 });
 
 
+// export const paymentsTable = pgTable("payments", {
+//     payment_id: serial("payment_id").primaryKey(),
+//     booking_id: integer("booking_id")
+//         .notNull()
+//         .references(() => bookingTable.booking_id, { onDelete: "cascade" }),
+//     amount: decimal("amount").notNull(),
+//     payment_method: varchar("payment_method", { length: 50 }).notNull(),
+//     payment_status: paymentStatusEnum("payment_status").default("pending"),
+//     transaction_reference: varchar("transaction_reference", { length: 255 }).notNull().unique(),
+//     payment_date: timestamp("payment_date").defaultNow(),
+//     ticket_id: integer("ticket_id")
+//         .references(() => ticketTable.ticket_id, { onDelete: "cascade" }),
+//     created_at: timestamp("created_at").defaultNow(),
+//     updated_at: timestamp("updated_at").defaultNow(),
+// });
 export const paymentsTable = pgTable("payments", {
     payment_id: serial("payment_id").primaryKey(),
     booking_id: integer("booking_id")
-        .notNull()
-        .references(() => bookingTable.booking_id, { onDelete: "cascade" }),
-    amount: decimal("amount").notNull(),
+      .notNull()
+      .references(() => bookingTable.booking_id, { onDelete: "cascade" }),
+    amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
     payment_method: varchar("payment_method", { length: 50 }).notNull(),
     payment_status: paymentStatusEnum("payment_status").default("pending"),
-    transaction_reference: varchar("transaction_reference", { length: 100 }).notNull().unique(),
+    transaction_reference: varchar("transaction_reference", { length: 255 }).notNull().unique(),
     payment_date: timestamp("payment_date").defaultNow(),
     ticket_id: integer("ticket_id")
-        .references(() => ticketTable.ticket_id, { onDelete: "cascade" }),
+      .references(() => ticketTable.ticket_id, { onDelete: "cascade" }),
     created_at: timestamp("created_at").defaultNow(),
     updated_at: timestamp("updated_at").defaultNow(),
-});
+  }, (table) => ({
+    bookingIndex: index("booking_id_idx").on(table.booking_id), // ✅ Correct way to add an index
+  }));
+  
 
 
 
@@ -94,23 +123,44 @@ export const seatTable = pgTable("seats", {
 
 
 // Booking Table: Stores each booking request
-export const bookingTable = pgTable("bookings", { 
+// export const bookingTable = pgTable("bookings", { 
+//     booking_id: serial("booking_id").primaryKey(),
+//     user_id: integer("user_id").notNull().references(() => userTable.user_id, { onDelete: "cascade" }),
+//     vehicle_id: varchar("vehicle_id").notNull(), // No FK to enforce flexibility
+//     departure_date: timestamp("departure_date").notNull(),
+//     departure_time: varchar("departure_time").notNull(),
+//     departure: varchar("departure"),
+//     destination: varchar("destination"),
+//     estimated_arrival: varchar("estimated_arrival"),
+//     price: decimal("price").notNull(), // Price for **one seat**
+//     total_price: decimal("total_price").notNull(), // `price * seat_ids.length`
+//     booking_status: bookingStatusEnum("booking_status").default("pending"),
+//     booking_date: timestamp("booking_date").defaultNow(),
+//     is_active: boolean("is_active").default(true),
+//     created_at: timestamp("created_at").defaultNow(),
+//     updated_at: timestamp("updated_at").defaultNow(),
+export const bookingTable = pgTable("bookings", {
     booking_id: serial("booking_id").primaryKey(),
-    user_id: integer("user_id").notNull().references(() => userTable.user_id, { onDelete: "cascade" }),
-    vehicle_id: varchar("vehicle_id").notNull(), // No FK to enforce flexibility
+    user_id: integer("user_id").notNull()
+      .references(() => userTable.user_id, { onDelete: "cascade" }),
+    vehicle_id: varchar("vehicle_id").notNull(),
     departure_date: timestamp("departure_date").notNull(),
     departure_time: varchar("departure_time").notNull(),
     departure: varchar("departure"),
     destination: varchar("destination"),
     estimated_arrival: varchar("estimated_arrival"),
-    price: decimal("price").notNull(), // Price for **one seat**
-    total_price: decimal("total_price").notNull(), // `price * seat_ids.length`
+    price: numeric("price", { precision: 10, scale: 2 }).notNull(),
+    total_price: numeric("total_price", { precision: 10, scale: 2 }).notNull(),
     booking_status: bookingStatusEnum("booking_status").default("pending"),
     booking_date: timestamp("booking_date").defaultNow(),
     is_active: boolean("is_active").default(true),
     created_at: timestamp("created_at").defaultNow(),
     updated_at: timestamp("updated_at").defaultNow(),
-});
+  }, (table) => ({
+    userIndex: index("user_id_idx").on(table.user_id), // ✅ Adding an index on user_id
+  }));
+  
+// });
 
 // 🚀 3️⃣ Bookings Seats Table (Tracks seat selection per booking)
 export const bookingsSeatsTable = pgTable("bookings_seats", {
