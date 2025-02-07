@@ -23,46 +23,50 @@ const Navbar: React.FC = () => {
   };
 
   useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 1024) {
-        setIsDropdownOpen(false);
+    const handleOutsideClick = (event: MouseEvent) => {
+      const dropdown = document.getElementById("profile-dropdown");
+      const profileButton = document.getElementById("profile-btn");
+  
+      // ✅ Only close dropdown if the click is outside both the profile button and dropdown
+      if (
+        dropdown && !dropdown.contains(event.target as Node) &&
+        profileButton && !profileButton.contains(event.target as Node)
+      ) {
+        setIsProfileOpen(false);
       }
     };
+  
+    if (isProfileOpen) {
+      document.addEventListener("click", handleOutsideClick);
+    } else {
+      document.removeEventListener("click", handleOutsideClick);
+    }
+  
+    return () => document.removeEventListener("click", handleOutsideClick);
+  }, [isProfileOpen]);
+  
+  const toggleProfile = (event: React.MouseEvent) => {
+    event.stopPropagation(); // ✅ Prevents immediate closing when clicked
+    setIsProfileOpen((prev) => !prev);
+  };
+  
 
-    const closeMenu = () => {
-      if (isDropdownOpen) {
-        setIsDropdownOpen(false);
-      }
-    };
 
-    window.addEventListener("resize", handleResize);
-    document.addEventListener("click", closeMenu);
 
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      document.removeEventListener("click", closeMenu);
-    };
-  }, [isDropdownOpen]);
 
+
+
+
+  
   const handleLogout = () => {
     dispatch(logOut());  // ✅ Clears Redux user state
     localStorage.removeItem("user"); // ✅ Remove user from local storage
     navigate("/login");
   };
 
-
-  const toggleProfile = () => {
-    if (location.pathname === "/dashboard/profile") {
-      navigate(-1); // ✅ Go back if already on profile page
-    } else {
-      navigate("/dashboard/profile"); // ✅ Navigate to profile page
-    }
-    setIsProfileOpen(!isProfileOpen); // ✅ Toggle profile state
-  };
-
   
   return (
-    <div className="navbar bg-slate-50 text-black shadow-md h-16 px-4 md:px-12">
+    <div className="navbar bg-slate-50 text-black shadow-md h-16 px-4 md:px-12 relative">
       <div className="flex justify-between items-center w-full mx-auto">
         {/* Title */}
         <Link
@@ -104,39 +108,41 @@ const Navbar: React.FC = () => {
               </>
             ) : (
               <li className="flex items-center space-x-4">
-              {/* Profile Avatar Clickable */}
-    {/* Profile Avatar Clickable */}
-<button onClick={toggleProfile} className="flex items-center">
-  <img
-    src={userData?.image_url || usericon} 
-    alt="Profile"
-    className="w-8 h-8 rounded-full cursor-pointer border border-gray-300"
-  />
-</button>
+{/* Profile Avatar with Dropdown Toggle */}
+{/* Profile Avatar with Dropdown Toggle */}
+<div className="relative">
+  <button id="profile-btn" onClick={toggleProfile} className="flex items-center">
+    <img
+      src={userData?.image_url || usericon}
+      alt="Profile"
+      className="w-8 h-8 rounded-full cursor-pointer border border-gray-300"
+    />
+  </button>
+
+  {/* Profile Dropdown Menu */}
+  {isProfileOpen && (
+    <div
+      id="profile-dropdown"
+      className="absolute top-full right-0 mt-2 w-40 bg-white border border-gray-300 rounded-lg shadow-lg p-2 z-50"
+      >
+      <Link
+        to="/dashboard/profile"
+        className="block px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-md"
+        onClick={() => setIsProfileOpen(false)}
+      >
+        View Profile
+      </Link>
+      <button
+        onClick={handleLogout}
+        className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-200 rounded-md"
+      >
+        Logout
+      </button>
+    </div>
+  )}
+</div>
 
 
-              
-              {/* Logout Button */}
-              <button
-                onClick={handleLogout}
-                className="btn btn-ghost hover:text-gray-700"
-                title="Logout"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1m0-10V4m0 16V4"
-                  />
-                </svg>
-              </button>
             </li>
             
             )}
