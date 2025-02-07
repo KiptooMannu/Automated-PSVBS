@@ -17,6 +17,21 @@ export const bookingStatusEnum = pgEnum("booking_status", ["pending", "confirmed
 export const ticketStatusEnum = pgEnum("ticket_status", ["paid", "failed", "refunded"]);
 export const paymentStatusEnum = pgEnum("payment_status", ["pending", "completed", "failed", "refunded"]);
 
+
+
+// Contact Messages Table
+export const contactsTable = pgTable("contacts", {
+    contact_id: serial("contact_id").primaryKey(),
+    user_id: integer("user_id").references(() => userTable.user_id, { onDelete: "cascade" }), // Optional, for logged-in users
+    full_name: varchar("full_name", { length: 255 }).notNull(), // Name of sender
+    email: varchar("email", { length: 255 }).notNull(), // Email of sender
+    subject: varchar("subject", { length: 255 }).notNull(), // Contact subject
+    message: text("message").notNull(), // Message content
+    is_resolved: boolean("is_resolved").default(false), // Flag to track resolved/unresolved messages
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+});
+
 // Auth Table
 export const authTable = pgTable("auth", {
     auth_id: serial("auth_id").primaryKey(),
@@ -196,3 +211,7 @@ export type TSAuth = typeof authTable.$inferSelect;
 
 export type TIBookingSeat = typeof bookingsSeatsTable.$inferInsert;
 export type TSBookingSeat = typeof bookingsSeatsTable.$inferSelect;
+
+export type TIContact = typeof contactsTable.$inferInsert;
+export type TSContact = typeof contactsTable.$inferSelect;
+
