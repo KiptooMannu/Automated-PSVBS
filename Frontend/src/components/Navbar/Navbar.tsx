@@ -94,13 +94,14 @@ const Navbar: React.FC = () => {
             ) : (
               <li className="flex items-center space-x-4">
               {/* Profile Avatar Clickable */}
-              <Link to="/profile" className="flex items-center">
-                <img
-                  src={userData?.image_url || usericon} // Ensure this links to userData.image_url
-                  alt="Profile"
-                  className="w-8 h-8 rounded-full cursor-pointer border border-gray-300"
-                />
-              </Link>
+              <Link to="/dashboard/profile" className="flex items-center">
+  <img
+    src={userData?.image_url || usericon} 
+    alt="Profile"
+    className="w-8 h-8 rounded-full cursor-pointer border border-gray-300"
+  />
+</Link>
+
               
               {/* Logout Button */}
               <button
