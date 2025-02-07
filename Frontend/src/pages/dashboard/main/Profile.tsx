@@ -174,7 +174,7 @@ if (!user_id) {
         </div>
   
         <div className="flex justify-center mt-6 space-x-4">
-          <button className="btn  bg-blue-700" onClick={() => setIsEditMode(true)}>Edit Profile</button>
+          <button className="btn  bg-orange-500 text-cyan-50" onClick={() => setIsEditMode(true)}>Edit Profile</button>
         </div>
   
         {isEditMode && (
