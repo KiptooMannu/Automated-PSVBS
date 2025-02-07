@@ -31,22 +31,31 @@ const Profile = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [image, setImage] = useState<File | null>(null);
   const [updateUser] = usersAPI.useUpdateUserMutation();
-  const [isUpdating, setIsUpdating] = useState(false);
+
 
 
   const user = useSelector((state: RootState) => state.user);
-  const role = user.user?.role;
   const id = user.user?.user_id;
   const user_id = id ? id : 0;
-  console.log('user_id:', user_id);
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  const { data: userData, isLoading, error, refetch } = usersAPI.useGetUserByIdQuery(user_id, {
+  console.log('user_id:', user_id);
+  console.log("Redux User State:", user);
+
+
+
+const { data: userData, isLoading, error, refetch } = usersAPI.useGetUserByIdQuery(user_id, {
     pollingInterval: 6000,
-    skip: !user_id,
+    skip: !user_id,  // Skips the query if user_id is 0 or undefined
     refetchOnMountOrArgChange: true,
     refetchOnFocus: true,
     refetchOnReconnect: true,
-  });
+});
+
+if (!user_id) {
+  return <div>Error: User ID is missing!</div>;
+}
+
 
 
   if (isLoading) {
@@ -60,14 +69,16 @@ const Profile = () => {
   useEffect(() => {
     if (userData) {
       reset({
-        first_name: userData.first_name || "",
-        last_name: userData.last_name || "",
-        email: userData.email || "",
-        phone_number: userData.phone_number || "",
-        image_url: userData.image_url || "",
+        first_name: userData.first_name ?? "",
+        last_name: userData.last_name ?? "",
+        email: userData.email ?? "",
+        phone_number: userData.phone_number ?? "",
+        image_url: userData.image_url ?? "",
       });
     }
   }, [userData, reset]);
+  
+  
   
   console.log('userData:', userData);
 
@@ -120,8 +131,8 @@ const Profile = () => {
       <div className="overflow-x-auto bg-gradient-to-r from-blue-100 via-blue-200 to-white min-h-screen shadow-lg flex flex-col items-center justify-center">
         <div className="flex flex-col items-center md:flex-row md:items-start border-b-2 border-green-600 pb-6">
           <div className="relative mb-6 md:mb-0 md:mr-8 flex justify-center items-center">
-          <img
-  src={userData?.image_url || userIcon}
+          
+          <img src={userData?.image_url || userIcon}
   className="rounded-full h-32 w-32 object-cover border-4 border-white cursor-pointer"
   alt="User Avatar"
 />
@@ -140,24 +151,26 @@ const Profile = () => {
               </div>
             )}
           </div>
+
           <div className="text-center md:text-left">
-            <h1 className="text-3xl font-bold mb-2">
-              {userData.first_name} {userData.last_name}
-              <span className="badge badge-accent badge-outline">{role}</span>
-            </h1>
-            <div className="space-y-2">
-              <div className="flex items-center">
-                <MdEmail className="text-red-600 mr-2" />
-                <p className="text-lg font-semibold">Email:</p>
-                <p className="text-lg ml-2">{userData.email}</p>
-              </div>
-              <div className="flex items-center">
-                <MdPhone className="text-blue-700 mr-2" />
-                <p className="text-lg font-semibold">Phone:</p>
-                <p className="text-lg ml-2">{userData.phone_number}</p>
-              </div>
-            </div>
-          </div>
+          <h1 className="text-3xl font-bold mb-2">
+  {userData?.first_name} {userData?.last_name}
+</h1>
+
+    <div className="space-y-2">
+        <div className="flex items-center">
+            <MdEmail className="text-red-600 mr-2" />
+            <p className="text-lg font-semibold">Email:</p>
+            <p className="text-lg ml-2">{userData?.email}</p>
+        </div>
+        <div className="flex items-center">
+            <MdPhone className="text-blue-700 mr-2" />
+            <p className="text-lg font-semibold">Phone:</p>
+            <p className="text-lg ml-2">{userData?.phone_number}</p>
+        </div>
+    </div>
+</div>
+
         </div>
   
         <div className="flex justify-center mt-6 space-x-4">
