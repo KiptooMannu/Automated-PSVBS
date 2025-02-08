@@ -23,28 +23,44 @@ const Navbar: React.FC = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
+
+
+
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
-      const dropdown = document.getElementById("profile-dropdown");
+      const profileDropdown = document.getElementById("profile-dropdown");
       const profileButton = document.getElementById("profile-btn");
   
-      // ✅ Only close dropdown if the click is outside both the profile button and dropdown
+      const authDropdown = document.getElementById("auth-dropdown");
+      const authButton = document.getElementById("auth-btn");
+  
+      // Close Profile Dropdown if clicked outside
       if (
-        dropdown && !dropdown.contains(event.target as Node) &&
+        profileDropdown && !profileDropdown.contains(event.target as Node) &&
         profileButton && !profileButton.contains(event.target as Node)
       ) {
         setIsProfileOpen(false);
       }
+  
+      // Close Auth Dropdown if clicked outside
+      if (
+        authDropdown && !authDropdown.contains(event.target as Node) &&
+        authButton && !authButton.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
     };
   
-    if (isProfileOpen) {
+    // Add event listener when dropdowns are open
+    if (isProfileOpen || isDropdownOpen) {
       document.addEventListener("click", handleOutsideClick);
     } else {
       document.removeEventListener("click", handleOutsideClick);
     }
   
     return () => document.removeEventListener("click", handleOutsideClick);
-  }, [isProfileOpen]);
+  }, [isProfileOpen, isDropdownOpen]);
+  
   
   const toggleProfile = (event: React.MouseEvent) => {
     event.stopPropagation(); // ✅ Prevents immediate closing when clicked
