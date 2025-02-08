@@ -67,7 +67,7 @@ const BookingForm: React.FC = () => {
         // onSubmit={handleSubmit} 
         className="space-y-6"
         >
-          <div className="flex flex-col lg:flex-row gap-4">
+          <div className="flex flex-col lg:flex-row gap-3">
             {/* Departure Location Input */}
             <div className="flex-1">
               <div className="form-control">
@@ -121,14 +121,14 @@ const BookingForm: React.FC = () => {
           </div>
 
           {/* Vehicle List */}
-          <div className="space-y-4 p-6">
+          <div className="space-y-4 p-4">
             {filteredVehicles?.length ? (
-              <div className="flex flex-wrap justify-center gap-6">
+              <div className="flex flex-wrap justify-center gap-4">
 
                 {filteredVehicles.map((vehicle ,index) => (
                   <div
                       key={`${vehicle.registration_number}-${index}`}
-                    className={`card w-full sm:w-[45%] lg:w-[30%] bg-blue-200 shadow-md rounded-lg overflow-hidden transform transition-all duration-300 hover:scale-105 ${
+                    className={`card w-full sm:w-[45%] lg:w-[23%] bg-blue-200 shadow-md rounded-lg overflow-hidden transform transition-all duration-300 hover:scale-105 ${
                       selectedVehicle?.registration_number === vehicle.registration_number
                         ? "border-2 border-webcolor"
                         : "border border-gray-200"
@@ -138,13 +138,13 @@ const BookingForm: React.FC = () => {
                     <img
                       src={vehicle.image_url}
                       alt={vehicle.vehicle_name}
-                      className="w-full h-40 object-cover rounded-lg mb-4"
+                      className="w-full h-16 object-cover rounded-lg mb-4"
                     />
-                    <div className="p-4">
-                      <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                    <div className="p-2">
+                      <h3 className="text-xs font-semibold text-gray-800 mb-2">
                         {vehicle.vehicle_name}
                         <span
-                          className={`ml-4 inline-block px-3 py-1 text-sm font-medium rounded ${
+                          className={`ml-4 inline-block px-3 py-0.5 text-xs font-medium rounded ${
                             vehicle.is_active
                               ? "bg-green-300 text-green-900"
                               : "bg-red-100 text-red-700"
@@ -153,7 +153,7 @@ const BookingForm: React.FC = () => {
                           {vehicle.is_active ? "Available" : "Unavailable"}
                         </span>
                       </h3>
-                      <div className="space-y-1 text-green-900 text-sm">
+                      <div className="space-y-1 text-green-900 text-xs">
                         <p>Type: {vehicle.vehicle_type}</p>
                         <p>Capacity: {vehicle.capacity}</p>
                         <p>Reg No: {vehicle.registration_number}</p>
@@ -168,7 +168,7 @@ const BookingForm: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleMapSeatModal(vehicle)}
-                        className="btn bg-blue-600 text-text-white hover:text-black border-none w-1/2 m-auto"
+                                      className="btn bg-blue-600 text-white hover:text-black border-none w-full py-1 mt-2 text-xs"
                       >
                         Select Seat
                       </button>
