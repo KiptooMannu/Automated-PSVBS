@@ -5,6 +5,7 @@ import { RootState } from "../../app/store";
 import { logOut } from "../../features/users/userSlice";
 import { usersAPI } from "../../features/users/usersAPI";
 import usericon from '../../assets/usericon.png'
+
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -85,6 +86,7 @@ const Navbar: React.FC = () => {
                 Home
               </Link>
             </li>
+
             <li>
               <Link
                 to="/dashboard/booking_form"
@@ -93,6 +95,24 @@ const Navbar: React.FC = () => {
                 Dashboard
               </Link>
             </li>
+    
+            <li>
+  <Link to="/about" className="hover:text-gray-700 transition-colors duration-300">
+    About
+  </Link>
+</li>
+<li>
+  <Link to="/testimonials" className="hover:text-gray-700 transition-colors duration-300">
+    Testimonials
+  </Link>
+</li>
+<li>
+  <Link to="/contact" className="hover:text-gray-700 transition-colors duration-300">
+    Contact
+  </Link>
+</li>
+
+            
             {!userData ? (
               <>
                 <li>
