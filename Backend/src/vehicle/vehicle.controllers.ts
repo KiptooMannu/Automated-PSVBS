@@ -13,29 +13,24 @@ export const insertVehicle = async (c: Context) => {
     }
 }
 //get all vehicles
+//get vehicle by Reg no
 export const listAllVehicles = async (c: Context) => {
     try {
         const vehicles = await getAllVehiclesService();
-        if (vehicles === null) return c.json({msg:"No vehicles found😒"}, 404);
-        return c.json(vehicles, 200);
+        if (!vehicles || vehicles.length === 0) return c.json({ msg: "No vehicles found 😒" }, 404);
+
+        // ✅ Ensure unique vehicles based on registration_number
+        const uniqueVehicles = Array.from(
+            new Map(vehicles.map(vehicle => [vehicle.registration_number, vehicle])).values()
+        );
+
+        return c.json(uniqueVehicles, 200);
     } catch (error: any) {
         console.log(`Error: ${error}`);
-        return c.json({msg:"Error while fetching vehicles😒"}, 400);
+        return c.json({ msg: "Error while fetching vehicles 😒" }, 400);
     }
-}
-//get vehicle by Reg no
-export const getAllVehicleByRegNo = async (c: Context) =>{
-    const reg_no = c.req.param("registration_number");
-    try{
-        if(!reg_no) return c.text("Invalid license plate", 400);
-        const vehicle = await getVehicleByRegNumberService(reg_no);
-        if(vehicle===undefined) return c.json({message: "No vehicle found for this license plate😒"},404);
-        return c.json(vehicle, 200);
+};
 
-    } catch(error){
-        return c.json({msg:"Error while fetching vehicles by reg no😒"}, 400);
-    }
-}
 // update vehicle by regno
 export const updateVehicleByRegNo = async (c: Context) => {
     try {
