@@ -118,55 +118,55 @@ const Profile = () => {
 
   return (
     <>
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 py-10">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 py-5">
 
         {/* Profile Container */}
         <div className={`w-full max-w-4xl bg-white shadow-lg rounded-lg p-6 flex transition-all duration-300 min-h-[500px] max-h-[600px] ${ isEditMode ? "flex-row" : "flex-col items-center" }`}>
 
 
           {/* Profile Display Section */}
-          <div className={`p-6 transition-all duration-300 ${isEditMode ? "w-1/2 border-r" : "w-full"}`}>
-            <div className="flex flex-col items-center md:flex-row md:items-start">
-              <div className="relative">
-                <img
-                  src={userData?.image_url || userIcon}
-                  className="rounded-full h-32 w-32 object-cover border-4 border-gray-300"
-                  alt="User Avatar"
-                />
-                {userData.is_verified ? (
-                  <MdCheckCircle className="absolute bottom-0 right-0 text-green-500 w-8 h-8" title="Verified" />
-                ) : (
-                  <MdHelp className="absolute bottom-0 right-0 text-gray-500 w-8 h-8" title="Not Verified" />
-                )}
-              </div>
+          <div className={`p-6 transition-all duration-300 flex flex-col items-center text-center ${isEditMode ? "w-1/2 border-r" : "w-full"}`}>
+  {/* Image Section */}
+  <div className="w-full flex justify-center mb-3 mt-15">
+    <div className="relative flex justify-center">
+      <img
+        src={userData?.image_url || userIcon}
+        className="rounded-full h-32 w-32 object-cover border-4 border-gray-300"
+        alt="User Avatar"
+      />
+      {userData.is_verified ? (
+        <MdCheckCircle className="absolute bottom-0 right-0 text-green-500 w-8 h-8" title="Verified" />
+      ) : (
+        <MdHelp className="absolute bottom-0 right-0 text-gray-500 w-8 h-8" title="Not Verified" />
+      )}
+    </div>
+  </div>
 
-              <div className="text-center md:text-left ml-4">
-                <h1 className="text-3xl font-bold mb-2">
-                  {userData?.first_name} {userData?.last_name}
-                </h1>
+  {/* Text Section */}
+  <div className="w-full flex flex-col items-center text-center space-y-4">
+    <h1 className="text-3xl font-bold">{userData?.first_name} {userData?.last_name}</h1>
+    <div className="text-gray-600 text-lg mt-2 ">
+      <div className="flex items-center">
+        <MdEmail className="text-gray-500 mr-2" />
+        <span>{userData?.email}</span>
+      </div>
+      <div className="flex items-center mt-1">
+        <MdPhone className="text-gray-500 mr-2" />
+        <span>{userData?.phone_number}</span>
+      </div>
+    </div>
+  </div>
+</div>
 
-                <div className="text-gray-600 text-lg mt-2">
-                  <div className="flex items-center">
-                    <MdEmail className="text-gray-500 mr-2" />
-                    <span>{userData?.email}</span>
-                  </div>
-                  <div className="flex items-center mt-1">
-                    <MdPhone className="text-gray-500 mr-2" />
-                    <span>{userData?.phone_number}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* Edit Button (Only when NOT editing) */}
           {!isEditMode && (
-            <div className="flex justify-center mt-6 space-x-4">
+            <div className="flex justify-center mt-3 space-x-4">
               <button
                 className="mt-4 px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 flex items-center"
                 onClick={() => setIsEditMode(true)}
               >
-                <MdEdit className="mr-2" /> Edit Profile
+                <MdEdit className="mr-2 " /> Edit Profile
               </button>
             </div>
           )}
