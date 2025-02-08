@@ -3,7 +3,7 @@ import { useFetchCarSpecsQuery, Vehicle } from "../../../../features/vehicles/ve
 import MapSeatModal from "./MapSeat";
 
 const BookingForm: React.FC = () => {
-  const [vehicleType, setVehicleType] = useState<string>(""); // State for filtering by type
+  const [vehicleType, setVehicleType] = useState<string>(""); // State for filtering by ty
   const [currentLocation, setCurrentLocation] = useState<string>(""); // State for filtering by location
   const [destination, setDestination] = useState<string>(""); // State for filtering by destination
   const [departure, setDeparture] = useState<string>(""); // State for filtering by departure
@@ -11,38 +11,50 @@ const BookingForm: React.FC = () => {
   const [isMapSeatModalOpen, setIsMapSeatModalOpen] = useState(false); // Modal state
 
 
-  const { data: vehicles, isLoading, isError } = useFetchCarSpecsQuery();
-  // console.log("Vehicles:", vehicles);
+  const { data: vehicles, isLoading, isError, refetch } = useFetchCarSpecsQuery();
+
+  // ✅ Remove duplicate vehicles based on `registration_number`
+  const uniqueVehicles = vehicles
+    ? Array.from(new Map(vehicles.map(vehicle => [vehicle.registration_number, vehicle])).values())
+    : [];
+  
+  // ✅ Use uniqueVehicles instead of vehicles for filtering and rendering
+  const filteredVehicles = uniqueVehicles?.filter((vehicle) => {
+    const matchesType = vehicleType
+      ? vehicle.vehicle_type?.toLowerCase().includes(vehicleType.toLowerCase())
+      : true;
+    const matchesLocation = currentLocation
+      ? vehicle.current_location?.toLowerCase().includes(currentLocation.toLowerCase())
+      : true;
+    const matchesDeparture = departure
+      ? vehicle.departure?.toLowerCase().includes(departure.toLowerCase())
+      : true;
+    const matchesDestination = destination
+      ? vehicle.destination?.toLowerCase().includes(destination.toLowerCase())
+      : true;
+  
+    return matchesType && matchesLocation && matchesDeparture && matchesDestination;
+  });
+  
+
 
   // Handle Map Seat Modal
   const handleMapSeatModal = (vehicle: Vehicle) => {
-    setSelectedVehicle(vehicle); // Set the selected vehicle
-    setIsMapSeatModalOpen(true); // Open the modal
+    if (!selectedVehicle || selectedVehicle.registration_number !== vehicle.registration_number) {
+      setSelectedVehicle(vehicle); // Ensure only one vehicle is selected
+      setIsMapSeatModalOpen(true);
+    }
   };
+  
+
+
   // console.log("Selected Vehicle:", selectedVehicle);
   useEffect(() => {
-    console.log("Fetched Vehicles from API:", vehicles);
-  }, [vehicles]);
+    console.log("Fetched Vehicles from API:", uniqueVehicles);
+  }, [uniqueVehicles]);  // ✅ Use uniqueVehicles instead of vehicles
   
-  // Filter vehicles based on search criteria
-// Filter vehicles based on search criteria
-const filteredVehicles = vehicles?.filter((vehicle) => {
-  const matchesType = vehicleType
-    ? vehicle.vehicle_type?.toLowerCase().includes(vehicleType.toLowerCase()) // Safe optional chaining
-    : true;
-  const matchesLocation = currentLocation
-    ? vehicle.current_location?.toLowerCase().includes(currentLocation.toLowerCase()) // Safe optional chaining
-    : true;
-  const matchesDeparture = departure
-    ? vehicle.departure?.toLowerCase().includes(departure.toLowerCase()) // Safe optional chaining
-    : true;
-  const matchesDestination = destination
-    ? vehicle.destination?.toLowerCase().includes(destination.toLowerCase()) // Safe optional chaining
-    : true;
-
-  return matchesType && matchesLocation && matchesDeparture && matchesDestination;
-});
-
+  
+ 
 
   if (isLoading)
     return <p className="text-center text-gray-500">Loading vehicles...</p>;
@@ -130,9 +142,10 @@ const filteredVehicles = vehicles?.filter((vehicle) => {
           <div className="space-y-4 p-6">
             {filteredVehicles?.length ? (
               <div className="flex flex-wrap justify-center gap-6">
-                {filteredVehicles.map((vehicle) => (
+
+                {filteredVehicles.map((vehicle ,index) => (
                   <div
-                    key={vehicle.registration_number}
+                      key={`${vehicle.registration_number}-${index}`}
                     className={`card w-full sm:w-[45%] lg:w-[30%] bg-blue-200 shadow-md rounded-lg overflow-hidden transform transition-all duration-300 hover:scale-105 ${
                       selectedVehicle?.registration_number === vehicle.registration_number
                         ? "border-2 border-webcolor"
@@ -187,10 +200,12 @@ const filteredVehicles = vehicles?.filter((vehicle) => {
           </div>
           </form>
           {isMapSeatModalOpen && selectedVehicle && (
-            <MapSeatModal
-              vehicle={selectedVehicle} // Pass the selected vehicle
-              onClose={() => setIsMapSeatModalOpen(false)}
-            />
+           <MapSeatModal
+           vehicle={selectedVehicle}
+           onClose={() => setIsMapSeatModalOpen(false)}
+           refetchVehicles={refetch}  // ✅ Pass refetch as a prop
+         />
+         
           )}
         
       </div>

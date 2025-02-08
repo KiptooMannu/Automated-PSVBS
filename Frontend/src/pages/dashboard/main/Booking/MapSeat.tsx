@@ -12,7 +12,9 @@ import { useCreateBookingVehicleMutation } from '../../../../features/booking/bo
 interface MapSeatModalProps {
   vehicle: Vehicle;
   onClose: () => void;
+  refetchVehicles: () => void;  // ✅ Accept refetch function
 }
+
 
 interface BookingData {
   booking_date: string;
@@ -38,7 +40,7 @@ const schema = yup.object().shape({
     }),
 });
 
-const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose }) => {
+const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose, refetchVehicles }) => {
   const user = useSelector((state: RootState) => state.user);
   const [bookedSeats, setBookedSeats] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -46,6 +48,14 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const [createBooking] = useCreateBookingVehicleMutation();
+
+  const handleBookingSuccess = () => {
+    if (refetchVehicles) {
+      refetchVehicles();  // ✅ Properly call the function
+    }
+  };
+  
+  
 
   const externalData = {
     user_id: user.user?.user_id,
@@ -79,6 +89,7 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose }) => {
 
 
   const onSubmit: SubmitHandler<BookingData> = async (formData) => {
+    if (isSubmitting) return;
     if (selectedSeats.length === 0) {
       toast.error('Please select at least one seat.');
       return;
@@ -122,27 +133,35 @@ const dataToSubmit = {
 
   
     console.log("Data to submit:", dataToSubmit);
-  
     try {
       setIsSubmitting(true);
       await createBooking(dataToSubmit).unwrap();
       toast.success(`Booking created successfully for seat(s): ${selectedSeats.join(', ')}`);
+    
+      // ✅ Call function to refresh vehicle data
+      handleBookingSuccess();
+    
       setTimeout(() => navigate('/dashboard/payments'), 1000);
     } catch (err) {
       toast.error('Error creating booking');
       console.error('Error creating booking:', err);
-      // console.log(err?.data);
     } finally {
       setIsSubmitting(false);
     }
+    
   };
   
-  const calculateRemainingSeats = () => {
-    const bookedSeats = vehicle.booked_Seats ?? 0;
-    return vehicle.capacity - bookedSeats > 0 ? vehicle.capacity - bookedSeats : 0;
-  };
+const calculateRemainingSeats = () => {
+  if (!vehicle || typeof vehicle.capacity !== 'number') return 0; // ✅ Prevents errors if vehicle is missing
 
-  const remainingSeats = calculateRemainingSeats();
+  const bookedSeatsCount = bookedSeats.length; // ✅ Counts booked seats correctly
+  const remainingSeats = vehicle.capacity - bookedSeatsCount;
+
+  return remainingSeats > 0 ? remainingSeats : 0; // ✅ Ensures it never goes negative
+};
+
+const remainingSeats = calculateRemainingSeats();
+
   const totalAmount = selectedSeats.length * vehicle.cost;  // Price for one seat * number of selected seats
 
   const seats = Array.from({ length: vehicle.capacity }, (_, i) => `S${i + 1}`);
