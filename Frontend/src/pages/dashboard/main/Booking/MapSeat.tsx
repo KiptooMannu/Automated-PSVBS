@@ -189,23 +189,103 @@ const remainingSeats = calculateRemainingSeats();
           <p className="text-center text-gray-600">Loading seats...</p> 
         ) : (
           <>
-            {/* Seat Layout */}
-            <div className="flex flex-col items-center bg-gray-100 p-4 rounded-md">
-              {Array.from({ length: vehicle.capacity }, (_, i) => `S${i + 1}`).map((seat) => (
-                <button
-                  key={seat}
-                  className={`p-3 w-12 h-12 rounded-lg border font-semibold transition ${
-                    bookedSeats.includes(seat) ? 'bg-red-500 text-white' :
-                    selectedSeats.includes(seat) ? 'bg-green-500 text-white' : 
-                    'bg-gray-300 hover:bg-gray-400'
-                  }`}
-                  onClick={() => handleSeatClick(seat)}
-                  disabled={bookedSeats.includes(seat)}
-                >
-                  {seat}
-                </button>
-              ))}
-            </div>
+{/* 🚗 Car-Shaped Seat Layout */}
+<div className="relative flex flex-col items-center bg-gray-300 p-6 rounded-lg shadow-lg border-4 border-gray-800 max-w-lg mx-auto">
+  
+  {/* 🚖 Car Roof */}
+  <div className="w-40 h-6 bg-gray-700 rounded-t-lg"></div>
+
+  {/* 🚗 Driver's Section with Steering Wheel */}
+  <div className="w-full flex justify-center mb-4 relative">
+    <div className="relative flex flex-col items-center">
+      <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center text-white mb-1">
+        🏎️ {/* Steering Wheel */}
+      </div>
+      <button
+        className="p-3 w-14 h-12 rounded-lg border bg-gray-800 text-white font-semibold flex items-center justify-center"
+        disabled
+      >
+        🚖 S1
+      </button>
+    </div>
+  </div>
+
+  {/* Passenger Seats - Arranged Like a Car Interior */}
+  <div className="w-full bg-gray-400 rounded-lg p-2">
+    {Array.from({ length: Math.ceil((vehicle.capacity - 1) / 4) }, (_, rowIndex) => (
+      <div key={rowIndex} className="flex justify-between w-full px-8 my-1">
+        
+        {/* 🚗 Left Section (Window & Aisle Seats) */}
+        <div className="flex space-x-3">
+          {Array.from({ length: 2 }, (_, colIndex) => {
+            const seatIndex = rowIndex * 4 + colIndex + 1; // Start from S2
+            const seatNumber = `S${seatIndex + 1}`;
+
+            if (seatIndex >= vehicle.capacity) return null; // Prevent rendering extra seats
+
+            return (
+              <button
+                key={seatNumber}
+                className={`p-3 w-12 h-12 rounded-lg border font-semibold transition ${
+                  bookedSeats.includes(seatNumber)
+                    ? 'bg-red-500 text-white'
+                    : selectedSeats.includes(seatNumber)
+                    ? 'bg-green-500 text-white'
+                    : 'bg-gray-300 hover:bg-gray-400'
+                }`}
+                onClick={() => handleSeatClick(seatNumber)}
+                disabled={bookedSeats.includes(seatNumber)}
+              >
+                {seatNumber}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* 🚗 Aisle (Car Space) */}
+        <div className="w-8 bg-gray-600 rounded-lg"></div>
+
+        {/* 🚗 Right Section (Aisle & Window Seats) */}
+        <div className="flex space-x-3">
+          {Array.from({ length: 2 }, (_, colIndex) => {
+            const seatIndex = rowIndex * 4 + colIndex + 3; // Adjust index for right section
+            const seatNumber = `S${seatIndex + 1}`;
+
+            if (seatIndex >= vehicle.capacity) return null; // Prevent rendering extra seats
+
+            return (
+              <button
+                key={seatNumber}
+                className={`p-3 w-12 h-12 rounded-lg border font-semibold transition ${
+                  bookedSeats.includes(seatNumber)
+                    ? 'bg-red-500 text-white'
+                    : selectedSeats.includes(seatNumber)
+                    ? 'bg-green-500 text-white'
+                    : 'bg-gray-300 hover:bg-gray-400'
+                }`}
+                onClick={() => handleSeatClick(seatNumber)}
+                disabled={bookedSeats.includes(seatNumber)}
+              >
+                {seatNumber}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    ))}
+  </div>
+
+  {/* 🚗 Car Bottom Section */}
+  <div className="w-40 h-6 bg-gray-700 rounded-b-lg mt-2"></div>
+
+  {/* 🚗 Wheels */}
+  <div className="absolute left-0 top-1/3 w-8 h-8 bg-black rounded-full"></div>
+  <div className="absolute right-0 top-1/3 w-8 h-8 bg-black rounded-full"></div>
+  <div className="absolute left-0 bottom-1/3 w-8 h-8 bg-black rounded-full"></div>
+  <div className="absolute right-0 bottom-1/3 w-8 h-8 bg-black rounded-full"></div>
+
+</div>
+
   
             {/* Selected Seats Info */}
             <div className="mt-5 text-center">
