@@ -4,7 +4,6 @@ import MapSeatModal from "./MapSeat";
 
 const BookingForm: React.FC = () => {
   const [vehicleType, setVehicleType] = useState<string>(""); // State for filtering by ty
-  const [currentLocation, setCurrentLocation] = useState<string>(""); // State for filtering by location
   const [destination, setDestination] = useState<string>(""); // State for filtering by destination
   const [departure, setDeparture] = useState<string>(""); // State for filtering by departure
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null); // Selected vehicle
@@ -23,9 +22,7 @@ const BookingForm: React.FC = () => {
     const matchesType = vehicleType
       ? vehicle.vehicle_type?.toLowerCase().includes(vehicleType.toLowerCase())
       : true;
-    const matchesLocation = currentLocation
-      ? vehicle.current_location?.toLowerCase().includes(currentLocation.toLowerCase())
-      : true;
+  
     const matchesDeparture = departure
       ? vehicle.departure?.toLowerCase().includes(departure.toLowerCase())
       : true;
@@ -33,7 +30,7 @@ const BookingForm: React.FC = () => {
       ? vehicle.destination?.toLowerCase().includes(destination.toLowerCase())
       : true;
   
-    return matchesType && matchesLocation && matchesDeparture && matchesDestination;
+    return matchesType && matchesDeparture && matchesDestination;
   });
   
 
@@ -74,13 +71,13 @@ const BookingForm: React.FC = () => {
             {/* Departure Location Input */}
             <div className="flex-1">
               <div className="form-control">
-                <label htmlFor="departure" className="label">
-                  <span className="label-text">Departure Location</span>
+                <label htmlFor="destination" className="label">
+                  <span className="label-text">Destination</span>
                 </label>
                 <input
-                  id="departure"
+                  id="destination"
                   type="text"
-                  placeholder="Search by departure location📍"
+                  placeholder="Search by destination📍"
                   value={departure}
                   onChange={(e) => setDeparture(e.target.value)}
                   className="input input-bordered"
@@ -90,13 +87,13 @@ const BookingForm: React.FC = () => {
             {/* Destination Input */}
             <div className="flex-1">
               <div className="form-control">
-                <label htmlFor="destination" className="label">
-                  <span className="label-text">Destination</span>
+                <label htmlFor="departure" className="label">
+                  <span className="label-text">Departure</span>
                 </label>
                 <input
-                  id="destination"
+                  id="departure"
                   type="text"
-                  placeholder="Search by destination📍"
+                  placeholder="Search by departure Location📍"
                   value={destination}
                   onChange={(e) => setDestination(e.target.value)}
                   className="input input-bordered"
@@ -120,22 +117,7 @@ const BookingForm: React.FC = () => {
                 />
               </div>
             </div>
-            {/* Current Location Input */}
-            <div className="flex-1">
-              <div className="form-control">
-                <label htmlFor="currentLocation" className="label">
-                  <span className="label-text">Current Location</span>
-                </label>
-                <input
-                  id="currentLocation"
-                  type="text"
-                  placeholder="Search by current location"
-                  value={currentLocation}
-                  onChange={(e) => setCurrentLocation(e.target.value)}
-                  className="input input-bordered"
-                />
-              </div>
-            </div>
+        
           </div>
 
           {/* Vehicle List */}
