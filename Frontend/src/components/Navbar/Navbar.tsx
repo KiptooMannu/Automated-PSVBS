@@ -111,61 +111,60 @@ const Navbar: React.FC = () => {
     Contact
   </Link>
 </li>
+{!userData ? (
+  <li className="relative">
+    {/* Auth Icon Button */}
+    <button id="auth-btn" onClick={() => setIsDropdownOpen((prev) => !prev)} className="flex items-center">
+      <img src={usericon} alt="Auth" className="w-8 h-8 rounded-full cursor-pointer border border-gray-300" />
+    </button>
 
-            
-            {!userData ? (
-              <>
-                <li>
-                  <Link to="/register" className="hover:text-gray-700 transition-colors duration-300">
-                    Register
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/login" className="hover:text-gray-700 transition-colors duration-300">
-                    Login
-                  </Link>
-                </li>
-              </>
-            ) : (
-              <li className="flex items-center space-x-4">
-{/* Profile Avatar with Dropdown Toggle */}
-{/* Profile Avatar with Dropdown Toggle */}
-<div className="relative">
-  <button id="profile-btn" onClick={toggleProfile} className="flex items-center">
-    <img
-      src={userData?.image_url || usericon}
-      alt="Profile"
-      className="w-8 h-8 rounded-full cursor-pointer border border-gray-300"
-    />
-  </button>
-
-  {/* Profile Dropdown Menu */}
-  {isProfileOpen && (
-    <div
-      id="profile-dropdown"
-      className="absolute top-full right-0 mt-2 w-40 bg-white border border-gray-300 rounded-lg shadow-lg p-2 z-50"
+    {/* Auth Dropdown */}
+    {isDropdownOpen && (
+      <div
+        id="auth-dropdown"
+        className="absolute top-full right-0 mt-2 w-40 bg-white border border-gray-300 rounded-lg shadow-lg p-2 z-50"
       >
-      <Link
-        to="/dashboard/profile"
-        className="block px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-md"
-        onClick={() => setIsProfileOpen(false)}
-      >
-        View Profile
-      </Link>
-      <button
-        onClick={handleLogout}
-        className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-200 rounded-md"
-      >
-        Logout
-      </button>
-    </div>
-  )}
-</div>
+        <Link
+          to="/register"
+          className="block px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-md"
+          onClick={() => setIsDropdownOpen(false)}
+        >
+          Register
+        </Link>
+        <Link
+          to="/login"
+          className="block px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-md"
+          onClick={() => setIsDropdownOpen(false)}
+        >
+          Login
+        </Link>
+      </div>
+    )}
+  </li>
+) : (
+  <li className="relative">
+    {/* Profile Icon */}
+    <button id="profile-btn" onClick={toggleProfile} className="flex items-center">
+      <img src={userData?.image_url || usericon} alt="Profile" className="w-8 h-8 rounded-full cursor-pointer border border-gray-300" />
+    </button>
 
+    {/* Profile Dropdown */}
+    {isProfileOpen && (
+      <div
+        id="profile-dropdown"
+        className="absolute top-full right-0 mt-2 w-40 bg-white border border-gray-300 rounded-lg shadow-lg p-2 z-50"
+      >
+        <Link to="/dashboard/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-md" onClick={() => setIsProfileOpen(false)}>
+          View Profile
+        </Link>
+        <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-200 rounded-md">
+          Logout
+        </button>
+      </div>
+    )}
+  </li>
+)}
 
-            </li>
-            
-            )}
           </ul>
 
           {/* Mobile Menu Button */}
