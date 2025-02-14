@@ -6,10 +6,10 @@ import { RootState } from "../../app/store";
 // API Slice
 export const usersAPI = createApi({
     reducerPath: 'usersAPI',
-    baseQuery: fetchBaseQuery({ baseUrl: ApiDomain,
+    baseQuery: fetchBaseQuery({
+        baseUrl: ApiDomain,
         prepareHeaders: (headers, { getState }) => {
             const token = (getState() as RootState).user.token;
-            // console.log(token);
             if (token) {
                 headers.set('Authorization', token);
             }
@@ -48,6 +48,7 @@ export const usersAPI = createApi({
         }),
         getUserById: builder.query<TUser, number>({
             query: (id) => `users/${id}`,
+            transformResponse: (response: { message: string; data: TUser }) => response.data, // ✅ Extracts 'data'
         }),
         resetPassword: builder.mutation<{ success: boolean }, { email: string }>({
             query: ({ email }) => ({

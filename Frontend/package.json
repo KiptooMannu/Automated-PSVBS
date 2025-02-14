@@ -27,6 +27,7 @@
     "react-router-dom": "^7.1.1",
     "react-spinners": "^0.15.0",
     "react-toastify": "^11.0.3",
+    "recharts": "^2.15.1",
     "redux-persist": "^6.0.0",
     "sonner": "^1.7.1",
     "spinners": "^1.2.2",

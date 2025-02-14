@@ -71,6 +71,7 @@ export const deleteTicket = async (c: Context) => {
   }
 }
 //send ticket to user as email
-export const sendTicket = async (c: Context) => {
+export const sendTicketAsEmail = async (c: Context) => {
+  
 
 };

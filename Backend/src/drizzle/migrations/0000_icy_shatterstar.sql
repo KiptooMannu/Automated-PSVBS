@@ -20,9 +20,11 @@ CREATE TABLE IF NOT EXISTS "bookings" (
 	"vehicle_id" varchar NOT NULL,
 	"departure_date" timestamp NOT NULL,
 	"departure_time" varchar NOT NULL,
+	"departure" varchar,
+	"destination" varchar,
 	"estimated_arrival" varchar,
-	"price" numeric NOT NULL,
-	"total_price" numeric NOT NULL,
+	"price" numeric(10, 2) NOT NULL,
+	"total_price" numeric(10, 2) NOT NULL,
 	"booking_status" "booking_status" DEFAULT 'pending',
 	"booking_date" timestamp DEFAULT now(),
 	"is_active" boolean DEFAULT true,
@@ -33,16 +35,17 @@ CREATE TABLE IF NOT EXISTS "bookings" (
 CREATE TABLE IF NOT EXISTS "bookings_seats" (
 	"booking_seat_id" serial PRIMARY KEY NOT NULL,
 	"booking_id" integer NOT NULL,
-	"seat_id" integer NOT NULL
+	"seat_id" integer NOT NULL,
+	"vehicle_id" varchar NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "payments" (
 	"payment_id" serial PRIMARY KEY NOT NULL,
 	"booking_id" integer NOT NULL,
-	"amount" numeric NOT NULL,
+	"amount" numeric(10, 2) NOT NULL,
 	"payment_method" varchar(50) NOT NULL,
 	"payment_status" "payment_status" DEFAULT 'pending',
-	"transaction_reference" varchar(100) NOT NULL,
+	"transaction_reference" varchar(255) NOT NULL,
 	"payment_date" timestamp DEFAULT now(),
 	"ticket_id" integer,
 	"created_at" timestamp DEFAULT now(),
@@ -52,7 +55,6 @@ CREATE TABLE IF NOT EXISTS "payments" (
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "seats" (
 	"seat_id" serial PRIMARY KEY NOT NULL,
-	"vehicle_id" varchar NOT NULL,
 	"seat_number" varchar NOT NULL,
 	"is_available" boolean DEFAULT true,
 	"seat_type" varchar DEFAULT 'regular',
@@ -117,19 +119,7 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "bookings" ADD CONSTRAINT "bookings_vehicle_id_vehicles_registration_number_fk" FOREIGN KEY ("vehicle_id") REFERENCES "public"."vehicles"("registration_number") ON DELETE cascade ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
  ALTER TABLE "bookings_seats" ADD CONSTRAINT "bookings_seats_booking_id_bookings_booking_id_fk" FOREIGN KEY ("booking_id") REFERENCES "public"."bookings"("booking_id") ON DELETE cascade ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- ALTER TABLE "bookings_seats" ADD CONSTRAINT "bookings_seats_seat_id_seats_seat_id_fk" FOREIGN KEY ("seat_id") REFERENCES "public"."seats"("seat_id") ON DELETE cascade ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
@@ -147,13 +137,10 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "seats" ADD CONSTRAINT "seats_vehicle_id_vehicles_registration_number_fk" FOREIGN KEY ("vehicle_id") REFERENCES "public"."vehicles"("registration_number") ON DELETE cascade ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
  ALTER TABLE "tickets" ADD CONSTRAINT "tickets_user_id_users_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("user_id") ON DELETE cascade ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "user_id_idx" ON "bookings" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "booking_id_idx" ON "payments" USING btree ("booking_id");

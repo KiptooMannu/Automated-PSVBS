@@ -18,12 +18,18 @@ export const getPaymentByIdService = async (payment_id: number): Promise<TSPayme
 
 // Create payment
 export const createPaymentService = async (payment: TIPayments): Promise<string> => {
-    await db.insert(paymentsTable).values(payment);
+    await db.insert(paymentsTable).values({
+        ...payment,
+        transaction_reference: payment.transaction_reference ?? "", // ✅ Ensure session_id is stored
+        payment_status: "pending", // ✅ Default status
+    });
     return "Payment created successfully";
 };
 
-// Update payment
-export const updatePaymentService = async (payment_id: number, payment: TIPayments): Promise<string> => {
+
+
+// Update paymentexport const updatePaymentService = async (payment_id: number, payment: Partial<TIPayments>): Promise<string> => {
+    export const updatePaymentService = async (payment_id: number, payment: Partial<TIPayments>): Promise<string> => {
     await db.update(paymentsTable).set(payment).where(eq(paymentsTable.payment_id, payment_id));
     return "Payment updated successfully";
 };

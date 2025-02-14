@@ -1,56 +1,57 @@
-import React, { useState } from "react";
+import React, { useState , useEffect } from "react";
 import { useFetchCarSpecsQuery, Vehicle } from "../../../../features/vehicles/vehicleAPI";
 import MapSeatModal from "./MapSeat";
 
 const BookingForm: React.FC = () => {
-  const [vehicleType, setVehicleType] = useState<string>(""); // State for filtering by type
-  const [currentLocation, setCurrentLocation] = useState<string>(""); // State for filtering by location
+  const [vehicleType, setVehicleType] = useState<string>(""); // State for filtering by ty
   const [destination, setDestination] = useState<string>(""); // State for filtering by destination
   const [departure, setDeparture] = useState<string>(""); // State for filtering by departure
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null); // Selected vehicle
   const [isMapSeatModalOpen, setIsMapSeatModalOpen] = useState(false); // Modal state
 
-  const { data: vehicles, isLoading, isError } = useFetchCarSpecsQuery();
-  // console.log("Vehicles:", vehicles);
+
+  const { data: vehicles, isLoading, isError, refetch } = useFetchCarSpecsQuery();
+
+  // ✅ Remove duplicate vehicles based on `registration_number`
+  const uniqueVehicles = vehicles
+    ? Array.from(new Map(vehicles.map(vehicle => [vehicle.registration_number, vehicle])).values())
+    : [];
+  
+  // ✅ Use uniqueVehicles instead of vehicles for filtering and rendering
+  const filteredVehicles = uniqueVehicles?.filter((vehicle) => {
+    const matchesType = vehicleType
+      ? vehicle.vehicle_type?.toLowerCase().includes(vehicleType.toLowerCase())
+      : true;
+  
+    const matchesDeparture = departure
+      ? vehicle.departure?.toLowerCase().includes(departure.toLowerCase())
+      : true;
+    const matchesDestination = destination
+      ? vehicle.destination?.toLowerCase().includes(destination.toLowerCase())
+      : true;
+  
+    return matchesType && matchesDeparture && matchesDestination;
+  });
+  
+
 
   // Handle Map Seat Modal
   const handleMapSeatModal = (vehicle: Vehicle) => {
-    setSelectedVehicle(vehicle); // Set the selected vehicle
-    setIsMapSeatModalOpen(true); // Open the modal
+    if (!selectedVehicle || selectedVehicle.registration_number !== vehicle.registration_number) {
+      setSelectedVehicle(vehicle); // Ensure only one vehicle is selected
+      setIsMapSeatModalOpen(true);
+    }
   };
+  
+
+
   // console.log("Selected Vehicle:", selectedVehicle);
-
-  // Filter vehicles based on search criteria
-// Filter vehicles based on search criteria
-const filteredVehicles = vehicles?.filter((vehicle) => {
-  const matchesType = vehicleType
-    ? vehicle.vehicle_type?.toLowerCase().includes(vehicleType.toLowerCase()) // Safe optional chaining
-    : true;
-  const matchesLocation = currentLocation
-    ? vehicle.current_location?.toLowerCase().includes(currentLocation.toLowerCase()) // Safe optional chaining
-    : true;
-  const matchesDeparture = departure
-    ? vehicle.departure?.toLowerCase().includes(departure.toLowerCase()) // Safe optional chaining
-    : true;
-  const matchesDestination = destination
-    ? vehicle.destination?.toLowerCase().includes(destination.toLowerCase()) // Safe optional chaining
-    : true;
-
-  return matchesType && matchesLocation && matchesDeparture && matchesDestination;
-});
-  //calculate remaining seats
+  useEffect(() => {
+    console.log("Fetched Vehicles from API:", uniqueVehicles);
+  }, [uniqueVehicles]);  // ✅ Use uniqueVehicles instead of vehicles
+  
+  
  
-
-
-  // Handle form submission
-  // const handleSubmit = (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   if (!selectedVehicle) {
-  //     alert("Please select a vehicle.");
-  //     return;
-  //   }
-  //   toast.success(`Booking confirmed for vehicle: ${selectedVehicle.vehicle_name}`);
-  // };
 
   if (isLoading)
     return <p className="text-center text-gray-500">Loading vehicles...</p>;
@@ -66,24 +67,8 @@ const filteredVehicles = vehicles?.filter((vehicle) => {
         // onSubmit={handleSubmit} 
         className="space-y-6"
         >
-          <div className="flex flex-col lg:flex-row gap-4">
+          <div className="flex flex-col lg:flex-row gap-3">
             {/* Departure Location Input */}
-            <div className="flex-1">
-              <div className="form-control">
-                <label htmlFor="departure" className="label">
-                  <span className="label-text">Departure Location</span>
-                </label>
-                <input
-                  id="departure"
-                  type="text"
-                  placeholder="Search by departure location📍"
-                  value={departure}
-                  onChange={(e) => setDeparture(e.target.value)}
-                  className="input input-bordered"
-                />
-              </div>
-            </div>
-            {/* Destination Input */}
             <div className="flex-1">
               <div className="form-control">
                 <label htmlFor="destination" className="label">
@@ -93,6 +78,22 @@ const filteredVehicles = vehicles?.filter((vehicle) => {
                   id="destination"
                   type="text"
                   placeholder="Search by destination📍"
+                  value={departure}
+                  onChange={(e) => setDeparture(e.target.value)}
+                  className="input input-bordered"
+                />
+              </div>
+            </div>
+            {/* Destination Input */}
+            <div className="flex-1">
+              <div className="form-control">
+                <label htmlFor="departure" className="label">
+                  <span className="label-text">Departure</span>
+                </label>
+                <input
+                  id="departure"
+                  type="text"
+                  placeholder="Search by departure Location📍"
                   value={destination}
                   onChange={(e) => setDestination(e.target.value)}
                   className="input input-bordered"
@@ -116,32 +117,18 @@ const filteredVehicles = vehicles?.filter((vehicle) => {
                 />
               </div>
             </div>
-            {/* Current Location Input */}
-            <div className="flex-1">
-              <div className="form-control">
-                <label htmlFor="currentLocation" className="label">
-                  <span className="label-text">Current Location</span>
-                </label>
-                <input
-                  id="currentLocation"
-                  type="text"
-                  placeholder="Search by current location"
-                  value={currentLocation}
-                  onChange={(e) => setCurrentLocation(e.target.value)}
-                  className="input input-bordered"
-                />
-              </div>
-            </div>
+        
           </div>
 
           {/* Vehicle List */}
-          <div className="space-y-4 p-6">
+          <div className="space-y-4 p-4">
             {filteredVehicles?.length ? (
-              <div className="flex flex-wrap justify-center gap-6">
-                {filteredVehicles.map((vehicle) => (
+              <div className="flex flex-wrap justify-center gap-4">
+
+                {filteredVehicles.map((vehicle ,index) => (
                   <div
-                    key={vehicle.registration_number}
-                    className={`card w-full sm:w-[45%] lg:w-[30%] bg-blue-200 shadow-md rounded-lg overflow-hidden transform transition-all duration-300 hover:scale-105 ${
+                      key={`${vehicle.registration_number}-${index}`}
+                    className={`card w-full sm:w-[45%] lg:w-[23%] bg-blue-200 shadow-md rounded-lg overflow-hidden transform transition-all duration-300 hover:scale-105 ${
                       selectedVehicle?.registration_number === vehicle.registration_number
                         ? "border-2 border-webcolor"
                         : "border border-gray-200"
@@ -151,13 +138,13 @@ const filteredVehicles = vehicles?.filter((vehicle) => {
                     <img
                       src={vehicle.image_url}
                       alt={vehicle.vehicle_name}
-                      className="w-full h-40 object-cover rounded-lg mb-4"
+                      className="w-full h-16 object-cover rounded-lg mb-4"
                     />
-                    <div className="p-4">
-                      <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                    <div className="p-2">
+                      <h3 className="text-xs font-semibold text-gray-800 mb-2">
                         {vehicle.vehicle_name}
                         <span
-                          className={`ml-4 inline-block px-3 py-1 text-sm font-medium rounded ${
+                          className={`ml-4 inline-block px-3 py-0.5 text-xs font-medium rounded ${
                             vehicle.is_active
                               ? "bg-green-300 text-green-900"
                               : "bg-red-100 text-red-700"
@@ -166,7 +153,7 @@ const filteredVehicles = vehicles?.filter((vehicle) => {
                           {vehicle.is_active ? "Available" : "Unavailable"}
                         </span>
                       </h3>
-                      <div className="space-y-1 text-green-900 text-sm">
+                      <div className="space-y-1 text-green-900 text-xs">
                         <p>Type: {vehicle.vehicle_type}</p>
                         <p>Capacity: {vehicle.capacity}</p>
                         <p>Reg No: {vehicle.registration_number}</p>
@@ -174,13 +161,14 @@ const filteredVehicles = vehicles?.filter((vehicle) => {
                         <p>Location: {vehicle.current_location}</p>
                         <p>Destination: {vehicle.departure}</p>
                         <p>Departure Location: {vehicle.destination}</p>
-                        {/* <p><strong>Remaining seats: {}</strong></p> */}
+                        <p><strong>Departure Time: {vehicle.departure_time}</strong></p>
                         <p><strong>Cost: {vehicle.cost}</strong></p>
+                 
                       </div>
                       <button
                         type="button"
                         onClick={() => handleMapSeatModal(vehicle)}
-                        className="btn bg-blue-600 text-text-white hover:text-black border-none w-1/2 m-auto"
+                                      className="btn bg-blue-600 text-white hover:text-black border-none w-full py-1 mt-2 text-xs"
                       >
                         Select Seat
                       </button>
@@ -194,10 +182,12 @@ const filteredVehicles = vehicles?.filter((vehicle) => {
           </div>
           </form>
           {isMapSeatModalOpen && selectedVehicle && (
-            <MapSeatModal
-              vehicle={selectedVehicle} // Pass the selected vehicle
-              onClose={() => setIsMapSeatModalOpen(false)}
-            />
+           <MapSeatModal
+           vehicle={selectedVehicle}
+           onClose={() => setIsMapSeatModalOpen(false)}
+           refetchVehicles={refetch}  // ✅ Pass refetch as a prop
+         />
+         
           )}
         
       </div>

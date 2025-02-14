@@ -9,6 +9,8 @@ const secret = process.env.SECRET!;
 const expiresIn = process.env.EXPIRESIN!;
 
 export const registerUser = async (user: any) => {
+  console.log("🟢 Registering user:", user); // ✅ Log input data
+
   registerSchema.parse(user);
 
   const existingUser = await db
@@ -18,11 +20,13 @@ export const registerUser = async (user: any) => {
     .execute();
 
   if (existingUser.length > 0) {
+    console.log("❌ User already exists in DB:", existingUser);
     throw new Error("User already exists");
   }
 
   const hashedPassword = await bcrypt.hash(user.password, 10);
 
+  console.log("🔵 Inserting new user into DB...");
   const newUser = await db
     .insert(userTable)
     .values({
@@ -31,85 +35,94 @@ export const registerUser = async (user: any) => {
       email: user.email,
       phone_number: user.phone_number,
       image_url: user.image_url,
-      password: hashedPassword,// Hash the password before storing it
+      password: hashedPassword,
     })
     .returning({ id: userTable.user_id })
     .execute();
 
+  console.log("✅ User saved in DB:", newUser);
+
+  if (!newUser.length) {
+    console.error("❌ User insertion failed!");
+    throw new Error("Failed to register user");
+  }
+
   const userId = newUser[0].id;
 
-  if (!user.username) {
-    // Clean up and throw an error if username is missing
-    await db.delete(userTable).where(eq(userTable.user_id, userId)).execute();
-    throw new Error("Username is required for registration");
-}
+  console.log("🔵 Inserting authentication record...");
+  await db
+    .insert(authTable)
+    .values({
+      user_id: userId,
+      username: user.username,
+      password_hash: hashedPassword,
+      role: user.role || "user",
+    })
+    .execute();
 
-  try {
-    await db
-      .insert(authTable)
-      .values({
-        user_id: userId,
-        username: user.username,
-        password_hash: hashedPassword,
-        role: user.role || "user", // Default role should be 'user'
-      })
-      .execute();
-
-    return "User registered successfully";
-  } catch (error) {
-    console.log('Registration Error!!:' ,error);
-    await db.delete(userTable).where(eq(userTable.user_id, userId)).execute();
-    throw new Error("Registration failed. Please try again.");
-  }
+  console.log("✅ User authentication record saved.");
+  return "User registered successfully";
 };
 
 export const loginUser = async (email: string, password: string) => {
-    // Validate email and password
-    loginSchema.parse({ email, password });
-  
-    // Step 1: Find user by email
-    const users = await db
+  console.log("Searching for user with email:", email);
+
+  // Step 1: Find user by email
+  const users = await db
       .select()
       .from(userTable)
       .where(eq(userTable.email, email))
       .execute();
-  
-    if (users.length === 0) {
+
+  console.log("User query result:", users);
+
+  if (users.length === 0) {
       throw new Error("User not found! Try Again");
-    }
-  
-    const user = users[0];
-  
-    // Step 2: Find authentication record for the user
-    const auths = await db
+  }
+
+  const user = users[0];
+
+  // Step 2: Find authentication record for the user
+  console.log("Searching for auth record for user ID:", user.user_id);
+  const auths = await db
       .select()
       .from(authTable)
       .where(eq(authTable.user_id, user.user_id))
       .execute();
-  
-    if (auths.length === 0) {
+
+  console.log("Auth query result:", auths);
+
+  if (auths.length === 0) {
       throw new Error("Invalid credentials! Try again");
-    }
-  
-    const auth = auths[0];
-  
-    // Step 3: Compare password with the stored hashed password
-    const isPasswordValid = await bcrypt.compare(password, auth.password_hash);
-  
-    if (!isPasswordValid) {
+  }
+
+  const auth = auths[0];
+
+  // Step 3: Compare password with the stored hashed password
+  console.log("Comparing provided password with stored hash...");
+  const isPasswordValid = await bcrypt.compare(password, auth.password_hash);
+
+  if (!isPasswordValid) {
+      console.error("Password mismatch!");
       throw new Error("Invalid credentials! Try again");
-    }
-  
-    // Step 4: Generate a JWT token
-    const token = jwt.sign(
+  }
+
+  // Step 4: Generate a JWT token
+  if (!process.env.SECRET || !process.env.EXPIRESIN) {
+      console.error("JWT Secret or Expiration not set");
+      throw new Error("Server configuration error");
+  }
+
+  console.log("Generating JWT token...");
+  const token = jwt.sign(
       { id: user.user_id, email: user.email, role: auth.role },
-      secret,
-      { expiresIn }
-    );
-  
-    // Step 5: Return token and user data
-    return { token, user };
+      process.env.SECRET!,
+      { expiresIn: process.env.EXPIRESIN! }
+  );
+
+  return { token, user };
 };
+
 
 export const getUsersService = async (limit: number = 10) => {
   const users = await db.select().from(userTable).limit(limit).execute();

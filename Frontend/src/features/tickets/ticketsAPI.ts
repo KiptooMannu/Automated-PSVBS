@@ -8,12 +8,12 @@ export const ticketAPI = createApi({
   tagTypes: ['Tickets'],
   endpoints: (builder) => ({
     getTickets: builder.query<CustomerTickets[], void>({
-      query: () => '/customer-support',
+      query: () => '/tickets',
       providesTags: ['Tickets'],
     }),
     // Change the hook name to 'useGetTicketByIdQuery'
     getTicketById: builder.query<CustomerTickets, number>({
-      query: (id) => `customer-support/${id}`,
+      query: (id) => `tickets/${id}`,
       providesTags: [{ type: 'Tickets', id: 'LIST' }],
     }),
     addTicket: builder.mutation<CustomerTickets, Partial<CustomerTickets>>({

@@ -29,18 +29,30 @@ const Login = () => {
 
   // submit form
   const onSubmit: SubmitHandler<LoginFormData> = async (data) => {
-    console.log("Submitting data:", data);
+    console.log("Submitting login request:", JSON.stringify(data));
     try {
       setIsLoggingIn(true); // Show logging in loader
-      const response = await loginUser(data).unwrap();//unwrap is used to get the actual data from the promise
-      // console.log("Response data:", response); // success
-      if (!response.token) {
-        toast.error("Invalid credentials");
-        // console.log("Invalid credentials");
-        return;
-      }
-      dispatch(loginSuccess(response));
-      toast.success("Login successful");
+      const response = await fetch("http://localhost:8081/login", {
+        method: "POST",
+        headers: { 
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data),
+    });
+    const responseData = await response.json();
+        console.log("Login response:", response.status, responseData);
+
+        if (!response.ok) {
+            toast.error(responseData.message || "Invalid credentials");
+            return;
+        }
+
+        // ✅ Save user data in localStorage
+localStorage.setItem("user", JSON.stringify(responseData));
+
+dispatch(loginSuccess(responseData));
+toast.success("Login successful");
+
 
       setTimeout(() => {
         navigate('/');

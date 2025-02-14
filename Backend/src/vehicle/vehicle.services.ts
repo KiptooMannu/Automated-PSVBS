@@ -4,14 +4,37 @@ import { vehicleTable } from "../drizzle/schema";
 
 //create vehicle
 export const createVehicleService = async (vehicle: any) => {
-    return await db.insert(vehicleTable).values(vehicle)
-    .returning({registration_number: vehicleTable.registration_number})
-    .execute();
-}
+    console.log("Creating Vehicle with Data:", vehicle); // ✅ Debug insertion payload
+
+    // ✅ Check if a vehicle with the same registration number exists
+    const existingVehicle = await db.query.vehicleTable.findFirst({
+        where: eq(vehicleTable.registration_number, vehicle.registration_number)
+    });
+
+    if (existingVehicle) {
+        console.log("Vehicle already exists:", existingVehicle);
+        return null; // Prevents duplicate insertion
+    }
+
+    const result = await db.insert(vehicleTable).values(vehicle)
+        .returning({
+            registration_number: vehicleTable.registration_number,
+        })
+        .execute();
+
+    console.log("Created Vehicle Response:", result); // ✅ Debug output after insertion
+    return result;
+};
+
+
 // Fetch all vehicles
 export const getAllVehiclesService = async () => {
-    return await db.query.vehicleTable.findMany();
+    const vehicles = await db.query.vehicleTable.findMany();
+    console.log("Vehicles Retrieved:", vehicles);
+    return vehicles;
 }
+
+
 // fetch vehicle by registration number
 export const getVehicleByRegNumberService = async (registration_number: string) => {
 return await db.query.vehicleTable.findFirst({

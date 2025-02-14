@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { ApiDomain } from "../../utils/ApiDomain";
 
+// Define Payment Interface
 export interface Payment {
   amount: number;
   payment_id: number;
@@ -10,11 +11,12 @@ export interface Payment {
   transaction_reference: string;
 }
 
+// Define Booking Interface
 export interface Tbooking {
   booking_id: number;
   user_id: number;
-  vehicle_id: number;
-  seat_id: number | null; // 
+  vehicle_id: string;
+  seat_id: number | null;
   booking_date: string;
   departure_time: string;
   departure: string;
@@ -25,40 +27,50 @@ export interface Tbooking {
   price: number;
   booking_status: string;
   is_active: string;
-  seat_ids: number; 
+  seat_ids: number;
   payments: Payment[];
 }
 
+// Define Tag Types
 export enum TagTypes {
   BookingVehicle = "bookingVehicle",
 }
 
+// API Definition
 export const bookingVehicleAPI = createApi({
   reducerPath: "bookingVehicleAPI",
-  baseQuery: fetchBaseQuery({ baseUrl: ApiDomain }), // Assuming ApiDomain is set to the correct base URL
+  baseQuery: fetchBaseQuery({ baseUrl: ApiDomain }),
   tagTypes: [TagTypes.BookingVehicle],
   endpoints: (builder) => ({
-    // Fetch all bookings (no pagination)
+    // ✅ Fetch all bookings
     getBookingVehicle: builder.query<Tbooking[], void>({
-      query: () => "bookings", // Remove pagination parameters
+      query: () => "bookings",
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ booking_id }) => ({ type: TagTypes.BookingVehicle, id: booking_id } as const)),
+              ...result.map(({ booking_id }) => ({
+                type: TagTypes.BookingVehicle,
+                id: booking_id,
+              } as const)),
               { type: TagTypes.BookingVehicle, id: "LIST" },
             ]
           : [{ type: TagTypes.BookingVehicle, id: "LIST" }],
     }),
-    // Create a new booking
+
+    // ✅ Create a booking
     createBookingVehicle: builder.mutation<Tbooking, Partial<Tbooking>>({
       query: (newBooking) => ({
         url: "bookings",
         method: "POST",
-        body: newBooking,
+        body: {
+          ...newBooking,
+          departure_time: newBooking.departure_time || "", // ✅ Ensure departure_time is passed
+        },
       }),
       invalidatesTags: [{ type: TagTypes.BookingVehicle, id: "LIST" }],
     }),
-    // Update a booking
+
+    // ✅ Update a booking
     updateBookingVehicle: builder.mutation<Tbooking, Partial<Tbooking & { booking_id: number }>>({
       query: ({ booking_id, ...rest }) => ({
         url: `bookings/${booking_id}`,
@@ -67,7 +79,8 @@ export const bookingVehicleAPI = createApi({
       }),
       invalidatesTags: (_, __, { booking_id }) => [{ type: TagTypes.BookingVehicle, id: booking_id }],
     }),
-    // Delete a booking
+
+    // ✅ Delete a booking
     deleteBookingVehicle: builder.mutation<{ success: boolean; booking_id: number }, number>({
       query: (booking_id) => ({
         url: `bookings/${booking_id}`,
@@ -75,111 +88,30 @@ export const bookingVehicleAPI = createApi({
       }),
       invalidatesTags: (_, __, booking_id) => [{ type: TagTypes.BookingVehicle, id: booking_id }],
     }),
-    // Fetch user-specific bookings
+
+    // ✅ Fetch bookings for a specific user
     getUserBooking: builder.query<Tbooking[], number>({
       query: (user_id) => `bookings/user/${user_id}`,
       providesTags: (_, __, user_id) => [{ type: TagTypes.BookingVehicle, id: user_id }],
     }),
+
+    confirmBooking: builder.mutation<{ success: boolean; booking_id: number }, { booking_id: number }>({
+      query: ({ booking_id }) => ({
+        url: `bookings/confirm`, // ✅ Correct endpoint
+        method: "POST",
+        body: { booking_id }, // ✅ Send booking_id in the request body
+      }),
+    }),
+    
   }),
 });
 
+// Export Hooks for Components
 export const {
   useGetBookingVehicleQuery,
   useCreateBookingVehicleMutation,
   useUpdateBookingVehicleMutation,
   useDeleteBookingVehicleMutation,
   useGetUserBookingQuery,
+  useConfirmBookingMutation, // ✅ Now this exists
 } = bookingVehicleAPI;
-
-//============================================================================================================
-// import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-// import { ApiDomain } from "../../utils/ApiDomain";
-
-// export interface Payment {
-//   amount: number;
-//   payment_id: number;
-//   payment_date: string;
-//   payment_method: string;
-//   payment_status: string;
-//   transaction_reference: string;
-// }
-
-// export interface Tbooking {
-//   booking_id: number;
-//   user_id: number;
-//   vehicle_id: number;
-//   seat_id: number;
-//   departure: string;
-//   destination: string;
-//   departure_date: string;
-//   departure_time: string;
-//   estimated_arrival: string;
-//   price: number;
-//   total_price: number;
-//   booking_date: string;
-//   booking_status: string;
-//   is_active: string;
-//   payments: Payment[];
-// }
-
-// export enum TagTypes {
-//   BookingVehicle = "bookingVehicle",
-// }
-
-// export const bookingVehicleAPI = createApi({
-//   reducerPath: "bookingVehicleAPI",
-//   baseQuery: fetchBaseQuery({ baseUrl: ApiDomain }), // Assuming ApiDomain is set to the correct base URL
-//   tagTypes: [TagTypes.BookingVehicle],
-//   endpoints: (builder) => ({
-//     // Fetch all bookings (no pagination)
-//     getBookingVehicle: builder.query<Tbooking[], void>({
-//       query: () => "bookings", // Remove pagination parameters
-//       providesTags: (result) =>
-//         result
-//           ? [
-//               ...result.map(({ booking_id }) => ({ type: TagTypes.BookingVehicle, id: booking_id } as const)),
-//               { type: TagTypes.BookingVehicle, id: "LIST" },
-//             ]
-//           : [{ type: TagTypes.BookingVehicle, id: "LIST" }],
-//     }),
-//     // Create a new booking
-//     createBookingVehicle: builder.mutation<Tbooking, Partial<Tbooking>>({
-//       query: (newBooking) => ({
-//         url: "bookings",
-//         method: "POST",
-//         body: newBooking,
-//       }),
-//       invalidatesTags: [{ type: TagTypes.BookingVehicle, id: "LIST" }],
-//     }),
-//     // Update a booking
-//     updateBookingVehicle: builder.mutation<Tbooking, Partial<Tbooking & { booking_id: number }>>({
-//       query: ({ booking_id, ...rest }) => ({
-//         url: bookings/${booking_id},
-//         method: "PUT",
-//         body: rest,
-//       }),
-//       invalidatesTags: (, _, { booking_id }) => [{ type: TagTypes.BookingVehicle, id: booking_id }],
-//     }),
-//     // Delete a booking
-//     deleteBookingVehicle: builder.mutation<{ success: boolean; booking_id: number }, number>({
-//       query: (booking_id) => ({
-//         url: bookings/${booking_id},
-//         method: "DELETE",
-//       }),
-//       invalidatesTags: (, _, booking_id) => [{ type: TagTypes.BookingVehicle, id: booking_id }],
-//     }),
-//     // Fetch user-specific bookings
-//     getUserBooking: builder.query<Tbooking[], number>({
-//       query: (user_id) => bookings/user/${user_id},
-//       providesTags: (, _, user_id) => [{ type: TagTypes.BookingVehicle, id: user_id }],
-//     }),
-//   }),
-// });
-
-// export const {
-//   useGetBookingVehicleQuery,
-//   useCreateBookingVehicleMutation,
-//   useUpdateBookingVehicleMutation,
-//   useDeleteBookingVehicleMutation,
-//   useGetUserBookingQuery,
-// } = bookingVehicleAPI;

@@ -10,6 +10,7 @@ interface CreateVehicleModalProps {
   onClose: () => void;
 }
 
+
 const CreateVehicleSchema = yup.object().shape({
   registration_number: yup.string().required('Registration number is required'),
   vehicle_name: yup.string().required('Vehicle name is required'),
@@ -17,7 +18,15 @@ const CreateVehicleSchema = yup.object().shape({
   capacity: yup.number().required('Capacity is required'),
   vehicle_type: yup.string().required('Vehicle type is required'),
   current_location: yup.string().required('Current location is required'),
-  image_url: yup.mixed().required('Image URL is required'), 
+  image_url: yup.mixed().required('Image URL is required'),
+  cost: yup.number().required('Cost per seat is required').positive('Cost must be a positive number'),
+  departure: yup.string().required('Departure location is required'),
+  destination: yup.string().required('Destination is required'),
+  departure_date: yup.date().min(new Date(), 'Departure date cannot be in the past'),
+  departure_time: yup.string(),
+
+  // departure_date: yup.date().required('Departure date is required').min(new Date(), 'Departure date cannot be in the past'),
+  // departure_time: yup.string().required('Departure time is required'), 
 });
 
 const CreateVehicleModal: React.FC<CreateVehicleModalProps> = ({ onClose }) => {
@@ -173,6 +182,59 @@ const CreateVehicleModal: React.FC<CreateVehicleModalProps> = ({ onClose }) => {
             )}
           </div>
 
+ {/* ✅ Departure Location */}
+ <div className="form-control">
+            <input
+              id="departure"
+              {...register('departure')}
+              className="input input-bordered"
+              placeholder="Departure Location"
+            />
+            {errors.departure && <p className="text-red-500 text-sm">{errors.departure.message}</p>}
+          </div>
+
+          {/* ✅ Destination */}
+          <div className="form-control">
+            <input
+              id="destination"
+              {...register('destination')}
+              className="input input-bordered"
+              placeholder="Destination"
+            />
+            {errors.destination && <p className="text-red-500 text-sm">{errors.destination.message}</p>}
+          </div>
+
+{/* ✅ Departure Time */}
+<div className="form-control">
+  <label htmlFor="departure_time" className="label">
+    <span className="label-text">Departure Time</span>
+  </label>
+  <input
+    id="departure_time"
+    type="time"
+    {...register('departure_time')}
+    className="input input-bordered"
+    placeholder="Select Departure Time"
+  />
+  {errors.departure_time && <p className="text-red-500 text-sm">{errors.departure_time.message}</p>}
+</div>
+
+{/* ✅ Cost Field */}
+<div className="form-control">
+  <label htmlFor="cost" className="label">
+    <span className="label-text">Cost Per Seat</span>
+  </label>
+  <input
+    id="cost"
+    type="number"
+    {...register('cost')}
+    className="input input-bordered"
+    placeholder="Enter cost per seat"
+  />
+  {errors.cost && <p className="text-red-500 text-sm">{errors.cost.message}</p>}
+</div>
+
+
           {/* Image Upload */}
           <div className="form-control">
             <input
@@ -208,7 +270,7 @@ const CreateVehicleModal: React.FC<CreateVehicleModalProps> = ({ onClose }) => {
         </form>
       </div>
     </div>
-  );
+  )
 };
 
 export default CreateVehicleModal;

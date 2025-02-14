@@ -1,116 +1,161 @@
-import React, { useState } from 'react';
-import { toast } from 'react-toastify';
-import { useSelector } from 'react-redux';
-import { useAddTicketMutation } from '../../features/tickets/ticketsAPI';
-import { RootState } from '../../app/store';
-import { FaSpinner } from 'react-icons/fa'; 
-import './Contact.scss';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { toast } from "react-toastify";
+import { ApiDomain } from "../../utils/ApiDomain";
+import { RootState } from "../../app/store";
 
 const Contact = () => {
-  const [subject, setSubject] = useState('');
-  const [description, setDescription] = useState('');
+  const navigate = useNavigate();
 
-  // Get the user data from Redux store
-  const user = useSelector((state: RootState) => state.auth.user);
-  const userId = user ? user.user_id : null;
-  const fullName = user ? `${user.first_name} ${user.last_name}` : '';
+  // ✅ Extract user correctly from Redux
+  const reduxUser = useSelector((state: RootState) => state.auth.user);
 
-  const [createTicket, { isLoading, isError }] = useAddTicketMutation();
-  if (isError) {
-    toast.error('There was an error submitting your ticket. Please try again.', {
-      position: 'top-center',
-      autoClose: 3000,
-      style: { backgroundColor: 'red', color: 'white' },
-    });
+  // ✅ Extract user correctly from localStorage (handling nested structure)
+  const storedData = JSON.parse(localStorage.getItem("user") || "null");
+  const storedUser = storedData?.user || storedData;
+
+  // ✅ Determine the final user data
+  const user = reduxUser?.user_id ? reduxUser : storedUser?.user_id ? storedUser : null;
+
+  // ✅ Use constants instead of state (since they don’t change dynamically)
+  const [fullName, setFullName] = useState(user ? `${user.first_name} ${user.last_name}` : "");
+  const [email, setEmail] = useState(user?.email || "");
+  
+
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // ✅ Log for debugging
+  console.log("Redux User:", reduxUser);
+  console.log("Stored User:", storedUser);
+  console.log("Final User Data Used:", user);
+
+  // ✅ Redirect to login if user is missing
+useEffect(() => {
+  const storedData = JSON.parse(localStorage.getItem("user") || "null"); // ✅ Get user from local storage
+  const storedUser = storedData?.user || storedData; // Handle nested structure
+
+  if (reduxUser?.user_id) {
+    setFullName(`${reduxUser.first_name} ${reduxUser.last_name}`);
+    setEmail(reduxUser.email);
+  } else if (storedUser?.user_id) {
+    setFullName(`${storedUser.first_name} ${storedUser.last_name}`);
+    setEmail(storedUser.email);
+  } else {
+    setFullName("");
+    setEmail("");
   }
+}, [reduxUser]); // ✅ Run when Redux user changes
 
-  // Handle form submission
+
+  // ✅ Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    console.log("Form submitted"); // Debug log to check if form is submitted
-
-    if (!userId) {
-      toast.error('You must be logged in to submit a ticket', {
-        position: 'top-center',
-        autoClose: 3000,
-        style: { backgroundColor: 'red', color: 'white' },
-      });
+    if (!user) {
+      toast.warning("You must be logged in to send a message!");
+      navigate("/login");
       return;
     }
 
-    // Create loading toast and capture the ID
-    const toastId = toast.loading('Sending your message...', {
-      position: 'top-center',
-      autoClose: false, // Don't auto-close the loading toast
-      style: { backgroundColor: 'orange', color: 'white' },
-    });
+    setLoading(true);
 
     try {
-      // Make the API call
-      console.log('Creating ticket with data:', { user_id: userId, full_name: fullName, subject, description }); // Debug the ticket data
-
-      const ticketData = await createTicket({
-        user_id: userId,
-        full_name: fullName,
-        subject,
-        description,
-        status: 'opened',
-      }).unwrap();
-
-      console.log('Ticket Data:', ticketData); // Log the response data
-
-      // Update the toast with success message
-      toast.update(toastId, {
-        render: 'Message sent successfully!',
-        type: 'success',
-        isLoading: false,
-        autoClose: 5000,
-        style: { backgroundColor: 'green', color: 'white' },
+      const response = await fetch(`${ApiDomain}api/contacts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ full_name: fullName, email, subject, message }),
       });
 
-      // Reset the form fields
-      setSubject('');
-      setDescription('');
+      if (!response.ok) throw new Error("Failed to submit message");
+
+      toast.success("Message sent successfully!");
+      setSubject("");
+      setMessage("");
     } catch (error) {
-      console.error('Failed to send message', error);
-
-      // Update the toast with error message
-      toast.update(toastId, {
-        render: 'Failed to send message. Please try again.',
-        type: 'error',
-        isLoading: false,
-        autoClose: 5000,
-        style: { backgroundColor: 'red', color: 'white' },
-      });
+      toast.error("Error sending message. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="contact-container">
-      <h1 className="contact-heading">Contact Us</h1> {/* Added the heading */}
-      <form onSubmit={handleSubmit} className="contact-form">
-        <input
-          type="text"
-          placeholder="Subject"
-          value={subject}
-          onChange={(e) => setSubject(e.target.value)}
-          required
-        />
-        <textarea
-          placeholder="Message"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          required
-        ></textarea>
-        <button type="submit" disabled={isLoading}>
-          {isLoading ? (
-            <FaSpinner className="spinner" />
-          ) : (
-            'Send Message'
-          )}
-        </button>
-      </form>
+    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <div className="bg-white shadow-lg rounded-lg p-8 max-w-lg w-full">
+        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
+          Contact Us
+        </h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Full Name Display */}
+          <div>
+            <label className="block text-gray-600 text-sm font-medium">
+              Full Name
+            </label>
+            <p className="w-full px-4 py-2 mt-1 bg-gray-100 border border-gray-300 rounded-lg shadow-sm">
+              {fullName || "Loading..."}
+            </p>
+          </div>
+
+          {/* Email Display */}
+          <div>
+            <label className="block text-gray-600 text-sm font-medium">
+              Email
+            </label>
+            <p className="w-full px-4 py-2 mt-1 bg-gray-100 border border-gray-300 rounded-lg shadow-sm">
+              {email || "Loading..."}
+            </p>
+          </div>
+
+          {/* Subject Field */}
+          <div>
+            <label htmlFor="subject" className="block text-gray-600 text-sm font-medium">
+              Subject
+            </label>
+            <input
+              id="subject"
+              type="text"
+              placeholder="Enter subject"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              required
+              className="w-full px-4 py-2 mt-1 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+            />
+          </div>
+
+          {/* Message Field */}
+          <div>
+            <label htmlFor="message" className="block text-gray-600 text-sm font-medium">
+              Message
+            </label>
+            <textarea
+              id="message"
+              placeholder="Write your message..."
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              required
+              rows={4}
+              className="w-full px-4 py-2 mt-1 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+            ></textarea>
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full py-2 text-white font-semibold rounded-lg transition ${
+              loading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
+          >
+            {loading ? "Sending..." : "Send Message"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 };
