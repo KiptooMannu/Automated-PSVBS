@@ -31,6 +31,14 @@ export const usersAPI = createApi({
             }),
             invalidatesTags: ['Users'],
         }),
+        //  Extracts token from URL and triggers verification process
+        verifyUser: builder.mutation<{ success: boolean; message: string }, { token: string }>({
+            query: ({ token }) => ({
+                url: `verify/${token}`,
+                method: 'GET',
+            }),
+        }),        
+        
         updateUser: builder.mutation<TUser, Partial<TUser & { id: number }>>({
             query: ({ id, ...rest }) => ({
                 url: `users/${id}`,

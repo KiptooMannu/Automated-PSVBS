@@ -46,7 +46,7 @@ const Register = () => {
       console.log("Response data:", response); // success
       toast.success("Registration successful")
       setTimeout(() => {
-        navigate('/login');
+        navigate('/verification-notice');
       }, 1000);
     } catch (err) {
       if (error) {

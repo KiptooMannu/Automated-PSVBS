@@ -34,7 +34,7 @@ const Login = () => {
     try {
       setIsLoggingIn(true); // Show logging in loader
       // const response = await fetch(`${ApiDomain}/login`, {
-      const response = await fetch("http://localhost:5000/login", {
+      const response = await fetch("http://localhost:8081/login", {
         method: "POST",
         headers: { 
             "Content-Type": "application/json"

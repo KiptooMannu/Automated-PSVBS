@@ -10,6 +10,7 @@ import {
 } from "./auth.service";
 import bcrypt from 'bcrypt';
 import { sendEmail } from "../utils/mail";
+import { verifyUser } from "./auth.service";
 
 export const register = async (c: Context) => {
     try {
@@ -158,6 +159,43 @@ export const forgotPassword = async (c: Context) => {
         return c.json({ error: error.message }, 400);
     }
 };
+export const sendVerificationEmail = async (email: string, verificationUrl: string,token: string) => { 
+    const user = await getUserByEmailService(email);
+  
+    if (!user) {
+      throw new Error('User not found');
+    }
+  
+    const response = await sendEmail(
+        email,
+        '🔐 Email Verification Required',
+        `
+          <p>👋 Hello there!</p>
+          <img src="https://cdn.pixabay.com/photo/2017/02/03/09/39/hand-2034842_1280.jpg" alt="Welcome Image" width="200" style="border-radius: 10px; margin-bottom: 10px;"/>
+          <p>We’re excited to have you on board. To get started, please verify your email address by clicking the link below:</p>
+          <p>👉 <a href="${verificationUrl}" style="color: #4CAF50; font-weight: bold;">Verify Your Account</a></p>
+          <p>✅ This step helps us ensure your account is secure and ready to use.</p>
+          <p>If you didn’t sign up, you can safely ignore this email. 😊</p>
+          <p>⚠️ Please note: This verification link will expire in <strong>2 hours</strong>. Make sure to verify your account before it expires!</p>
+          <p>Thanks,</p>
+          <p>🚀 The Seat Reservation Team</p>
+        `
+      );
+      
+  
+    return response;
+  };
+  
+export const verifyAccount = async (c: Context) => {
+    try {
+      const { token } = c.req.param(); 
+      const message = await verifyUser(token);
+      return c.json({ message });
+    } catch (error: any) {
+      return c.json({ error: error.message }, 400);
+    }
+  };
+  
 
 export const resetPassword = async (c: Context) => {
     try {

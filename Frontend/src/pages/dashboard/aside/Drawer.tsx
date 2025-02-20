@@ -6,6 +6,15 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../app/store";
 
+type DrawerData = {
+  id: string | number;
+  link: string;
+  icon?: React.ElementType;
+  name: string;
+  adminOnly?: boolean;
+};
+
+
 function SideNav() {
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
