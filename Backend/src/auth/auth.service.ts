@@ -12,7 +12,7 @@ const secret = process.env.SECRET!;
 const expiresIn = process.env.EXPIRESIN!;
 
 export const registerUser = async (user: any) => {
-  // Assuming validation is done with Zod or any other schema validator
+  
   registerSchema.parse(user);
 
   const existingUser = await db
@@ -106,8 +106,8 @@ export const verifyUser = async (token: string) => {
   );
 
   if (user.length === 0) {
-    console.error("Invalid or expired verification token");
-    throw new Error("Invalid or expired verification token");
+    // console.error("Invalid or expired verification token");
+    // throw new Error("Invalid or expired verification token");
   }
   
   const verifiedUser = user[0];
