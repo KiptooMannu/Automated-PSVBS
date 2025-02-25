@@ -33,10 +33,7 @@ const Login = () => {
     console.log("Submitting login request:", JSON.stringify(data));
     try {
       setIsLoggingIn(true); // Show logging in loader
-<<<<<<< HEAD:Frontend/src/pages/Login.tsx
-=======
-      // const response = await fetch(`${ApiDomain}/login`, {
->>>>>>> Gideon/main:Frontend/src/pages/auth/Login.tsx
+
       const response = await fetch("http://localhost:8081/login", {
         method: "POST",
         headers: { 
@@ -49,10 +46,9 @@ const Login = () => {
 
         if (!response.ok) {
             toast.error(responseData.message || "Invalid credentials");
-<<<<<<< HEAD:Frontend/src/pages/Login.tsx
-=======
+
             console.error("API error:", responseData.message);
->>>>>>> Gideon/main:Frontend/src/pages/auth/Login.tsx
+
             return;
         }
 
