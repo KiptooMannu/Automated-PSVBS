@@ -39,6 +39,7 @@ export const authTable = pgTable("auth", {
     username: varchar("username", { length: 255 }).unique(),
     password_hash: varchar("password_hash", { length: 255 }).notNull(),
     role: roleEnum("role").default("user"), // e.g., 'user', 'admin'
+    verification_token: varchar("verification_token", { length: 255 }),
     created_at: timestamp("created_at").defaultNow(),
     updated_at: timestamp("updated_at").defaultNow(),
     is_deleted: boolean("is_deleted").default(false),
@@ -53,6 +54,9 @@ export const userTable = pgTable("users", {
     password: varchar("password", { length: 255 }).notNull(),
     image_url: varchar("image_url", { length: 255 }),
     isVerified: boolean("is_verified").default(false),
+    role: roleEnum("role").default("user"), // e.g., 'user', 'admin'
+    verification_token: varchar("verification_token", { length: 255 }), // For email verification
+    verification_token_expires_at: timestamp('verification_token_expires_at', { mode: 'date' }),
     created_at: timestamp("created_at").defaultNow(),
     updated_at: timestamp("updated_at").defaultNow(),
     is_deleted: boolean("is_deleted").default(false),

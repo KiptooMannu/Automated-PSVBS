@@ -120,66 +120,74 @@ const BookingForm: React.FC = () => {
         
           </div>
 
-          {/* Vehicle List */}
-          <div className="space-y-4 p-4">
-            {filteredVehicles?.length ? (
-              <div className="flex flex-wrap justify-center gap-4">
+{/* Vehicle List */}
+<div className="space-y-4 p-4">
+  {filteredVehicles?.length ? (
+    <div className="flex flex-wrap justify-center gap-4">
+      {filteredVehicles.map((vehicle, index) => {
+        // ✅ Calculate remaining seats (Reserving 1 seat for the driver)
+        const remainingSeats = Math.max((vehicle.capacity - 1) - (Number(vehicle.booked_Seats) || 0), 0);
 
-                {filteredVehicles.map((vehicle ,index) => (
-                  <div
-                      key={`${vehicle.registration_number}-${index}`}
-                    className={`card w-full sm:w-[45%] lg:w-[23%] bg-blue-200 shadow-md rounded-lg overflow-hidden transform transition-all duration-300 hover:scale-105 ${
-                      selectedVehicle?.registration_number === vehicle.registration_number
-                        ? "border-2 border-webcolor"
-                        : "border border-gray-200"
-                    }`}
-                    onClick={() => setSelectedVehicle(vehicle)}
-                  >
-                    <img
-                      src={vehicle.image_url}
-                      alt={vehicle.vehicle_name}
-                      className="w-full h-16 object-cover rounded-lg mb-4"
-                    />
-                    <div className="p-2">
-                      <h3 className="text-xs font-semibold text-gray-800 mb-2">
-                        {vehicle.vehicle_name}
-                        <span
-                          className={`ml-4 inline-block px-3 py-0.5 text-xs font-medium rounded ${
-                            vehicle.is_active
-                              ? "bg-green-300 text-green-900"
-                              : "bg-red-100 text-red-700"
-                          }`}
-                        >
-                          {vehicle.is_active ? "Available" : "Unavailable"}
-                        </span>
-                      </h3>
-                      <div className="space-y-1 text-green-900 text-xs">
-                        <p>Type: {vehicle.vehicle_type}</p>
-                        <p>Capacity: {vehicle.capacity}</p>
-                        <p>Reg No: {vehicle.registration_number}</p>
-                        <p>License Plate: {vehicle.license_plate}</p>
-                        <p>Location: {vehicle.current_location}</p>
-                        <p>Destination: {vehicle.departure}</p>
-                        <p>Departure Location: {vehicle.destination}</p>
-                        <p><strong>Departure Time: {vehicle.departure_time}</strong></p>
-                        <p><strong>Cost: {vehicle.cost}</strong></p>
-                 
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => handleMapSeatModal(vehicle)}
-                                      className="btn bg-blue-600 text-white hover:text-black border-none w-full py-1 mt-2 text-xs"
-                      >
-                        Select Seat
-                      </button>
-                    </div>
-                  </div>
-                ))}
+        return (
+          <div
+            key={`${vehicle.registration_number}-${index}`}
+            className={`card w-full sm:w-[45%] lg:w-[23%] bg-blue-200 shadow-md rounded-lg overflow-hidden transform transition-all duration-300 hover:scale-105 ${
+              selectedVehicle?.registration_number === vehicle.registration_number
+                ? "border-2 border-webcolor"
+                : "border border-gray-200"
+            }`}
+            onClick={() => setSelectedVehicle(vehicle)}
+          >
+            <img
+              src={vehicle.image_url}
+              alt={vehicle.vehicle_name}
+              className="w-full h-16 object-cover rounded-lg mb-4"
+            />
+            <div className="p-2">
+              <h3 className="text-xs font-semibold text-gray-800 mb-2">
+                {vehicle.vehicle_name}
+                {/* ✅ Availability Status Based on Remaining Seats */}
+                <span
+                  className={`ml-4 inline-block px-3 py-0.5 text-xs font-medium rounded ${
+                    vehicle.is_active && remainingSeats > 0
+                      ? "bg-green-300 text-green-900"
+                      : "bg-red-100 text-red-700"
+                  }`}
+                >
+                  {vehicle.is_active && remainingSeats > 0 ? "Available" : "Unavailable"}
+                </span>
+              </h3>
+              <div className="space-y-1 text-green-900 text-xs">
+                <p>Type: {vehicle.vehicle_type}</p>
+                <p>Capacity: {vehicle.capacity}</p>
+                <p>Booked Seats: {vehicle.booked_Seats || 0}</p> {/* ✅ Display booked seats */}
+                <p>Remaining Seats: {remainingSeats}</p> {/* ✅ Display remaining seats */}
+                <p>Reg No: {vehicle.registration_number}</p>
+                <p>License Plate: {vehicle.license_plate}</p>
+                <p>Location: {vehicle.current_location}</p>
+                <p>Destination: {vehicle.departure}</p>
+                <p>Departure Location: {vehicle.destination}</p>
+                <p><strong>Departure Time: {vehicle.departure_time}</strong></p>
+                <p><strong>Cost: {vehicle.cost}</strong></p>
               </div>
-            ) : (
-              <p className="text-center text-gray-400">No vehicles match your search.</p>
-            )}
+              <button
+                type="button"
+                onClick={() => handleMapSeatModal(vehicle)}
+                className="btn bg-blue-600 text-white hover:text-black border-none w-full py-1 mt-2 text-xs"
+                disabled={remainingSeats === 0} // ✅ Disable button if no seats left
+              >
+                {remainingSeats > 0 ? "Select Seat" : "Fully Booked"}
+              </button>
+            </div>
           </div>
+        );
+      })}
+    </div>
+  ) : (
+    <p className="text-center text-gray-400">No vehicles match your search.</p>
+  )}
+</div>
+
           </form>
           {isMapSeatModalOpen && selectedVehicle && (
            <MapSeatModal

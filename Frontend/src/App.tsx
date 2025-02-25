@@ -2,9 +2,8 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Navbar from './components/Navbar/Navbar';
 import ErrorPage from './pages/ErrorPage';
-import Login from './pages/Login';
 import HomePage from './pages/landingPage/HomePage';
-import Register from './pages/Register';
+import Register from './pages/auth/Register';
 import Dashboard from './pages/dashboard/dashboard';
 import Footer from './components/Footer/Footer';
 import Profile from './pages/dashboard/main/Profile';
@@ -21,6 +20,10 @@ import Analytics from './pages/dashboard/main/Analytics/Analytics';
 import AboutSection from './components/About/About';
 import Contact from './components/Contact/Contact';
 import Testimonial from './components/Testimonial/Testimonial';
+import ChangePasswordModal from './components/ChangePassword';
+import Login from './pages/auth/Login';
+import VerificationNotice from './pages/auth/VerificationNotice';
+import VerifyAccountPage from './pages/auth/VerifyAccountPage';
 
 
 function App() {
@@ -48,6 +51,21 @@ function App() {
     {
       path: '/register',
       element: <Register />,
+      errorElement: <ErrorPage />
+    },
+    // {
+    //   path: '/change-password',
+    //   element: <ChangePasswordModal />,
+    //   errorElement: <ErrorPage />
+    // },
+    {
+      path: '/verification-notice',
+      element: <VerificationNotice />,
+      errorElement: <ErrorPage />
+    },
+    {
+      path: '/verify-account',
+      element: <VerifyAccountPage />,
       errorElement: <ErrorPage />
     },
 
@@ -118,7 +136,7 @@ function App() {
       },
       {
         path: 'payment_success',
-        element: <SuccessPayment />
+        element: <SuccessPayment/>
       },
       {
         path: 'payments',

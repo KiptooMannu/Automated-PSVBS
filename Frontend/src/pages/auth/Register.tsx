@@ -2,10 +2,10 @@
 import { useForm, SubmitHandler } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
-import { usersAPI } from "../features/users/usersAPI"
+import { usersAPI } from "../../features/users/usersAPI"
 import { Link, useNavigate } from "react-router-dom";
 import { Toaster, toast } from 'sonner'
-import Navbar from "../components/Navbar/Navbar"
+import Navbar from "../../components/Navbar/Navbar"
 
 
 type FormData = {
@@ -46,7 +46,7 @@ const Register = () => {
       console.log("Response data:", response); // success
       toast.success("Registration successful")
       setTimeout(() => {
-        navigate('/login');
+        navigate('/verification-notice');
       }, 1000);
     } catch (err) {
       if (error) {

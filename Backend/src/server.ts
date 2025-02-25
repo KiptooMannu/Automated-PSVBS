@@ -56,7 +56,7 @@ serve({
 console.log(`✅ Server is running on http://localhost:${PORT}`);
 
 
-console.log('Routes registered:', app.routes);
+// console.log('Routes registered:', app.routes);
 console.log(`Server is running🚀 on http://localhost:${process.env.PORT} 🌍🎉`);
 
 assert(process.env.PORT, 'PORT is required');

@@ -2,12 +2,13 @@ import { useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { loginAPI, LoginFormData } from "../features/login/loginAPI";
+import { loginAPI, LoginFormData } from "../../features/login/loginAPI";
 import { Link, useNavigate } from "react-router-dom";
 import { Toaster, toast } from 'sonner';
 import { useDispatch } from "react-redux";
-import Navbar from "../components/Navbar/Navbar";
-import { loginSuccess } from "../features/users/userSlice";
+import Navbar from "../../components/Navbar/Navbar";
+import { loginSuccess } from "../../features/users/userSlice";
+import { ApiDomain } from "../../utils/ApiDomain";
 
 type FormData = {
   email: string;
@@ -32,6 +33,10 @@ const Login = () => {
     console.log("Submitting login request:", JSON.stringify(data));
     try {
       setIsLoggingIn(true); // Show logging in loader
+<<<<<<< HEAD:Frontend/src/pages/Login.tsx
+=======
+      // const response = await fetch(`${ApiDomain}/login`, {
+>>>>>>> Gideon/main:Frontend/src/pages/auth/Login.tsx
       const response = await fetch("http://localhost:8081/login", {
         method: "POST",
         headers: { 
@@ -44,6 +49,10 @@ const Login = () => {
 
         if (!response.ok) {
             toast.error(responseData.message || "Invalid credentials");
+<<<<<<< HEAD:Frontend/src/pages/Login.tsx
+=======
+            console.error("API error:", responseData.message);
+>>>>>>> Gideon/main:Frontend/src/pages/auth/Login.tsx
             return;
         }
 
@@ -92,7 +101,7 @@ toast.success("Login successful");
 
             <div>
               <label className="label">
-                <a href="#" className="label-text-alt link link-hover">Forgot password?</a>
+                <a href="/forgot-password" className="label-text-alt link link-hover">Forgot password?</a>
               </label>
             </div>
 

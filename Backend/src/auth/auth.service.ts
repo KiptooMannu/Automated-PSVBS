@@ -3,14 +3,16 @@ import jwt from "jsonwebtoken";
 import db from "../drizzle/db";
 import { userTable, authTable } from "../drizzle/schema";
 import { registerSchema, loginSchema } from "../validators/user.validator";
-import { eq } from "drizzle-orm";
+import { sendVerificationEmail } from "./auth.controller";
+import { randomBytes } from 'crypto';
+import { error } from "console";
+import { and, eq, gt } from "drizzle-orm";
 
 const secret = process.env.SECRET!;
 const expiresIn = process.env.EXPIRESIN!;
 
 export const registerUser = async (user: any) => {
-  console.log("🟢 Registering user:", user); // ✅ Log input data
-
+  
   registerSchema.parse(user);
 
   const existingUser = await db
@@ -20,13 +22,22 @@ export const registerUser = async (user: any) => {
     .execute();
 
   if (existingUser.length > 0) {
-    console.log("❌ User already exists in DB:", existingUser);
-    throw new Error("User already exists");
+    throw new Error('User already exists');
   }
 
   const hashedPassword = await bcrypt.hash(user.password, 10);
+  const verificationToken = randomBytes(32).toString('hex');
 
-  console.log("🔵 Inserting new user into DB...");
+  console.log('Verification Token:', verificationToken);
+  if (!verificationToken) {
+    throw new Error('Verification token is missing.');
+  }
+  // ✅ Extend expiry time to 12 hours
+  const expiresAt = new Date(Date.now() + 12 * 60 * 60 * 1000);
+
+  // console.log('Verification Token Expires At (UTC):', expiresAt.toISOString());
+  console.log('Verification Token Expires At (Local):', expiresAt.toLocaleString());
+
   const newUser = await db
     .insert(userTable)
     .values({
@@ -36,33 +47,92 @@ export const registerUser = async (user: any) => {
       phone_number: user.phone_number,
       image_url: user.image_url,
       password: hashedPassword,
+      verification_token: verificationToken,
+      verification_token_expires_at: expiresAt,
+      isVerified: false,
     })
-    .returning({ id: userTable.user_id })
+    .returning({
+      id: userTable.user_id,
+      email: userTable.email,
+      verification_token_expires_at: userTable.verification_token_expires_at,
+    })
     .execute();
 
-  console.log("✅ User saved in DB:", newUser);
-
   if (!newUser.length) {
-    console.error("❌ User insertion failed!");
-    throw new Error("Failed to register user");
+    throw new Error('Failed to register user');
   }
 
   const userId = newUser[0].id;
+  const foundUser = newUser[0];
 
-  console.log("🔵 Inserting authentication record...");
-  await db
-    .insert(authTable)
-    .values({
-      user_id: userId,
-      username: user.username,
-      password_hash: hashedPassword,
-      role: user.role || "user",
-    })
+  // ✅ This check is unnecessary; we JUST generated the token
+  if (foundUser.verification_token_expires_at && new Date() > new Date(foundUser.verification_token_expires_at)) {
+    throw new Error('Verification token expired. Please register again.');
+  }
+
+  await db.insert(authTable).values({
+    user_id: userId,
+    username: user.username,
+    password_hash: hashedPassword,
+  }).execute();
+
+  const verificationUrl = `${process.env.FRONTEND_URL}/verify-account?token=${verificationToken}`;
+await sendVerificationEmail(newUser[0].email, verificationUrl, verificationToken);
+
+
+  return 'User registered successfully. Please check your email for verification link.';
+};
+
+export const verifyUser = async (token: string) => {
+  const nowUTC = new Date(new Date().toISOString()); // Ensure current time is UTC
+
+  const user = await db
+    .select()
+    .from(userTable)
+    .where(
+      and(
+        eq(userTable.verification_token, token),
+        gt(userTable.verification_token_expires_at, nowUTC)
+      )
+    )
     .execute();
 
-  console.log("✅ User authentication record saved.");
-  return "User registered successfully";
+  console.log(
+    "Verification token check result:",
+    user.map((u) => ({
+      token: u.verification_token,
+      expiresAt: u.verification_token_expires_at,
+    }))
+  );
+
+  if (user.length === 0) {
+    // console.error("Invalid or expired verification token");
+    // throw new Error("Invalid or expired verification token");
+  }
+  
+  const verifiedUser = user[0];
+
+  // Debug - Show current time & expiry time in UTC for final clarity
+  console.log("Current UTC Time:", nowUTC.toISOString());
+
+  if (verifiedUser.isVerified) {
+    console.warn("User is already verified");
+    throw new Error("User is already verified");
+  }
+
+  await db
+    .update(userTable)
+    .set({
+      isVerified: true,
+      verification_token: null,
+      verification_token_expires_at: null,
+    })
+    .where(eq(userTable.user_id, verifiedUser.user_id))
+    .execute();
+
+  return "Account successfully verified!";
 };
+
 
 export const loginUser = async (email: string, password: string) => {
   console.log("Searching for user with email:", email);
