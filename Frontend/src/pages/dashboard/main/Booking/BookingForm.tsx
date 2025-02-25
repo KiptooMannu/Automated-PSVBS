@@ -35,68 +35,11 @@ const BookingForm: React.FC = () => {
 
   return (
     <div className="overflow-x-auto bg-gradient-to-r from-blue-50 via-blue-800 to-white min-h-screen shadow-lg">
-      <h1 className="text-xl font-bold mb-4 text-webcolor text-center p-5">Book Now!!!</h1>
-
-      {/* Filters Section */}
-      <div className="card lg:w-full m-auto rounded-lg p-6">
-        <form className="space-y-6">
-          <div className="flex flex-wrap justify-center gap-4 w-full">
-            {/* Destination Filter */}
-            <div className="w-full sm:w-auto">
-              <label htmlFor="destination" className="block text-sm font-medium">Departure:</label>
-              <select
-                id="destination"
-                value={destination}
-                onChange={(e) => setDestination(e.target.value)}
-                className="select select-bordered w-full sm:w-auto"
-              >
-                <option value="">Select Departure</option>
-                {Array.from(new Set(uniqueVehicles.map(vehicle => vehicle.destination))).map((dest) => (
-                  <option key={dest} value={dest}>{dest}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Departure Filter */}
-            <div className="w-full sm:w-auto">
-              <label htmlFor="departure" className="block text-sm font-medium">Destination:</label>
-              <select
-                id="departure"
-                value={departure}
-                onChange={(e) => setDeparture(e.target.value)}
-                className="select select-bordered w-full sm:w-auto"
-              >
-                <option value="">Select Destination</option>
-                {Array.from(new Set(uniqueVehicles.map(vehicle => vehicle.departure))).map((dep) => (
-                  <option key={dep} value={dep}>{dep}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Vehicle Type Filter */}
-            <div className="w-full sm:w-auto">
-              <label htmlFor="vehicleType" className="block text-sm font-medium">Vehicle Type:</label>
-              <select
-                id="vehicleType"
-                value={vehicleType}
-                onChange={(e) => setVehicleType(e.target.value)}
-                className="select select-bordered w-full sm:w-auto"
-              >
-                <option value="">Select Vehicle Type</option>
-                {Array.from(new Set(uniqueVehicles.map(vehicle => vehicle.vehicle_type))).map((type) => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </form>
-      </div>
+      <h1 className="text-xl font-bold  text-webcolor text-center p-2">Book Now!!!</h1>
 
       {/* Vehicle List */}
       <div className="space-y-4 p-4">
         {filteredVehicles.length ? (
-
-
 
 
 <div className="flex flex-col items-center w-full px-4">
