@@ -2,11 +2,11 @@ import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
-    <div className="bg-gray-800 text-white">
+    <div className="bg-gray-800 text-white w-full"> {/* Ensure full width */}
       <footer className="container mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         <div className="space-y-4">
           <h1 className="text-2xl font-bold text-white">CarHaven.io</h1>
-          <p className='font-medium  text-1xl'>CarHaven.io is a car rental service that allows you to book a car from anywhere in the world.</p>
+          <p className='font-medium text-xl'>CarHaven.io is a car rental service that allows you to book a car from anywhere in the world.</p>
         </div>
         <div className="space-y-4 text-center">
           <h1 className="text-2xl font-bold text-white">Quick Links</h1>
