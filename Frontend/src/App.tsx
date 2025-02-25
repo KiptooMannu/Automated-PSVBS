@@ -136,7 +136,7 @@ function App() {
       },
       {
         path: 'payment_success',
-        element: <SuccessPayment />
+        element: <SuccessPayment/>
       },
       {
         path: 'payments',
