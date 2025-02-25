@@ -10,7 +10,7 @@ const BookingForm: React.FC = () => {
   const [isMapSeatModalOpen, setIsMapSeatModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [booking, setBooking] = useState<{ departure_time?: string }>({});
-const vehiclesPerPage = 6; // 3x2 layout
+const vehiclesPerPage = 3; // 3x2 layout
 
 // Pagination handlers
 const nextPage = () => {
@@ -114,7 +114,7 @@ const displayedVehicles = filteredVehicles.slice(
   >
     &larr;
   </button>
-  <p className="text-gray-600 text-sm">Page {currentPage + 1} of {totalPages}</p>
+  <p className="text-white text-sm">Page {currentPage + 1} of {totalPages}</p>
   <button
     onClick={nextPage}
     disabled={currentPage >= totalPages - 1}
@@ -125,7 +125,7 @@ const displayedVehicles = filteredVehicles.slice(
 </div>
 
   {/* Vehicle Grid (3x2 layout, full visibility) */}
-  <div className="grid grid-cols-3 grid-rows-2 gap-2 w-full max-w-5xl">
+  <div className="grid grid-cols-3 grid-rows-1 gap-2 w-full max-w-1xl">
   {displayedVehicles.map((vehicle, index) => {
       const remainingSeats = Math.max((vehicle.capacity - 1) - (Number(vehicle.booked_Seats) || 0), 0);
 
