@@ -8,6 +8,21 @@ const BookingForm: React.FC = () => {
   const [departure, setDeparture] = useState<string>("");
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [isMapSeatModalOpen, setIsMapSeatModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+const vehiclesPerPage = 6; // 3x2 layout
+
+// Pagination handlers
+const nextPage = () => {
+  if (currentPage < totalPages - 1) {
+    setCurrentPage(currentPage + 1);
+  }
+};
+
+const prevPage = () => {
+  if (currentPage > 0) {
+    setCurrentPage(currentPage - 1);
+  }
+};
 
   const { data: vehicles, isLoading, isError, refetch } = useFetchCarSpecsQuery();
 
@@ -15,13 +30,21 @@ const BookingForm: React.FC = () => {
     ? Array.from(new Map(vehicles.map(vehicle => [vehicle.registration_number, vehicle])).values())
     : [];
 
-  const filteredVehicles = uniqueVehicles.filter((vehicle) => {
-    return (
-      (vehicleType ? vehicle.vehicle_type === vehicleType : true) &&
-      (departure ? vehicle.departure === departure : true) &&
-      (destination ? vehicle.destination === destination : true)
-    );
-  });
+    const filteredVehicles = uniqueVehicles.filter((vehicle) => {
+      return (
+        (vehicleType ? vehicle.vehicle_type === vehicleType : true) &&
+        (departure ? vehicle.departure === departure : true) &&
+        (destination ? vehicle.destination === destination : true)
+      );
+    });
+
+    // Calculate total pages
+const totalPages = Math.ceil(filteredVehicles.length / vehiclesPerPage);
+// Get vehicles for the current page
+const displayedVehicles = filteredVehicles.slice(
+  currentPage * vehiclesPerPage,
+  (currentPage + 1) * vehiclesPerPage
+);
 
   const handleMapSeatModal = (vehicle: Vehicle) => {
     if (!selectedVehicle || selectedVehicle.registration_number !== vehicle.registration_number) {
@@ -79,9 +102,29 @@ const BookingForm: React.FC = () => {
     </form>
   </div>
 
+
+{/* Pagination Arrows */}
+<div className="flex justify-between w-full max-w-5xl px-4 mb-2">
+  <button
+    onClick={prevPage}
+    disabled={currentPage === 0}
+    className="px-3 py-2 text-black bg-white font-bold rounded-full hover:bg-gray-300 disabled:opacity-50"
+  >
+    &larr;
+  </button>
+  <p className="text-gray-600 text-sm">Page {currentPage + 1} of {totalPages}</p>
+  <button
+    onClick={nextPage}
+    disabled={currentPage >= totalPages - 1}
+    className="px-3 py-2 text-black bg-white font-bold rounded-full hover:bg-gray-300 disabled:opacity-50"
+  >
+    &rarr;
+  </button>
+</div>
+
   {/* Vehicle Grid (3x2 layout, full visibility) */}
   <div className="grid grid-cols-3 grid-rows-2 gap-2 w-full max-w-5xl">
-    {filteredVehicles.slice(0, 6).map((vehicle, index) => {
+  {displayedVehicles.map((vehicle, index) => {
       const remainingSeats = Math.max((vehicle.capacity - 1) - (Number(vehicle.booked_Seats) || 0), 0);
 
       return (
