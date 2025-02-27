@@ -36,7 +36,7 @@ export const getAllVehiclesService = async () => {
 
 
 // fetch vehicle by registration number
-export const getVehicleByRegNumberService = async (registration_number: string) => {
+export const getVehicleByRegNumber = async (registration_number: string) => {
 return await db.query.vehicleTable.findFirst({
     where : eq(vehicleTable.registration_number, registration_number)
 })

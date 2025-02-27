@@ -93,22 +93,6 @@ export const ticketTable = pgTable("tickets", {
     updated_at: timestamp("updated_at").defaultNow(),
 });
 
-
-// export const paymentsTable = pgTable("payments", {
-//     payment_id: serial("payment_id").primaryKey(),
-//     booking_id: integer("booking_id")
-//         .notNull()
-//         .references(() => bookingTable.booking_id, { onDelete: "cascade" }),
-//     amount: decimal("amount").notNull(),
-//     payment_method: varchar("payment_method", { length: 50 }).notNull(),
-//     payment_status: paymentStatusEnum("payment_status").default("pending"),
-//     transaction_reference: varchar("transaction_reference", { length: 255 }).notNull().unique(),
-//     payment_date: timestamp("payment_date").defaultNow(),
-//     ticket_id: integer("ticket_id")
-//         .references(() => ticketTable.ticket_id, { onDelete: "cascade" }),
-//     created_at: timestamp("created_at").defaultNow(),
-//     updated_at: timestamp("updated_at").defaultNow(),
-// });
 export const paymentsTable = pgTable("payments", {
     payment_id: serial("payment_id").primaryKey(),
     booking_id: integer("booking_id")
@@ -119,6 +103,7 @@ export const paymentsTable = pgTable("payments", {
     payment_status: paymentStatusEnum("payment_status").default("pending"),
     transaction_reference: varchar("transaction_reference", { length: 255 }).notNull().unique(),
     payment_date: timestamp("payment_date").defaultNow(),
+    phone_number: varchar("phone_number", { length: 20 }).notNull(), // ✅ Add this line
     ticket_id: integer("ticket_id")
       .references(() => ticketTable.ticket_id, { onDelete: "cascade" }),
     created_at: timestamp("created_at").defaultNow(),
@@ -131,33 +116,16 @@ export const paymentsTable = pgTable("payments", {
 
 
 // 🚀 1️⃣ Seat Table (Seats are generic across vehicles)
-export const seatTable = pgTable("seats", {
-    seat_id: serial("seat_id").primaryKey(),
-    seat_number: varchar("seat_number").notNull(),
-    is_available: boolean("is_available").default(true), 
-    seat_type: varchar("seat_type").default("regular"),
-    created_at: timestamp("created_at").defaultNow(),
-    updated_at: timestamp("updated_at").defaultNow(),
-});
-
-
-// Booking Table: Stores each booking request
-// export const bookingTable = pgTable("bookings", { 
-//     booking_id: serial("booking_id").primaryKey(),
-//     user_id: integer("user_id").notNull().references(() => userTable.user_id, { onDelete: "cascade" }),
-//     vehicle_id: varchar("vehicle_id").notNull(), // No FK to enforce flexibility
-//     departure_date: timestamp("departure_date").notNull(),
-//     departure_time: varchar("departure_time").notNull(),
-//     departure: varchar("departure"),
-//     destination: varchar("destination"),
-//     estimated_arrival: varchar("estimated_arrival"),
-//     price: decimal("price").notNull(), // Price for **one seat**
-//     total_price: decimal("total_price").notNull(), // `price * seat_ids.length`
-//     booking_status: bookingStatusEnum("booking_status").default("pending"),
-//     booking_date: timestamp("booking_date").defaultNow(),
-//     is_active: boolean("is_active").default(true),
+// export const seatTable = pgTable("seats", {
+//     seat_id: serial("seat_id").primaryKey(),
+//     seat_number: varchar("seat_number").notNull(),
+//     is_available: boolean("is_available").default(true), 
+//     seat_type: varchar("seat_type").default("regular"),
 //     created_at: timestamp("created_at").defaultNow(),
 //     updated_at: timestamp("updated_at").defaultNow(),
+// });
+
+
 export const bookingTable = pgTable("bookings", {
     booking_id: serial("booking_id").primaryKey(),
     user_id: integer("user_id").notNull()
@@ -197,9 +165,6 @@ export type TSUsers = typeof userTable.$inferSelect;
 
 export type TIBookings = typeof bookingTable.$inferInsert;
 export type TSBookings = typeof bookingTable.$inferSelect;
-
-export type TISeats = typeof seatTable.$inferInsert;
-export type TSSeats = typeof seatTable.$inferSelect;
 
 export type TIVehicles = typeof vehicleTable.$inferInsert;
 export type TSVehicles = typeof vehicleTable.$inferSelect;

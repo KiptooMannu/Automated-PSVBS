@@ -1,5 +1,5 @@
 import { Context } from "hono";
-import { createVehicleService,getAllVehiclesService,getVehicleByRegNumberService,updateVehicleService,deleteVehicleService} from "./vehicle.services";
+import { createVehicleService,getAllVehiclesService,getVehicleByRegNumber,updateVehicleService,deleteVehicleService} from "./vehicle.services";
 
 //insert vehicle
 export const insertVehicle = async (c: Context) => {
@@ -31,6 +31,8 @@ export const listAllVehicles = async (c: Context) => {
     }
 };
 
+
+
 // update vehicle by regno
 export const updateVehicleByRegNo = async (c: Context) => {
     try {
@@ -38,7 +40,7 @@ export const updateVehicleByRegNo = async (c: Context) => {
         const vehicle = await c.req.json();
         if(!reg_no) return c.text("Invalid registration id", 400);
         //search for vehicle by regno
-        const existingVehicle = await getVehicleByRegNumberService(reg_no);
+        const existingVehicle = await getVehicleByRegNumber(reg_no);
         if(existingVehicle===undefined) return c.json({message: "No vehicle found with this reg no😒"},404);
         // update vehicle by regno
         const updatedVehicle = await updateVehicleService(reg_no, vehicle);
@@ -48,13 +50,29 @@ export const updateVehicleByRegNo = async (c: Context) => {
         return c.text(error?.message, 400);
     }
 }
+
+
+export const getAllVehicleByRegNo = async (c: Context) => {
+    try {
+        const reg_no = c.req.param("registration_number");
+        if (!reg_no) return c.text("Invalid registration id 😒", 400);
+
+        const vehicle = await getVehicleByRegNumber(reg_no);
+        if (!vehicle) return c.json({ msg: "No vehicle found with this reg no 😒" }, 404);
+
+        return c.json(vehicle, 200);
+    } catch (error: any) {
+        return c.text(error?.message, 400);
+    }
+};
+
 //delete vehicle by regno
 export const deleteVehicleByRegNo = async (c: Context) => {
     const reg_no = c.req.param("registration_number");
     try {
         if(!reg_no) return c.text("Invalid registration id😒", 400);
         //search for vehicle by regno
-        const existingVehicle = await getVehicleByRegNumberService(reg_no);
+        const existingVehicle = await getVehicleByRegNumber(reg_no);
         if(existingVehicle===undefined) return c.json({message: "No vehicle found with this reg no😒"},404);
         // delete vehicle by regno
         const deleteVehicle = await deleteVehicleService(reg_no);

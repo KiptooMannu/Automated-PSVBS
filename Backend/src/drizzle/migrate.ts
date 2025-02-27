@@ -3,48 +3,58 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Client } from "pg";
 import dotenv from "dotenv";
 
-// Load environment variables
 dotenv.config();
 
-// Connect to Neon DB
 const client = new Client({
     connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }, // Required for Neon
+    ssl: { rejectUnauthorized: false }, 
 });
 
 const db = drizzle(client);
 
 async function migration() {
+    console.log('======== Migrations started ========');
+
     try {
-        console.log("== 🚀 Starting Migration to Neon Database ==");
+        await client.connect();
 
-        await client.connect(); // Connect to Neon DB
-
-        // ✅ Add 'verification_token' column if it doesn't exist
+        // Step 1: Add the column without NOT NULL constraint
         await db.execute(sql`
-            ALTER TABLE users 
-            ADD COLUMN IF NOT EXISTS verification_token VARCHAR(255);
+            ALTER TABLE payments
+            ADD COLUMN IF NOT EXISTS phone_number VARCHAR(20);
         `);
 
-        // ✅ Add 'verification_token_expires_at' column if it doesn't exist
+        // Step 2: Update existing rows to use an empty string instead of NULL
         await db.execute(sql`
-            ALTER TABLE users 
-            ADD COLUMN IF NOT EXISTS verification_token_expires_at TIMESTAMP;
+            UPDATE payments
+            SET phone_number = ''
+            WHERE phone_number IS NULL;
         `);
 
-        console.log("✅ Migration Completed Successfully on Neon ✅");
+        // Step 3: Apply the NOT NULL constraint
+        await db.execute(sql`
+            ALTER TABLE payments
+            ALTER COLUMN phone_number SET NOT NULL;
+        `);
 
-        await client.end(); // Close connection
+        console.log('======== Migrations completed ========');
+    } catch (err: unknown) {
+        if (err instanceof Error) {
+            console.error('Migration error:', err.message);
+        } else {
+            console.error('Migration error:', err);
+        }
+    } finally {
+        await client.end();
         process.exit(0);
-    } catch (error) {
-        console.error("❌ Migration Failed with Error:", error);
-        await client.end(); // Ensure connection is closed on error
-        process.exit(1);
     }
 }
 
-// Run the migration
-migration().catch((e) => {
-    console.error("❌ Unexpected error during migration:", e);
+migration().catch((err: unknown) => {
+    if (err instanceof Error) {
+        console.error('Migration error:', err.message);
+    } else {
+        console.error('Migration error:', err);
+    }
     process.exit(1);
 });
