@@ -12,9 +12,16 @@ import vehicleRouter from "./vehicle/vehicle.routes";
 // import seatRouter from "./seat/seat.route";
 import contactRoutes from "./Contact/Contact.Router";
 
+
+
 // Initialize Hono app
 const app = new Hono();
-app.use("*", cors());
+app.use(cors({
+  origin: '*',
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowHeaders: ['Content-Type', 'Authorization']
+}));
+
 
 // Register all routes
 app.route("/", userAuthRouter);
@@ -42,6 +49,6 @@ serve({
   fetch: app.fetch,
   port: PORT,
 });
-
+console.log('Routes registered:', app.routes);
 console.log(`✅ Server is running on http://localhost:${PORT}`);
 assert(process.env.PORT, "PORT is required");
