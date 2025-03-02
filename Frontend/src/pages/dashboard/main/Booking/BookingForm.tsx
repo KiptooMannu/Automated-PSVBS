@@ -9,7 +9,6 @@ const BookingForm: React.FC = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [isMapSeatModalOpen, setIsMapSeatModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
-  const [booking, setBooking] = useState<{ departure_time?: string }>({});
 const vehiclesPerPage = 3; // 3x2 layout
 
 // Pagination handlers
@@ -47,13 +46,13 @@ const displayedVehicles = filteredVehicles.slice(
   (currentPage + 1) * vehiclesPerPage
 );
 
-  const handleMapSeatModal = (vehicle: Vehicle) => {
-    if (!selectedVehicle || selectedVehicle.registration_number !== vehicle.registration_number) {
-      setSelectedVehicle(vehicle);
-      setBooking({ departure_time: vehicle.departure_time });
-      setIsMapSeatModalOpen(true);
-    }
-  };
+const handleMapSeatModal = (vehicle: Vehicle) => {
+  setSelectedVehicle(vehicle);
+  setIsMapSeatModalOpen(true);
+    setIsMapSeatModalOpen(true);
+  
+};
+
 
   if (isLoading) return <p className="text-center text-gray-500">Loading vehicles...</p>;
   if (isError) return <p className="text-center text-red-500">Failed to load vehicles. Please try again later.</p>;
@@ -146,7 +145,10 @@ const displayedVehicles = filteredVehicles.slice(
           <p className="text-xs text-gray-700">Reg No: {vehicle.registration_number}</p>
           <p className="text-xs text-gray-700">License: {vehicle.license_plate}</p>
           <p className="text-xs text-gray-700">From: {vehicle.departure} → To: {vehicle.destination}</p>
-          <p className="text-xs text-gray-700"><strong>Departure: {booking.departure_time}</strong></p>
+          <p className="text-xs text-gray-700">
+  <strong>Departure Time: {vehicle.departure_time || "Not Available"}</strong>
+</p>
+
           <p className="text-xs text-gray-700"><strong>Cost: {vehicle.cost}</strong></p>
           <button
             type="button"

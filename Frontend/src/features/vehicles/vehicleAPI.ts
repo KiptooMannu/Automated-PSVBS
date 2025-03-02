@@ -30,7 +30,7 @@ export const vehicleAPI = createApi({
   tagTypes: ["Vehicles"],
   endpoints: (builder) => ({
     fetchCarSpecs: builder.query<Vehicle[], void>({
-      query: () => "vehicles-with-bookings",
+      query: () => "vehicles",
       providesTags: ["Vehicles"],
       transformResponse: (response: Vehicle[]) => {
         // ✅ Remove duplicate vehicles based on registration_number

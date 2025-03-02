@@ -22,7 +22,6 @@ const CreateVehicleSchema = yup.object().shape({
   cost: yup.number().required('Cost per seat is required').positive('Cost must be a positive number'),
   departure: yup.string().required('Departure location is required'),
   destination: yup.string().required('Destination is required'),
-  departure_date: yup.date().min(new Date(), 'Departure date cannot be in the past'),
   departure_time: yup.string(),
 
   // departure_date: yup.date().required('Departure date is required').min(new Date(), 'Departure date cannot be in the past'),
@@ -78,6 +77,7 @@ const CreateVehicleModal: React.FC<CreateVehicleModalProps> = ({ onClose }) => {
       const resourceData = {
         ...data,
         image_url: imageUrl, // Ensure that the field is named image_url
+        departure_time: data.departure_time 
       };
 
       // Send data to backend for creation

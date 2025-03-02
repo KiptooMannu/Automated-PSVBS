@@ -60,7 +60,10 @@ function MyBookings() {
                   <td className="px-4 py-2">{booking.user_id}</td>
                   <td className="px-4 py-2">{booking.seat_ids}</td>
                   <td className="px-4 py-2">{formatDate(booking.booking_date)}</td>
-                  <td className="px-4 py-2">{formatDate(booking.departure_time)}</td>
+                  <td className="px-4 py-2">
+  {booking.vehicle ? formatDate(booking.vehicle.departure_time) : "N/A"}
+</td>
+
                   <td className="px-4 py-2">{booking.total_price}</td>
                   <td className="px-4 py-2">{booking.booking_status}</td>
                 </tr>
