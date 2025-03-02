@@ -65,15 +65,19 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose, refetchVe
     formState: { errors },
   } = useForm<BookingData>({
     resolver: yupResolver(schema),
+
     defaultValues: {
-      booking_date: new Date().toISOString().split('T')[0], 
-    },
+  booking_date: new Date().toISOString().split('T')[0], 
+}
+
   });
 
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
-    setValue("booking_date", today); // ✅ Set booking_date dynamically
+    const today = new Date();
+    today.setDate(today.getDate() + 1); // ✅ Add 1 day to ensure correct local date
+    setValue("booking_date", today.toISOString().split('T')[0]); 
   }, [setValue]);
+  
 
   // Fetch booked seats when component loads
   useEffect(() => {

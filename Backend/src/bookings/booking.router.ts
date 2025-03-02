@@ -5,7 +5,8 @@ import {
     getAllVehiclesWithBookingsController,
     getAllBookingsController,
     confirmBookingController,
-    getBookingsByUserIdController, // ✅ Import the new controller
+    getBookingsByUserIdController, 
+  
 } from './bookings.controller';
 
 const bookingRouter = new Hono();
@@ -27,5 +28,7 @@ bookingRouter.get('/bookings/user/:user_id', getBookingsByUserIdController);
 
 // ✅ Confirm a booking
 bookingRouter.put('/bookings/confirm', confirmBookingController);
+
+bookingRouter.get("/booked-seats", getBookedSeatsController)
 
 export default bookingRouter;

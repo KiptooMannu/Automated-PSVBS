@@ -196,33 +196,8 @@ export const getBookingsByUserIdController = async (c: Context) => {
     }
 };
 
-  
 
 
-// ✅ Update Booking Status Controller
-// export const updateBookingStatusController = async (c: Context) => {
-//     try {
-//         const { booking_id, booking_status }: { booking_id: number; booking_status: string } = await c.req.json();
-
-//         if (!booking_id || !booking_status) {
-//             return c.json({ message: "Missing required fields." }, 400);
-//         }
-
-//         const updatedBooking = await db.bookingsTable.update({
-//             where: eq(bookingTable.booking_id, booking_id),
-//             set: { booking_status },
-//         });
-
-//         if (!updatedBooking) {
-//             return c.json({ message: "Booking not found." }, 404);
-//         }
-
-//         return c.json({ message: "Booking status updated successfully!" }, 200);
-//     } catch (error) {
-//         console.error("Error updating booking status:", error);
-//         return c.json({ message: "Internal server error" }, 500);
-//     }
-// };
 // ✅ Confirm Booking Controller
 export const confirmBookingController = async (c: Context) => {
     try {
