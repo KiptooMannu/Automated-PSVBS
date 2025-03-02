@@ -13,15 +13,13 @@ const parseValidDate = (date: any): Date | null => {
 
 // ✅ Create Booking Controller
 export const createBookingController = async (c: Context) => {
-    
     try {
         const {
             user_id,
             vehicle_id,
-            seat_numbers, 
+            seat_numbers,
             booking_date,
             departure_date,
-            departure_time,
             departure,
             destination,
             estimated_arrival,
@@ -30,10 +28,9 @@ export const createBookingController = async (c: Context) => {
         }: {
             user_id: number;
             vehicle_id: string;
-            seat_numbers: string[]; // ✅ Accept all seats without constraints
+            seat_numbers: string[];
             booking_date: string;
             departure_date: string;
-            departure_time: string;
             departure: string;
             destination: string;
             estimated_arrival: string | null;
@@ -41,22 +38,23 @@ export const createBookingController = async (c: Context) => {
             total_price: string;
         } = await c.req.json();
 
-        console.log("🕒 Final departure_time:", departure_time); // ✅ Log departure_time
-
+        console.log("📌 Vehicle ID:", vehicle_id);
 
         if (!user_id || !vehicle_id || !seat_numbers.length || !price || !total_price || !booking_date || !departure_date) {
             return c.json({ message: "Missing required booking details." }, 400);
-          }
-          
-               // ✅ Auto-fetch departure_time if missing
-               const latestBooking = await db.query.bookingTable.findFirst({
-                where: eq(bookingTable.vehicle_id, vehicle_id),
-                orderBy: desc(bookingTable.departure_date), 
-            });
-            const departureTime = latestBooking?.departure_time || "00:00"; 
-    
+        }
 
-        // ✅ Convert dates to valid Date objects
+        // ✅ Fetch departure_time from vehicleTable
+        const vehicle = await db.query.vehicleTable.findFirst({
+            where: eq(vehicleTable.registration_number, vehicle_id),
+            columns: { departure_time: true },
+        });
+
+        if (!vehicle?.departure_time) {
+            return c.json({ message: "Vehicle departure time not found." }, 404);
+        }
+
+        // ✅ Convert dates
         const formattedBookingDate = parseValidDate(booking_date);
         const formattedDepartureDate = parseValidDate(departure_date);
 
@@ -64,36 +62,37 @@ export const createBookingController = async (c: Context) => {
             return c.json({ message: "Invalid date format." }, 400);
         }
 
-        // ✅ Convert seat numbers to seat IDs dynamically (No DB validation required)
+        // ✅ Convert seat numbers to seat IDs
         const seat_ids = seat_numbers.map((seat) => parseInt(seat.replace("S", ""), 10));
 
-        // ✅ Ensure total_price calculation is accurate
+        // ✅ Ensure total_price is correct
         const calculatedTotalPrice = seat_ids.length * parseFloat(price);
         if (parseFloat(total_price) !== calculatedTotalPrice) {
-            return c.json({ message: "Total price calculation mismatch." }, 400);
+            return c.json({ message: "Total price mismatch." }, 400);
         }
 
-        // ✅ Create booking (Seats are directly stored without pre-validation)
+        // ✅ Create booking (Without departure_time)
         const bookingId = await createBookingService({
             user_id,
             vehicle_id,
             booking_date: formattedBookingDate,
             departure_date: formattedDepartureDate,
-            departure_time,
+            departure_time: vehicle.departure_time, // ✅ Use fetched departure_time
             departure,
             destination,
             estimated_arrival,
             price,
             total_price: calculatedTotalPrice.toString(),
-            seat_numbers, // ✅ Send seat numbers directly
+            seat_numbers,
         });
 
         return c.json({ message: "Booking created successfully!", booking_id: bookingId }, 201);
-    } catch (error: unknown) {
+    } catch (error) {
         console.error("Error creating booking:", error);
-        return c.json({ message: error instanceof Error ? error.message : "Internal server error." }, 500);
+        return c.json({ message: "Internal server error." }, 500);
     }
 };
+
 
 // ✅ Retrieve Booked Seats Controller
 export const getBookedSeatsController = async (c: Context) => {
@@ -140,40 +139,7 @@ export const getAllBookingsController = async (c: Context) => {
                 user_id: bookingTable.user_id,
                 vehicle_id: bookingTable.vehicle_id,
                 departure_date: bookingTable.departure_date,
-                departure_time: bookingTable.departure_time,
-                departure: bookingTable.departure,
-                destination: bookingTable.destination,
-                total_price: bookingTable.total_price,
-                booking_status: bookingTable.booking_status,
-                booking_date: bookingTable.booking_date,
-                seat_ids: sql<string>`COALESCE(STRING_AGG(${bookingsSeatsTable.seat_id}::TEXT, ','), 'N/A')`.as("seat_ids"), // ✅ Fix: Use STRING_AGG
-            })
-            .from(bookingTable)
-            .leftJoin(bookingsSeatsTable, eq(bookingTable.booking_id, bookingsSeatsTable.booking_id))
-            .groupBy(bookingTable.booking_id) // ✅ Group bookings so seat IDs aggregate correctly
-            .execute();
-
-        return c.json(bookings, 200);
-    } catch (error) {
-        console.error("Error fetching bookings:", error);
-        return c.json({ message: "Internal server error" }, 500);
-    }
-};
-//fetch all bookings by user id
-export const getUserBookingsByUserIdController = async (c: Context) => {
-    try {
-        const user_id = Number(c.req.param("id"));
-        if (isNaN(user_id)) {
-            return c.json({ message: "Invalid user_id. Must be a number." }, 400);
-        }
-
-        const bookings = await db
-            .select({
-                booking_id: bookingTable.booking_id,
-                user_id: bookingTable.user_id,
-                vehicle_id: bookingTable.vehicle_id,
-                departure_date: bookingTable.departure_date,
-                departure_time: bookingTable.departure_time,
+                departure_time: vehicleTable.departure_time, // ✅ Fix: Now vehicleTable is joined
                 departure: bookingTable.departure,
                 destination: bookingTable.destination,
                 total_price: bookingTable.total_price,
@@ -182,9 +148,9 @@ export const getUserBookingsByUserIdController = async (c: Context) => {
                 seat_ids: sql<string>`COALESCE(STRING_AGG(${bookingsSeatsTable.seat_id}::TEXT, ','), 'N/A')`.as("seat_ids"),
             })
             .from(bookingTable)
+            .leftJoin(vehicleTable, eq(bookingTable.vehicle_id, vehicleTable.registration_number)) // ✅ Add this join
             .leftJoin(bookingsSeatsTable, eq(bookingTable.booking_id, bookingsSeatsTable.booking_id))
-            .where(eq(bookingTable.user_id, user_id)) // ✅ Now user_id is correctly typed
-            .groupBy(bookingTable.booking_id)
+            .groupBy(bookingTable.booking_id, vehicleTable.departure_time) // ✅ Group by departure_time to avoid aggregation issues
             .execute();
 
         return c.json(bookings, 200);
@@ -193,6 +159,46 @@ export const getUserBookingsByUserIdController = async (c: Context) => {
         return c.json({ message: "Internal server error" }, 500);
     }
 };
+
+
+export const getBookingsByUserIdController = async (c: Context) => {
+    try {
+        const user_id = parseInt(c.req.param("user_id")); // Extract user_id from URL params
+
+        if (isNaN(user_id)) {
+            return c.json({ message: "Invalid user ID." }, 400);
+        }
+
+        const userBookings = await db
+            .select({
+                booking_id: bookingTable.booking_id,
+                user_id: bookingTable.user_id,
+                vehicle_id: bookingTable.vehicle_id,
+                booking_date: bookingTable.booking_date,
+                departure: bookingTable.departure,
+                destination: bookingTable.destination,
+                total_price: bookingTable.total_price,
+                departure_date: bookingTable.departure_date,
+                estimated_arrival: bookingTable.estimated_arrival,
+                price: bookingTable.price,
+                booking_status: bookingTable.booking_status,
+                is_active: bookingTable.is_active,
+                departure_time: vehicleTable.departure_time,
+            })
+            .from(bookingTable)
+            .leftJoin(vehicleTable, eq(bookingTable.vehicle_id, vehicleTable.registration_number))
+            .where(eq(bookingTable.user_id, user_id));
+
+        return c.json(userBookings, 200); // Return JSON response
+    } catch (error) {
+        console.error("Error fetching user bookings:", error);
+        return c.json({ message: "Internal server error." }, 500);
+    }
+};
+
+  
+
+
 // ✅ Update Booking Status Controller
 // export const updateBookingStatusController = async (c: Context) => {
 //     try {

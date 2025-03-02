@@ -18,26 +18,19 @@ async function migration() {
     try {
         await client.connect();
 
-        // Step 1: Add the column without NOT NULL constraint
+        // Step 1: Drop departure_time from bookings table if it exists
         await db.execute(sql`
-            ALTER TABLE payments
-            ADD COLUMN IF NOT EXISTS phone_number VARCHAR(20);
+            ALTER TABLE bookings
+            DROP COLUMN IF EXISTS departure_time;
         `);
 
-        // Step 2: Update existing rows to use an empty string instead of NULL
+        // Step 2: Add departure_time to vehicles table with the same type as it was in bookings
         await db.execute(sql`
-            UPDATE payments
-            SET phone_number = ''
-            WHERE phone_number IS NULL;
+           ALTER TABLE vehicles
+ADD COLUMN IF NOT EXISTS departure_time VARCHAR;
         `);
 
-        // Step 3: Apply the NOT NULL constraint
-        await db.execute(sql`
-            ALTER TABLE payments
-            ALTER COLUMN phone_number SET NOT NULL;
-        `);
-
-        console.log('======== Migrations completed ========');
+        console.log('======== Migrations completed successfully ========');
     } catch (err: unknown) {
         if (err instanceof Error) {
             console.error('Migration error:', err.message);

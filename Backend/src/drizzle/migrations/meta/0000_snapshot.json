@@ -1,5 +1,5 @@
 {
-  "id": "a0636398-20e3-41d7-8bf8-e93da893f27c",
+  "id": "db15d953-9ef8-460c-a19b-cfe51655f6bc",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -126,12 +126,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "departure_time": {
-          "name": "departure_time",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": true
-        },
         "departure": {
           "name": "departure",
           "type": "varchar",
@@ -226,6 +220,19 @@
           ],
           "columnsTo": [
             "user_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "bookings_vehicle_id_vehicles_registration_number_fk": {
+          "name": "bookings_vehicle_id_vehicles_registration_number_fk",
+          "tableFrom": "bookings",
+          "tableTo": "vehicles",
+          "columnsFrom": [
+            "vehicle_id"
+          ],
+          "columnsTo": [
+            "registration_number"
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
@@ -745,6 +752,12 @@
         },
         "departure": {
           "name": "departure",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "departure_time": {
+          "name": "departure_time",
           "type": "varchar",
           "primaryKey": false,
           "notNull": true

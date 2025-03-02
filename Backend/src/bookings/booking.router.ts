@@ -1,24 +1,31 @@
-import { Hono } from "hono";
-import { 
-  createBookingController, 
-  getBookedSeatsController, 
-  getAllVehiclesWithBookingsController,
-  getAllBookingsController, // ✅ Added missing route for fetching all bookings
-  getUserBookingsByUserIdController ,// ✅ Added missing route for fetching bookings by user ID
-  confirmBookingController
-} from "./bookings.controller";  // Ensure this import is correct
+import { Hono } from 'hono';
+import {
+    createBookingController,
+    getBookedSeatsController,
+    getAllVehiclesWithBookingsController,
+    getAllBookingsController,
+    confirmBookingController,
+    getBookingsByUserIdController, // ✅ Import the new controller
+} from './bookings.controller';
 
-// Create Hono app instance
 const bookingRouter = new Hono();
 
-// Define routes
-bookingRouter
-  .post("/bookings", createBookingController)            // ✅ Create a new booking
-  .get("/bookings", getAllBookingsController)           // ✅ Fetch all bookings
-  .get("/booked-seats", getBookedSeatsController)        // ✅ Fetch booked seats
-  .get("/vehicles-with-bookings", getAllVehiclesWithBookingsController)// ✅ Fetch vehicles with departure date & time
-  .get("/bookings/user/:id", getUserBookingsByUserIdController) // ✅ Fetch user bookings by user ID
-  .post("/bookings/confirm", confirmBookingController);
+// ✅ Create a new booking
+bookingRouter.post('/bookings', createBookingController);
 
-// Export the app
+// ✅ Get booked seats for a specific vehicle
+bookingRouter.get('/bookings/seats', getBookedSeatsController);
+
+// ✅ Get all vehicles with bookings
+bookingRouter.get('/bookings/vehicles', getAllVehiclesWithBookingsController);
+
+// ✅ Get all bookings
+bookingRouter.get('/bookings', getAllBookingsController);
+
+// ✅ Get bookings by user ID
+bookingRouter.get('/bookings/user/:user_id', getBookingsByUserIdController);
+
+// ✅ Confirm a booking
+bookingRouter.put('/bookings/confirm', confirmBookingController);
+
 export default bookingRouter;

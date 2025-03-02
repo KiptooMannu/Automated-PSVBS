@@ -20,7 +20,6 @@ CREATE TABLE IF NOT EXISTS "bookings" (
 	"user_id" integer NOT NULL,
 	"vehicle_id" varchar NOT NULL,
 	"departure_date" timestamp NOT NULL,
-	"departure_time" varchar NOT NULL,
 	"departure" varchar,
 	"destination" varchar,
 	"estimated_arrival" varchar,
@@ -105,6 +104,7 @@ CREATE TABLE IF NOT EXISTS "vehicles" (
 	"model_year" integer,
 	"current_location" varchar(255) NOT NULL,
 	"departure" varchar NOT NULL,
+	"departure_time" varchar NOT NULL,
 	"destination" varchar NOT NULL,
 	"is_active" boolean DEFAULT true,
 	"image_url" varchar(255),
@@ -122,6 +122,12 @@ END $$;
 --> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "bookings" ADD CONSTRAINT "bookings_user_id_users_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("user_id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "bookings" ADD CONSTRAINT "bookings_vehicle_id_vehicles_registration_number_fk" FOREIGN KEY ("vehicle_id") REFERENCES "public"."vehicles"("registration_number") ON DELETE cascade ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;

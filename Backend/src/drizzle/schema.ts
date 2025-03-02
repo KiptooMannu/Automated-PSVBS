@@ -73,6 +73,7 @@ export const vehicleTable = pgTable("vehicles", {
     model_year: integer("model_year"),
     current_location: varchar("current_location", { length: 255 }).notNull(),
     departure: varchar("departure").notNull(),
+    departure_time: varchar("departure_time").notNull(), // Added here
     destination: varchar("destination").notNull(),
     is_active: boolean("is_active").default(true),
     image_url: varchar("image_url", { length: 255 }),
@@ -130,9 +131,9 @@ export const bookingTable = pgTable("bookings", {
     booking_id: serial("booking_id").primaryKey(),
     user_id: integer("user_id").notNull()
       .references(() => userTable.user_id, { onDelete: "cascade" }),
-    vehicle_id: varchar("vehicle_id").notNull(),
+      vehicle_id: varchar("vehicle_id").notNull()
+      .references(() => vehicleTable.registration_number, { onDelete: "cascade" }),    
     departure_date: timestamp("departure_date").notNull(),
-    departure_time: varchar("departure_time").notNull(),
     departure: varchar("departure"),
     destination: varchar("destination"),
     estimated_arrival: varchar("estimated_arrival"),

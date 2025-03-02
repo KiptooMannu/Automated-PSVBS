@@ -8,7 +8,6 @@ export const createBookingService = async ({
     vehicle_id,
     booking_date,
     departure_date,
-    departure_time,
     departure,
     destination,
     estimated_arrival,
@@ -36,7 +35,6 @@ export const createBookingService = async ({
                 vehicle_id,
                 booking_date,
                 departure_date,
-                departure_time,
                 departure,
                 destination,
                 estimated_arrival,
@@ -111,7 +109,7 @@ export const getAllVehiclesWithBookingsService = async () => {
             departure: vehicleTable.departure,
             destination: vehicleTable.destination,
             departure_date: bookingTable.departure_date, // ✅ Fetch from bookings
-            departure_time: bookingTable.departure_time, // ✅ Fetch from bookings
+            departure_time: vehicleTable.departure_time, // ✅ Fetch from bookings
         })
         .from(vehicleTable)
         .leftJoin(bookingTable, eq(vehicleTable.registration_number, bookingTable.vehicle_id)) // ✅ Join on vehicle_id
