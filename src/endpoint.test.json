@@ -1,0 +1,75 @@
+[
+
+
+{
+    "first_name": "Olivia",
+    "last_name": "Martinez",
+    "email": "olivia.martinez@example.com",
+    "password": "password123",
+    "phone_number": "0700000000"
+  },
+{
+    "registration_number": "XZ4567AB",
+    "vehicle_name": "Ford Transit",
+    "license_plate": "XYZ-9876",
+    "capacity": 12,
+    "vehicle_type": "bus",
+    "model_year": 2021,
+    "current_location": "Chicago, IL",
+    "is_active": true,
+    "is_deleted": false,
+    "created_at": "2024-12-15T08:30:00",
+    "updated_at": "2024-12-15T08:30:00"
+  },
+  {
+    "vehicle_id": "XZ4567AB",
+    "seat_number": "A1",
+    "is_available": true,
+    "seat_type": "regular",
+    "price": 15.50,
+    "created_at": "2024-12-15T09:00:00",
+    "updated_at": "2024-12-15T09:00:00"
+  },
+  {
+    "user_id": 2345,
+    "subject": "Seat Booking Issue",
+    "description": "The seat booked for my journey from Chicago to Cincinnati was not available upon arrival.",
+    "status": "paid"
+  },
+  {
+    "user_id": 1,
+    "vehicle_id": "XZ4567AB",
+    "seat_id": 3,
+    "departure": "Chicago",
+    "destination": "Cincinnati",
+    "departure_date": "2024-12-30T10:00:00",
+    "departure_time": "10:00 AM",
+    "estimated_arrival": "2024-12-30T14:30:00",
+    "price": 49.99,
+    "total_price": 99.99,
+    "booking_status": "confirmed",
+    "booking_date": "2024-12-15T10:00:00",
+    "is_active": true
+  },
+  {
+    "booking_id": 452,
+    "amount": 99.99,
+    "payment_method": "credit card",
+    "payment_status": "completed",
+    "transaction_reference": "TX1234567890",
+    "payment_date": "2024-12-15T10:30:00",
+    "ticket_id": 678,
+    "created_at": "2024-12-15T10:30:00",
+    "updated_at": "2024-12-15T10:30:00"
+  },
+  {
+    "booking_id": 2,
+    "user_id": 1,
+    "total_price": 50.00
+},
+{
+  "email": "opopsingh26@gmail.com"
+}
+
+]
+

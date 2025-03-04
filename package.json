@@ -1,0 +1,50 @@
+{
+  "name": "Backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsx watch ./src/server.ts",
+    "start": "node ./dist/server.js",
+    "build": "tsc",
+    "gen": "drizzle-kit generate",
+    "migrate": " tsx src/drizzle/migrate.ts",
+    "studio": "drizzle-kit studio",
+    "push": " drizzle-kit generate && tsx src/drizzle/migrate.ts"
+  },
+  "keywords": [],
+  "author": "Gideon Ngetich",
+  "license": "ISC",
+  "dependencies": {
+    "@hono/node-server": "^1.13.7",
+    "@neondatabase/serverless": "^0.10.4",
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.7",
+    "drizzle-orm": "^0.37.0",
+    "hono": "^4.6.12",
+    "jsonwebtoken": "^9.0.2",
+    "neon": "^2.0.0",
+    "node-fetch": "^2.7.0",
+    "nodemailer": "^6.9.16",
+    "react-toastify": "^11.0.3",
+    "stripe": "^17.4.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^9.3.0",
+    "@types/bcrypt": "^5.0.2",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/node": "^22.10.1",
+    "@types/node-fetch": "^2.6.12",
+    "@types/nodemailer": "^6.4.17",
+    "@types/pg": "^8.11.10",
+    "@types/react-toastify": "^4.1.0",
+    "drizzle-kit": "^0.29.1",
+    "pg": "^8.13.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
