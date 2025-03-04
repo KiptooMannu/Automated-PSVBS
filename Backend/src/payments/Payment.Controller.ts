@@ -1,3 +1,4 @@
+
 import { Context } from "hono";
 import {
   getAllPaymentsService,
@@ -54,7 +55,7 @@ export const createPaymentController = async (c: Context) => {
     }
 
     // Initiate M-Pesa Payment
-    const mpesaResponse = await initiateMpesaPayment(phone_number, amount);
+    const mpesaResponse = await initiateMpesaPayment(phone_number, amount, booking_id);
 
     if (!mpesaResponse.CheckoutRequestID) {
       return c.json(
@@ -82,8 +83,11 @@ export const createPaymentController = async (c: Context) => {
       201
     );
   } catch (error: any) {
-    console.error("Error creating payment:", error);
-    return c.json({ error: error?.message || "Internal server error" }, 500);
+    console.error("❌ Error creating payment:", error);
+    return c.json(
+      { error: error?.message || "Internal server error", details: error?.response?.data },
+      500
+    );
   }
 };
 

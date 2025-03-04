@@ -8,7 +8,7 @@ import {
     deleteUserService,
     getUserByEmailService 
 } from "./auth.service";
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { sendEmail } from "../utils/mail";
 import { verifyUser } from "./auth.service";
 
@@ -143,8 +143,9 @@ export const forgotPassword = async (c: Context) => {
 
         const randomPassword = Math.random().toString(36).slice(-8);
         
-        const salt = bcrypt.genSaltSync(10);
-        const hashedPassword = bcrypt.hashSync(randomPassword, salt);
+        const salt = await bcrypt.genSalt(10);
+const hashedPassword = await bcrypt.hash(randomPassword, salt);
+
 
         await updateUserService(user.user_id, { password: hashedPassword });
 
@@ -206,8 +207,9 @@ export const resetPassword = async (c: Context) => {
             return c.json({ message: 'User not found' }, 404);
         }
 
-        const salt = bcrypt.genSaltSync(10);
-        const hashedPassword = bcrypt.hashSync(password, salt);
+        const salt = await bcrypt.genSalt(10);
+const hashedPassword = await bcrypt.hash(password, salt);
+
 
         await updateUserService(user.user_id, { password: hashedPassword });
 

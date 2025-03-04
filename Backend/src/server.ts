@@ -5,7 +5,7 @@ import { cors } from "hono/cors";
 import { readFile } from "fs/promises";
 import assert from "assert";
 import { userAuthRouter } from "./auth/auth.router";
-import paymentRouter from "./payments/Payment.Router"; // ✅ Now includes M-Pesa routes
+import paymentRouter from "./Payments/Payment.Router"; // ✅ Now includes M-Pesa routes
 import TicketingRouter from "./Ticketing/Ticketing.Router";
 import bookingRouter from "./bookings/booking.router";
 import vehicleRouter from "./vehicle/vehicle.routes";

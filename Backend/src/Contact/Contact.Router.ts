@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { createContactController, getContactsController, resolveContactController } from "../Contact/contact.controller";
+import { createContactController, getContactsController, resolveContactController } from "./Contact.controller";
 
 const contactRoutes = new Hono();
 

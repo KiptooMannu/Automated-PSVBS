@@ -26,8 +26,30 @@ async function migration() {
 
         // Step 2: Add departure_time to vehicles table with the same type as it was in bookings
         await db.execute(sql`
-           ALTER TABLE vehicles
-ADD COLUMN IF NOT EXISTS departure_time VARCHAR;
+            ALTER TABLE vehicles
+            ADD COLUMN IF NOT EXISTS departure_time VARCHAR;
+        `);
+
+        // Step 3: Create payments table with unique constraint on transaction_reference
+        await db.execute(sql`
+            CREATE TABLE IF NOT EXISTS payments (
+                payment_id SERIAL PRIMARY KEY,
+                booking_id INTEGER NOT NULL REFERENCES bookings(booking_id) ON DELETE CASCADE,
+                amount NUMERIC(10, 2) NOT NULL,
+                payment_method VARCHAR(50) NOT NULL,
+                payment_status VARCHAR(50) DEFAULT 'pending',
+                transaction_reference VARCHAR(255) NOT NULL UNIQUE,
+                payment_date TIMESTAMP DEFAULT NOW(),
+                phone_number VARCHAR(20) NOT NULL,
+                ticket_id INTEGER REFERENCES tickets(ticket_id) ON DELETE CASCADE,
+                created_at TIMESTAMP DEFAULT NOW(),
+                updated_at TIMESTAMP DEFAULT NOW()
+            );
+        `);
+
+        // Step 4: Add index on booking_id in payments table
+        await db.execute(sql`
+            CREATE INDEX IF NOT EXISTS booking_id_idx ON payments(booking_id);
         `);
 
         console.log('======== Migrations completed successfully ========');

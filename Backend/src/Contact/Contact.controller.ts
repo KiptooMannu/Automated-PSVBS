@@ -1,5 +1,5 @@
 import { Context } from "hono";
-import { createContactService, getContactsService, resolveContactService } from "./contact.service";
+import { createContactService, getContactsService, resolveContactService } from "./Contact.Service";
 
 // Create a new contact message
 export const createContactController = async (c: Context) => {
