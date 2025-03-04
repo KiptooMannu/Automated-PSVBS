@@ -2,14 +2,13 @@ import { useGetBookingVehicleQuery } from "../../../../features/booking/bookingA
 import { format } from "date-fns";
 
 function AllBookings() {
-  const { data, error, isLoading } = useGetBookingVehicleQuery(); // Removed pagination arguments
+  const { data, error, isLoading } = useGetBookingVehicleQuery();
 
   const formatDate = (isoDate: string | number | Date) =>
     format(new Date(isoDate), "MM/dd/yyyy HH:mm:ss");
 
   return (
-    // <div className="overflow-x-auto bg-gray-900 min-h-screen">
-    <div className="overflow-x-auto bg-gradient-to-r from-blue-50  via-blue-100 to-white min-h-screen shadow-lg">
+    <div className="overflow-x-auto bg-gradient-to-r from-blue-50 via-blue-100 to-white min-h-screen shadow-lg">
       <h2 className="text-center text-xl p-4 font-bold text-blue-600">All Bookings</h2>
 
       {isLoading && <div className="text-center text-yellow-400">Loading...</div>}
@@ -31,10 +30,10 @@ function AllBookings() {
               <th className="border border-gray-400 px-4 py-2">Booking ID</th>
               <th className="border border-gray-400 px-4 py-2">User ID</th>
               <th className="border border-gray-400 px-4 py-2">Seat ID</th>
-              <th className="border border-gray-400 px-4 py-2">Departure</th> 
-              <th className="border border-gray-400 px-4 py-2">Destination</th> 
+              <th className="border border-gray-400 px-4 py-2">Departure</th>
+              <th className="border border-gray-400 px-4 py-2">Destination</th>
               <th className="border border-gray-400 px-4 py-2">Departure Date</th>
-              <th className="border border-gray-400 px-4 py-2">Status</th>
+              <th className="border border-gray-400 px-4 py-2">Booking Status</th>
             </tr>
           </thead>
           <tbody>
@@ -42,11 +41,9 @@ function AllBookings() {
               <tr key={booking.booking_id} className="text-center">
                 <td className="border border-gray-400 px-4 py-2">{booking.booking_id}</td>
                 <td className="border border-gray-400 px-4 py-2">{booking.user_id}</td>
-      <td className="border border-gray-400 px-4 py-2">
-  {booking.seat_ids ? String(booking.seat_ids).split(",").join(", ") : "N/A"}
-</td>
-
-
+                <td className="border border-gray-400 px-4 py-2">
+                  {booking.seat_ids ? String(booking.seat_ids).split(",").join(", ") : "N/A"}
+                </td>
                 <td className="border border-gray-400 px-4 py-2">{booking.departure}</td>
                 <td className="border border-gray-400 px-4 py-2">{booking.destination}</td>
                 <td className="border border-gray-400 px-4 py-2">{formatDate(booking.departure_date)}</td>
@@ -61,4 +58,3 @@ function AllBookings() {
 }
 
 export default AllBookings;
-

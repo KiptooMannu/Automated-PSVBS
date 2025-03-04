@@ -51,8 +51,6 @@ const Payment = () => {
     setShowMpesaForm(true);
   };
 
-
-
   const handleMpesaPayment = async (phone_number: string) => {
     if (!selectedBooking) return;
   
@@ -91,14 +89,6 @@ const Payment = () => {
       if (!response.ok) {
         const errorResponse = await response.json();
         console.error("❌ STK Push Request Failed:", errorResponse);
-  
-        // Handle specific error code for ongoing transaction
-        if (errorResponse.errorCode === "500.001.1001") {
-          throw new Error(
-            "A transaction is already in process for this phone number. Please complete the ongoing transaction or wait for it to timeout before trying again."
-          );
-        }
-  
         throw new Error(errorResponse.message || "Failed to initiate M-Pesa payment");
       }
   
@@ -128,33 +118,34 @@ const Payment = () => {
         toast.success("✅ M-Pesa payment initiated. Enter your PIN.");
   
         // ✅ Save payment record
-        try {
-          const paymentPayload = {
-            booking_id,
-            amount: amountNumber.toString(), // Ensure amount is a string if the server expects it
-            phone_number, // Include phone_number in the payload
-            payment_method: "M-Pesa",
-            payment_status: "pending",
-            transaction_reference: stkData.CheckoutRequestID,
-          };
-  
-          console.log("🔍 Payment Payload:", paymentPayload);
-  
-          const paymentResponse = await createPayment(paymentPayload).unwrap();
-          console.log("✅ Payment record created:", paymentResponse);
-        } catch (error) {
-          console.error("❌ Failed to create payment record:", error);
-  
-          // Log the full error response from the server
-          if (error && typeof error === "object" && "data" in error) {
-            const serverError = error as { data: { error: string; details?: any } };
-            console.error("🔍 Server Error Response:", serverError.data);
-            toast.error(`❌ Payment record creation failed: ${serverError.data?.error || "Unknown error"}`);
-          } else {
-            toast.error("❌ Payment record creation failed: Unknown error");
-          }
-          return;
-        }
+       // ✅ Save payment record
+try {
+  const paymentPayload = {
+    booking_id,
+    amount: amountNumber.toString(), // Ensure amount is a string if the server expects it
+    phone_number, // Include phone_number in the payload
+    payment_method: "M-Pesa",
+    payment_status: "pending",
+    transaction_reference: stkData.CheckoutRequestID,
+  };
+
+  console.log("🔍 Payment Payload:", paymentPayload);
+
+  const paymentResponse = await createPayment(paymentPayload).unwrap();
+  console.log("✅ Payment record created:", paymentResponse);
+} catch (error) {
+  console.error("❌ Failed to create payment record:", error);
+
+  // Log the full error response from the server
+  if (error && typeof error === "object" && "data" in error) {
+    const serverError = error as { data: { error: string; details?: any } };
+    console.error("🔍 Server Error Response:", serverError.data);
+    toast.error(`❌ Payment record creation failed: ${serverError.data?.error || "Unknown error"}`);
+  } else {
+    toast.error("❌ Payment record creation failed: Unknown error");
+  }
+  return;
+}
   
         // ✅ Start polling payment status
         checkPaymentStatus(stkData.CheckoutRequestID, booking_id.toString());
@@ -163,25 +154,15 @@ const Payment = () => {
         toast.error(`❌ Payment failed: ${stkData.ResponseDescription || "Unknown error"}`);
         return;
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("❌ Error initiating M-Pesa payment:", error);
-      setPaymentStatus({
-        success: false,
-        message: error.message || "❌ Failed to initiate M-Pesa payment. Please try again.",
-      });
-      toast.error(error.message || "❌ Failed to initiate M-Pesa payment. Please try again.");
+      setPaymentStatus({ success: false, message: "❌ Failed to initiate M-Pesa payment. Please try again." });
+      toast.error("❌ Failed to initiate M-Pesa payment. Please try again.");
     } finally {
       setIsPaymentLoading(null);
       setShowMpesaForm(false);
     }
   };
-
-
-
-
-
-
-  
   
   // ✅ Function to check payment status
   const checkPaymentStatus = async (checkoutRequestID: string, booking_id: string) => {
