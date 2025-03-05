@@ -83,7 +83,7 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose, refetchVe
   useEffect(() => {
     const fetchBookedSeats = async () => {
       try {
-        const response = await fetch(`http://localhost:8081/booked-seats?vehicle_id=${vehicle.registration_number}`);
+        const response = await fetch(`https://backenc-automated-psvbs-deployment.onrender.com/booked-seats?vehicle_id=${vehicle.registration_number}`);
         const data = await response.json();
         setBookedSeats(data.booked_seats || []);
       } catch (error) {

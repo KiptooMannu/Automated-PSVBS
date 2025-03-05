@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 function MyBookings() {
   const user = useSelector((state: RootState) => state.user);
-  const userId = user.user?.user_id ?? 0; // Default to 0 if user_id is undefined
+  const userId = user.user?.user_id ?? 0; 
 
   const { data: booking, error, isLoading, refetch } = useGetUserBookingQuery(userId);
   const [updateBooking] = useUpdateBookingVehicleMutation();
@@ -34,7 +34,7 @@ function MyBookings() {
   return (
     <div className="bg-slate-200 min-h-screen">
       <div className="mx-auto bg-slate-200 w-full rounded-md mb-5 border-2">
-        <h2 className="text-center text-xl p-2 rounded-t-md text-webcolor font-bold">My Bookings History</h2>
+        <h2 className="text-center text-xl p-2 rounded-t-md text-webcolor font-bold">My Booking History</h2>
 
         {/* Loading State */}
         {isLoading && <div className="text-center text-gray-600">Loading...</div>}
