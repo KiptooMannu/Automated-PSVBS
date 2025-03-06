@@ -7,12 +7,15 @@ import { sendVerificationEmail } from "./auth.controller";
 import { randomBytes } from 'crypto';
 import { error } from "console";
 import { and, eq, gt } from "drizzle-orm";
+import dotenv from "dotenv";
+
+// Load environment variables from .env file
+dotenv.config();
 
 const secret = process.env.SECRET!;
 const expiresIn = process.env.EXPIRESIN!;
 
 export const registerUser = async (user: any) => {
-  
   registerSchema.parse(user);
 
   const existingUser = await db
@@ -32,10 +35,10 @@ export const registerUser = async (user: any) => {
   if (!verificationToken) {
     throw new Error('Verification token is missing.');
   }
-  // ✅ Extend expiry time to 12 hours
+
+  // Extend expiry time to 12 hours
   const expiresAt = new Date(Date.now() + 12 * 60 * 60 * 1000);
 
-  // console.log('Verification Token Expires At (UTC):', expiresAt.toISOString());
   console.log('Verification Token Expires At (Local):', expiresAt.toLocaleString());
 
   const newUser = await db
@@ -65,7 +68,7 @@ export const registerUser = async (user: any) => {
   const userId = newUser[0].id;
   const foundUser = newUser[0];
 
-  // ✅ This check is unnecessary; we JUST generated the token
+  // This check is unnecessary; we JUST generated the token
   if (foundUser.verification_token_expires_at && new Date() > new Date(foundUser.verification_token_expires_at)) {
     throw new Error('Verification token expired. Please register again.');
   }
@@ -77,8 +80,7 @@ export const registerUser = async (user: any) => {
   }).execute();
 
   const verificationUrl = `${process.env.FRONTEND_URL}/verify-account?token=${verificationToken}`;
-await sendVerificationEmail(newUser[0].email, verificationUrl, verificationToken);
-
+  await sendVerificationEmail(newUser[0].email, verificationUrl, verificationToken);
 
   return 'User registered successfully. Please check your email for verification link.';
 };
@@ -109,7 +111,7 @@ export const verifyUser = async (token: string) => {
     // console.error("Invalid or expired verification token");
     // throw new Error("Invalid or expired verification token");
   }
-  
+
   const verifiedUser = user[0];
 
   // Debug - Show current time & expiry time in UTC for final clarity
@@ -133,21 +135,20 @@ export const verifyUser = async (token: string) => {
   return "Account successfully verified!";
 };
 
-
 export const loginUser = async (email: string, password: string) => {
   console.log("Searching for user with email:", email);
 
   // Step 1: Find user by email
   const users = await db
-      .select()
-      .from(userTable)
-      .where(eq(userTable.email, email))
-      .execute();
+    .select()
+    .from(userTable)
+    .where(eq(userTable.email, email))
+    .execute();
 
   console.log("User query result:", users);
 
   if (users.length === 0) {
-      throw new Error("User not found! Try Again");
+    throw new Error("User not found! Try Again");
   }
 
   const user = users[0];
@@ -155,15 +156,15 @@ export const loginUser = async (email: string, password: string) => {
   // Step 2: Find authentication record for the user
   console.log("Searching for auth record for user ID:", user.user_id);
   const auths = await db
-      .select()
-      .from(authTable)
-      .where(eq(authTable.user_id, user.user_id))
-      .execute();
+    .select()
+    .from(authTable)
+    .where(eq(authTable.user_id, user.user_id))
+    .execute();
 
   console.log("Auth query result:", auths);
 
   if (auths.length === 0) {
-      throw new Error("Invalid credentials! Try again");
+    throw new Error("Invalid credentials! Try again");
   }
 
   const auth = auths[0];
@@ -173,33 +174,32 @@ export const loginUser = async (email: string, password: string) => {
   const isPasswordValid = await bcrypt.compare(password, auth.password_hash);
 
   if (!isPasswordValid) {
-      console.error("Password mismatch!");
-      throw new Error("Invalid credentials! Try again");
+    console.error("Password mismatch!");
+    throw new Error("Invalid credentials! Try again");
   }
 
   // Step 4: Generate a JWT token
   if (!process.env.SECRET || !process.env.EXPIRESIN) {
-      console.error("JWT Secret or Expiration not set");
-      throw new Error("Server configuration error");
+    console.error("JWT Secret or Expiration not set");
+    throw new Error("Server configuration error");
   }
 
   console.log("Generating JWT token...");
   const token = jwt.sign(
-      { id: user.user_id, email: user.email, role: auth.role },
-      process.env.SECRET!,
-      { expiresIn: process.env.EXPIRESIN! }
+    { id: user.user_id, email: user.email, role: auth.role },
+    process.env.SECRET!,
+    { expiresIn: process.env.EXPIRESIN! }
   );
 
   return { token, user };
 };
-
 
 export const getUsersService = async (limit: number = 10) => {
   const users = await db.select().from(userTable).limit(limit).execute();
   return users;
 };
 
-export const getUserByIdService = async (id: number) => { // Ensure id is a number
+export const getUserByIdService = async (id: number) => {
   const user = await db
     .select()
     .from(userTable)
@@ -213,7 +213,7 @@ export const getUserByIdService = async (id: number) => { // Ensure id is a numb
   return { message: "User found", data: user[0] };
 };
 
-export const updateUserService = async (userId: number, updatedData: any) => { // Ensure userId is a number
+export const updateUserService = async (userId: number, updatedData: any) => {
   const updatedUser = await db
     .update(userTable)
     .set(updatedData)
@@ -228,9 +228,9 @@ export const updateUserService = async (userId: number, updatedData: any) => { /
   return { message: "User updated successfully", data: updatedUser[0] };
 };
 
-export const deleteUserService = async (userId: number) => { // Ensure userId is a number
-    const deletedUser = await db
-    .delete(userTable) // Provide the table name here
+export const deleteUserService = async (userId: number) => {
+  const deletedUser = await db
+    .delete(userTable)
     .where(eq(userTable.user_id, userId))
     .returning()
     .execute();
