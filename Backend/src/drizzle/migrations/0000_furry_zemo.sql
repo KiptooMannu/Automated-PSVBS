@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS "payments" (
 	"ticket_id" integer,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
+	"mpesa_receipt_number" text,
 	CONSTRAINT "payments_transaction_reference_unique" UNIQUE("transaction_reference")
 );
 --> statement-breakpoint

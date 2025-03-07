@@ -4,7 +4,7 @@ import { Hono, Context } from "hono";
 import dotenv from "dotenv";
 import { MiddlewareHandler } from "hono";
 import db from "../drizzle/db";
-import { paymentsTable } from "../drizzle/schema";
+import { paymentsTable ,bookingsSeatsTable,bookingTable} from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 
 // Load environment variables
@@ -143,80 +143,10 @@ export const stkPush = async (c: Context) => {
 
 
 
-export const mpesaCallback: MiddlewareHandler = async (c: Context) => {
-  try {
-    const body = await c.req.json();
-    console.log("M-Pesa Callback received:", JSON.stringify(body, null, 2));
-
-    const stkCallback = body.Body?.stkCallback;
-    if (!stkCallback) {
-      console.error("Invalid callback structure: Missing stkCallback");
-      return c.json({ error: "Invalid callback structure" }, 400);
-    }
-
-    const {
-      MerchantRequestID,
-      CheckoutRequestID,
-      ResultCode,
-      ResultDesc,
-      CallbackMetadata,
-    } = stkCallback;
-
-    // Determine transaction status
-    const paymentStatus = ResultCode === 0 ? "completed" : "failed";
-    let MpesaReceiptNumber = "";
-
-    // Extract MpesaReceiptNumber from CallbackMetadata (if available)
-    if (ResultCode === 0 && CallbackMetadata?.Item) {
-      const receiptItem = CallbackMetadata.Item.find(
-        (item: { Name: string; Value: string }) => item.Name === "MpesaReceiptNumber"
-      );
-      if (receiptItem) {
-        MpesaReceiptNumber = receiptItem.Value;
-      } else {
-        console.error("MpesaReceiptNumber not found in CallbackMetadata");
-      }
-    }
-
-    // Update the database with transaction status
-    if (!CheckoutRequestID) {
-      console.error("CheckoutRequestID is missing in the callback");
-      return c.json({ error: "CheckoutRequestID is required" }, 400);
-    }
-
-    const updateResult = await db
-      .update(paymentsTable)
-      .set({
-        payment_status: paymentStatus,
-        transaction_reference: MpesaReceiptNumber || CheckoutRequestID, // Fallback to CheckoutRequestID if MpesaReceiptNumber is missing
-      })
-      .where(eq(paymentsTable.transaction_reference, CheckoutRequestID));
-
-    if (!updateResult) {
-      console.error("Failed to update payment status: No matching record found");
-      return c.json({ error: "Payment record not found" }, 404);
-    }
-
-    console.log(
-      `Payment status updated: ${paymentStatus}, Reference: ${MpesaReceiptNumber || CheckoutRequestID}`
-    );
-
-    return c.json({
-      message: "Callback processed successfully",
-      status: paymentStatus,
-      transaction_reference: MpesaReceiptNumber || CheckoutRequestID,
-      description: ResultDesc,
-    });
-  } catch (error) {
-    console.error("Error processing M-Pesa callback:", error);
-    return c.json({ error: "Internal server error" }, 500);
-  }
-};
-// ✅ Function to Initiate M-Pesa Payment (Can Be Used Independently)
 export const initiateMpesaPayment = async (
   phone_number: string,
   amount: number,
-  booking_id: number // Add booking_id to associate the payment with the booking
+  booking_id: number
 ): Promise<MpesaResponse & { CheckoutRequestID: string }> => {
   const token = await getMpesaToken();
   const timestamp = new Date()
@@ -233,9 +163,9 @@ export const initiateMpesaPayment = async (
     Timestamp: timestamp,
     TransactionType: "CustomerPayBillOnline",
     Amount: amount,
-    PartyA:  phone_number,
+    PartyA: phone_number,
     PartyB: mpesa.partyB,
-    PhoneNumber:  phone_number,
+    PhoneNumber: phone_number,
     CallBackURL: mpesa.callBackURL,
     AccountReference: `Booking_${booking_id}`, // Use booking_id as the reference
     TransactionDesc: "Payment for booking",
@@ -271,7 +201,7 @@ export const initiateMpesaPayment = async (
       payment_method: "M-Pesa",
       payment_status: "pending", // Default status
       transaction_reference: checkoutRequestID, // Use CheckoutRequestID from STK Push response
-      phone_number:  phone_number, // Add phone number from the request
+      phone_number: phone_number, // Add phone number from the request
       payment_date: new Date(), // Use current timestamp
     });
 
@@ -286,3 +216,195 @@ export const initiateMpesaPayment = async (
     CheckoutRequestID: checkoutRequestID,
   };
 };
+
+export const mpesaCallback: MiddlewareHandler = async (c: Context) => {
+  try {
+    const body = await c.req.json();
+    console.log("M-Pesa Callback received:", JSON.stringify(body, null, 2));
+
+    const stkCallback = body.Body?.stkCallback;
+    if (!stkCallback) {
+      console.error("Invalid callback structure: Missing stkCallback");
+      return c.json({ ResultCode: 1, ResultDesc: "Invalid callback structure" }, 400);
+    }
+
+    const {
+      MerchantRequestID,
+      CheckoutRequestID,
+      ResultCode,
+      ResultDesc,
+      CallbackMetadata,
+    } = stkCallback;
+
+    // Determine transaction status based on ResultCode
+    const paymentStatus = ResultCode === 0 ? "completed" : "failed";
+    let MpesaReceiptNumber = "";
+
+    // Extract MpesaReceiptNumber from CallbackMetadata (if available)
+    if (ResultCode === 0 && CallbackMetadata?.Item) {
+      const receiptItem = CallbackMetadata.Item.find(
+        (item: { Name: string; Value: string }) => item.Name === "MpesaReceiptNumber"
+      );
+      if (receiptItem) {
+        MpesaReceiptNumber = receiptItem.Value;
+      } else {
+        console.error("MpesaReceiptNumber not found in CallbackMetadata");
+      }
+    }
+
+    // Update the database with transaction status
+    if (!CheckoutRequestID) {
+      console.error("CheckoutRequestID is missing in the callback");
+      return c.json({ ResultCode: 1, ResultDesc: "CheckoutRequestID is required" }, 400);
+    }
+
+    // Find the payment associated with the CheckoutRequestID
+    const payment = await db.query.paymentsTable.findFirst({
+      where: eq(paymentsTable.transaction_reference, CheckoutRequestID),
+    });
+
+    if (!payment) {
+      console.error("Payment not found for CheckoutRequestID:", CheckoutRequestID);
+      return c.json({ ResultCode: 1, ResultDesc: "Payment not found" }, 404);
+    }
+
+    // Update the payment status and store the MpesaReceiptNumber
+    await db.update(paymentsTable)
+      .set({ 
+        payment_status: paymentStatus, 
+        mpesa_receipt_number: MpesaReceiptNumber || null // Store receipt number or null if not available
+      })
+      .where(eq(paymentsTable.payment_id, payment.payment_id));
+
+    if (paymentStatus === "failed") {
+      // Rollback: Delete the booking and associated seats
+      await db.delete(bookingTable).where(eq(bookingTable.booking_id, payment.booking_id));
+      await db.delete(bookingsSeatsTable).where(eq(bookingsSeatsTable.booking_id, payment.booking_id));
+
+      console.log("Booking rolled back due to payment failure.");
+      return c.json({ ResultCode: 1, ResultDesc: "Payment failed. Booking rolled back." }, 200);
+    }
+
+    // Update the booking status to "confirmed"
+    await db.update(bookingTable)
+      .set({ booking_status: "confirmed" })
+      .where(eq(bookingTable.booking_id, payment.booking_id));
+
+    console.log(
+      `Payment status updated: ${paymentStatus}, Reference: ${MpesaReceiptNumber || CheckoutRequestID}`
+    );
+
+    // Return success response to M-Pesa
+    return c.json({
+      ResultCode: 0,
+      ResultDesc: "Callback processed successfully",
+    });
+  } catch (error) {
+    console.error("Error processing M-Pesa callback:", error);
+    return c.json({ ResultCode: 1, ResultDesc: "Internal server error" }, 500);
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// export const mpesaCallback: MiddlewareHandler = async (c: Context) => {
+//   try {
+//     const body = await c.req.json();
+//     console.log("M-Pesa Callback received:", JSON.stringify(body, null, 2));
+
+//     const stkCallback = body.Body?.stkCallback;
+//     if (!stkCallback) {
+//       console.error("Invalid callback structure: Missing stkCallback");
+//       return c.json({ error: "Invalid callback structure" }, 400);
+//     }
+
+//     const {
+//       MerchantRequestID,
+//       CheckoutRequestID,
+//       ResultCode,
+//       ResultDesc,
+//       CallbackMetadata,
+//     } = stkCallback;
+
+//     // Determine transaction status
+//     const paymentStatus = ResultCode === 0 ? "completed" : "failed";
+//     let MpesaReceiptNumber = "";
+
+//     // Extract MpesaReceiptNumber from CallbackMetadata (if available)
+//     if (ResultCode === 0 && CallbackMetadata?.Item) {
+//       const receiptItem = CallbackMetadata.Item.find(
+//         (item: { Name: string; Value: string }) => item.Name === "MpesaReceiptNumber"
+//       );
+//       if (receiptItem) {
+//         MpesaReceiptNumber = receiptItem.Value;
+//       } else {
+//         console.error("MpesaReceiptNumber not found in CallbackMetadata");
+//       }
+//     }
+
+//     // Update the database with transaction status
+//     if (!CheckoutRequestID) {
+//       console.error("CheckoutRequestID is missing in the callback");
+//       return c.json({ error: "CheckoutRequestID is required" }, 400);
+//     }
+
+//     const updateResult = await db
+//       .update(paymentsTable)
+//       .set({
+//         payment_status: paymentStatus,
+//         transaction_reference: MpesaReceiptNumber || CheckoutRequestID, // Fallback to CheckoutRequestID if MpesaReceiptNumber is missing
+//       })
+//       .where(eq(paymentsTable.transaction_reference, CheckoutRequestID));
+
+//     if (!updateResult) {
+//       console.error("Failed to update payment status: No matching record found");
+//       return c.json({ error: "Payment record not found" }, 404);
+//     }
+
+//     console.log(
+//       `Payment status updated: ${paymentStatus}, Reference: ${MpesaReceiptNumber || CheckoutRequestID}`
+//     );
+
+//     return c.json({
+//       message: "Callback processed successfully",
+//       status: paymentStatus,
+//       transaction_reference: MpesaReceiptNumber || CheckoutRequestID,
+//       description: ResultDesc,
+//     });
+//   } catch (error) {
+//     console.error("Error processing M-Pesa callback:", error);
+//     return c.json({ error: "Internal server error" }, 500);
+//   }
+// };
