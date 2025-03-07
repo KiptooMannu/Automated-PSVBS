@@ -4,7 +4,7 @@ import { Hono, Context } from "hono";
 import dotenv from "dotenv";
 import { MiddlewareHandler } from "hono";
 import db from "../drizzle/db";
-import { paymentsTable } from "../drizzle/schema";
+import { paymentsTable ,bookingsSeatsTable,bookingTable} from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 
 // Load environment variables
@@ -258,19 +258,37 @@ export const mpesaCallback: MiddlewareHandler = async (c: Context) => {
       return c.json({ ResultCode: 1, ResultDesc: "CheckoutRequestID is required" }, 400);
     }
 
-    const updateResult = await db
-      .update(paymentsTable)
-      .set({
-        payment_status: paymentStatus,
-        transaction_reference: MpesaReceiptNumber || CheckoutRequestID, // Fallback to CheckoutRequestID if MpesaReceiptNumber is missing
-      })
-      .where(eq(paymentsTable.transaction_reference, CheckoutRequestID))
-      .returning(); // Ensure the update is applied
+    // Find the payment associated with the CheckoutRequestID
+    const payment = await db.query.paymentsTable.findFirst({
+      where: eq(paymentsTable.transaction_reference, CheckoutRequestID),
+    });
 
-    if (!updateResult || updateResult.length === 0) {
-      console.error("Failed to update payment status: No matching record found");
-      return c.json({ ResultCode: 1, ResultDesc: "Payment record not found" }, 404);
+    if (!payment) {
+      console.error("Payment not found for CheckoutRequestID:", CheckoutRequestID);
+      return c.json({ ResultCode: 1, ResultDesc: "Payment not found" }, 404);
     }
+
+    // Update the payment status and store the MpesaReceiptNumber
+    await db.update(paymentsTable)
+      .set({ 
+        payment_status: paymentStatus, 
+        mpesa_receipt_number: MpesaReceiptNumber || null // Store receipt number or null if not available
+      })
+      .where(eq(paymentsTable.payment_id, payment.payment_id));
+
+    if (paymentStatus === "failed") {
+      // Rollback: Delete the booking and associated seats
+      await db.delete(bookingTable).where(eq(bookingTable.booking_id, payment.booking_id));
+      await db.delete(bookingsSeatsTable).where(eq(bookingsSeatsTable.booking_id, payment.booking_id));
+
+      console.log("Booking rolled back due to payment failure.");
+      return c.json({ ResultCode: 1, ResultDesc: "Payment failed. Booking rolled back." }, 200);
+    }
+
+    // Update the booking status to "confirmed"
+    await db.update(bookingTable)
+      .set({ booking_status: "confirmed" })
+      .where(eq(bookingTable.booking_id, payment.booking_id));
 
     console.log(
       `Payment status updated: ${paymentStatus}, Reference: ${MpesaReceiptNumber || CheckoutRequestID}`
@@ -286,13 +304,6 @@ export const mpesaCallback: MiddlewareHandler = async (c: Context) => {
     return c.json({ ResultCode: 1, ResultDesc: "Internal server error" }, 500);
   }
 };
-
-
-
-
-
-
-
 
 
 

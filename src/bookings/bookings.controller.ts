@@ -1,8 +1,8 @@
 import { Context } from 'hono';
 import { createBookingService, getAllVehiclesWithBookingsService } from './booking.service';
 import db from '../drizzle/db';
-import { bookingsSeatsTable, bookingTable ,vehicleTable } from '../drizzle/schema';
-import { eq, desc } from "drizzle-orm";
+import { bookingsSeatsTable, bookingTable ,vehicleTable ,paymentsTable} from '../drizzle/schema';
+import { eq, desc,and } from "drizzle-orm";
 
 // Helper function to validate and parse dates
 const parseValidDate = (date: any): Date | null => {
@@ -94,25 +94,29 @@ export const createBookingController = async (c: Context) => {
 };
 
 
-// ✅ Retrieve Booked Seats Controller
+
 export const getBookedSeatsController = async (c: Context) => {
-    try {
-        const vehicle_id = c.req.query("vehicle_id");
+  try {
+    const vehicle_id = c.req.query("vehicle_id");
 
-        if (!vehicle_id) {
-            return c.json({ message: "Missing vehicle_id." }, 400);
-        }
-
-        const bookedSeats = await db.query.bookingsSeatsTable.findMany({
-            where: eq(bookingsSeatsTable.vehicle_id, vehicle_id),
-            columns: { seat_id: true }
-        });
-
-        return c.json({ booked_seats: bookedSeats.map(bs => `S${bs.seat_id}`) }, 200);
-    } catch (error) {
-        console.error("Error retrieving booked seats:", error);
-        return c.json({ message: "Internal server error" }, 500);
+    if (!vehicle_id) {
+      return c.json({ message: "Missing vehicle_id." }, 400);
     }
+
+    const bookedSeats = await db.query.bookingsSeatsTable.findMany({
+      where: and(
+        eq(bookingsSeatsTable.vehicle_id, vehicle_id),
+        // Only include seats from confirmed bookings
+        eq(bookingTable.booking_status, 'confirmed')
+      ),
+      columns: { seat_id: true }
+    });
+
+    return c.json({ booked_seats: bookedSeats.map(bs => `S${bs.seat_id}`) }, 200);
+  } catch (error) {
+    console.error("Error retrieving booked seats:", error);
+    return c.json({ message: "Internal server error" }, 500);
+  }
 };
 
 
@@ -160,41 +164,42 @@ export const getAllBookingsController = async (c: Context) => {
     }
 };
 
-
 export const getBookingsByUserIdController = async (c: Context) => {
     try {
-        const user_id = parseInt(c.req.param("user_id")); // Extract user_id from URL params
-
-        if (isNaN(user_id)) {
-            return c.json({ message: "Invalid user ID." }, 400);
-        }
-
-        const userBookings = await db
-            .select({
-                booking_id: bookingTable.booking_id,
-                user_id: bookingTable.user_id,
-                vehicle_id: bookingTable.vehicle_id,
-                booking_date: bookingTable.booking_date,
-                departure: bookingTable.departure,
-                destination: bookingTable.destination,
-                total_price: bookingTable.total_price,
-                departure_date: bookingTable.departure_date,
-                estimated_arrival: bookingTable.estimated_arrival,
-                price: bookingTable.price,
-                booking_status: bookingTable.booking_status,
-                is_active: bookingTable.is_active,
-                departure_time: vehicleTable.departure_time,
-            })
-            .from(bookingTable)
-            .leftJoin(vehicleTable, eq(bookingTable.vehicle_id, vehicleTable.registration_number))
-            .where(eq(bookingTable.user_id, user_id));
-
-        return c.json(userBookings, 200); // Return JSON response
+      const user_id = parseInt(c.req.param("user_id"));
+  
+      if (isNaN(user_id)) {
+        return c.json({ message: "Invalid user ID." }, 400);
+      }
+  
+      const userBookings = await db
+        .select({
+          booking_id: bookingTable.booking_id,
+          user_id: bookingTable.user_id,
+          vehicle_id: bookingTable.vehicle_id,
+          booking_date: bookingTable.booking_date,
+          departure: bookingTable.departure,
+          destination: bookingTable.destination,
+          total_price: bookingTable.total_price,
+          departure_date: bookingTable.departure_date,
+          estimated_arrival: bookingTable.estimated_arrival,
+          price: bookingTable.price,
+          booking_status: bookingTable.booking_status,
+          is_active: bookingTable.is_active,
+          departure_time: vehicleTable.departure_time,
+          payment_status: paymentsTable.payment_status, // ✅ Add payment status
+        })
+        .from(bookingTable)
+        .leftJoin(vehicleTable, eq(bookingTable.vehicle_id, vehicleTable.registration_number))
+        .leftJoin(paymentsTable, eq(bookingTable.booking_id, paymentsTable.booking_id)) // ✅ Join payments table
+        .where(eq(bookingTable.user_id, user_id));
+  
+      return c.json(userBookings, 200);
     } catch (error) {
-        console.error("Error fetching user bookings:", error);
-        return c.json({ message: "Internal server error." }, 500);
+      console.error("Error fetching user bookings:", error);
+      return c.json({ message: "Internal server error." }, 500);
     }
-};
+  };
 
 
 

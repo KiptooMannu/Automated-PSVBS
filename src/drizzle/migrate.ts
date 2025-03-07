@@ -42,12 +42,19 @@ async function migration() {
                 payment_date TIMESTAMP DEFAULT NOW(),
                 phone_number VARCHAR(20) NOT NULL,
                 ticket_id INTEGER REFERENCES tickets(ticket_id) ON DELETE CASCADE,
+                mpesa_receipt_number VARCHAR(255), -- New column for M-Pesa receipt number
                 created_at TIMESTAMP DEFAULT NOW(),
                 updated_at TIMESTAMP DEFAULT NOW()
             );
         `);
 
-        // Step 4: Add index on booking_id in payments table
+        // Step 4: Ensure mpesa_receipt_number column exists in payments table
+        await db.execute(sql`
+            ALTER TABLE payments
+            ADD COLUMN IF NOT EXISTS mpesa_receipt_number VARCHAR(255);
+        `);
+
+        // Step 5: Add index on booking_id in payments table
         await db.execute(sql`
             CREATE INDEX IF NOT EXISTS booking_id_idx ON payments(booking_id);
         `);

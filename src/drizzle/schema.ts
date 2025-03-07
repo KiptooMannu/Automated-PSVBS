@@ -131,6 +131,7 @@ export const paymentsTable = pgTable(
       .references(() => ticketTable.ticket_id, { onDelete: "cascade" }),
     created_at: timestamp("created_at").defaultNow(),
     updated_at: timestamp("updated_at").defaultNow(),
+    mpesa_receipt_number: text("mpesa_receipt_number"),
   },
   (table) => ({
     bookingIndex: index("booking_id_idx").on(table.booking_id),
