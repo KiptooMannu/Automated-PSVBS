@@ -162,7 +162,7 @@ const MapSeatModal: React.FC<MapSeatModalProps> = ({ vehicle, onClose, refetchVe
     setConfirmedSeats(selectedSeats); // Mark selected seats as confirmed
     await refetchBookedSeats(); // Refetch booked seats from the backend
     toast.success('Payment successful! Redirecting to bookings...');
-    setTimeout(() => navigate('/dashboard/mybookings'), 2000);
+    setTimeout(() => navigate('/dashboard/my_bookings'), 2000);
   };
   
   const refetchBookedSeats = async () => {

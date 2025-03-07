@@ -1,5 +1,7 @@
-import { useState } from 'react';
-import { Toaster, toast } from 'sonner';
+
+// export default MpesaPaymentModal;
+import { useState } from "react";
+import { Toaster, toast } from "sonner";
 
 interface MpesaPaymentModalProps {
   bookingId: number;
@@ -16,23 +18,24 @@ const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
   onPaymentSuccess,
   onPaymentFailure,
 }) => {
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handlePayment = async () => {
-    if (!phoneNumber || phoneNumber.length !== 12 || !phoneNumber.startsWith('254')) {
-      toast.error('Please enter a valid phone number starting with 254.');
+    if (!phoneNumber || phoneNumber.length !== 12 || !phoneNumber.startsWith("254")) {
+      toast.error("Please enter a valid phone number starting with 254.");
       return;
     }
 
     setIsSubmitting(true);
+    toast.info("Initiating payment...");
 
     try {
       // Call the STK Push endpoint
-      const response = await fetch('/mpesa/stkpush', {
-        method: 'POST',
+      const response = await fetch("https://backenc-automated-psvbs-deployment.onrender.com/mpesa/stkpush", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           phone_number: phoneNumber,
@@ -44,14 +47,50 @@ const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
       const data = await response.json();
 
       if (response.ok) {
-        toast.success('Payment initiated successfully. Please complete the payment on your phone.');
-        onPaymentSuccess();
+        toast.success("Payment initiated successfully. Please complete the payment on your phone.");
+
+        // Extract CheckoutRequestID from the STK Push response
+        const checkoutRequestID = data.data.CheckoutRequestID;
+
+        if (!checkoutRequestID) {
+          toast.error("Failed to retrieve CheckoutRequestID.");
+          onPaymentFailure();
+          return;
+        }
+
+        // Start polling immediately for payment status
+        const pollPaymentStatus = async () => {
+          try {
+            const statusResponse = await fetch(
+              `https://backenc-automated-psvbs-deployment.onrender.com/payment-status?checkout_request_id=${checkoutRequestID}`
+            );
+            const statusData = await statusResponse.json();
+
+            if (statusData.payment_status === "completed") {
+              toast.success("Payment confirmed successfully!");
+              onPaymentSuccess(); // Trigger success handler
+            } else if (statusData.payment_status === "failed") {
+              toast.error("Payment failed. Please try again.");
+              onPaymentFailure(); // Trigger failure handler
+            } else {
+              // Continue polling if payment is still pending
+              setTimeout(pollPaymentStatus, 3000); // Poll every 3 seconds
+            }
+          } catch (error) {
+            console.error("Error polling payment status:", error);
+            toast.error("An error occurred while confirming payment.");
+            onPaymentFailure(); // Trigger failure handler
+          }
+        };
+
+        // Start polling
+        pollPaymentStatus();
       } else {
-        toast.error(data.error || 'Failed to initiate payment. Please try again.');
+        toast.error(data.error || "Failed to initiate payment. Please try again.");
         onPaymentFailure();
       }
     } catch (error) {
-      toast.error('An error occurred while initiating payment.');
+      toast.error("An error occurred while initiating payment.");
       onPaymentFailure(); // Trigger failure handler
     } finally {
       setIsSubmitting(false);
@@ -83,10 +122,10 @@ const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
           <button
             type="button"
             onClick={handlePayment}
-            className={`bg-blue-500 text-white px-4 py-2 rounded ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`bg-blue-500 text-white px-4 py-2 rounded ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Processing...' : 'Pay via M-Pesa'}
+            {isSubmitting ? "Processing..." : "Pay via M-Pesa"}
           </button>
         </div>
       </div>
