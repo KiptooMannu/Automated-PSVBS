@@ -20,7 +20,7 @@ import Analytics from './pages/dashboard/main/Analytics/Analytics';
 import AboutSection from './components/About/About';
 import Contact from './components/Contact/Contact';
 import Testimonial from './components/Testimonial/Testimonial';
-import ChangePasswordModal from './components/ChangePassword';
+// import ChangePasswordModal from './components/ChangePassword';
 import Login from './pages/auth/Login';
 import VerificationNotice from './pages/auth/VerificationNotice';
 import VerifyAccountPage from './pages/auth/VerifyAccountPage';

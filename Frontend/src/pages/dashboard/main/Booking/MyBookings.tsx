@@ -6,13 +6,13 @@ import { toast } from "sonner";
 
 function MyBookings() {
   const user = useSelector((state: RootState) => state.user);
-  const userId = user.user?.user_id ?? 0; 
+  const userId = user.user?.user_id ?? 0;
 
   const { data: booking, error, isLoading, refetch } = useGetUserBookingQuery(userId);
   const [updateBooking] = useUpdateBookingVehicleMutation();
 
   const formatDate = (isoDate: string | number | Date | null | undefined) => {
-    if (!isoDate) return "N/A"; // Handle missing dates
+    if (!isoDate) return "N/A";
     const date = new Date(isoDate);
     return isNaN(date.getTime()) ? "Invalid Date" : format(date, "MM/dd/yyyy HH:mm:ss");
   };
@@ -36,13 +36,8 @@ function MyBookings() {
       <div className="mx-auto bg-slate-200 w-full rounded-md mb-5 border-2">
         <h2 className="text-center text-xl p-2 rounded-t-md text-webcolor font-bold">My Booking History</h2>
 
-        {/* Loading State */}
         {isLoading && <div className="text-center text-gray-600">Loading...</div>}
-
-        {/* Error State */}
         {error && <div className="text-center text-red-500">Error loading bookings</div>}
-
-        {/* No Booking Found State */}
         {!isLoading && !error && (!booking || booking.length === 0) && (
           <div className="text-center text-gray-600">No bookings found</div>
         )}
@@ -59,6 +54,7 @@ function MyBookings() {
                 <th className="px-4 py-2 text-left text-text-light">Return Date</th>
                 <th className="px-4 py-2 text-left text-text-light">Total Amount</th>
                 <th className="px-4 py-2 text-left text-text-light">Booking Status</th>
+                <th className="px-4 py-2 text-left text-text-light">Payment Status</th> {/* ✅ Add Payment Status */}
                 <th className="px-4 py-2 text-left text-text-light">Action</th>
               </tr>
             </thead>
@@ -75,6 +71,7 @@ function MyBookings() {
                   </td>
                   <td className="px-4 py-2">{booking.total_price}</td>
                   <td className="px-4 py-2">{booking.booking_status}</td>
+                  <td className="px-4 py-2">{booking.payment_status || "N/A"}</td> {/* ✅ Display Payment Status */}
                   <td className="px-4 py-2">
                     {booking.booking_status === "pending" && (
                       <button

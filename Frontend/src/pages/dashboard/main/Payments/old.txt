@@ -1,3 +1,444 @@
+which column in my db is CheckoutRequestID  saved , ?based on your codes 
+which code specifically
+on this frontend show me where frontend is returning it 
+import { useState } from 'react';
+import { Toaster, toast } from 'sonner';
+
+interface MpesaPaymentModalProps {
+  bookingId: number;
+  amount: number;
+  onClose: () => void;
+  onPaymentSuccess: () => void;
+  onPaymentFailure: () => void;
+}
+
+const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
+  bookingId,
+  amount,
+  onClose,
+  onPaymentSuccess,
+  onPaymentFailure,
+}) => {
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handlePayment = async () => {
+    if (!phoneNumber || phoneNumber.length !== 12 || !phoneNumber.startsWith('254')) {
+      toast.error('Please enter a valid phone number starting with 254.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Call the STK Push endpoint
+      const response = await fetch('/mpesa/stkpush', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          phone_number: phoneNumber,
+          amount,
+          booking_id: bookingId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success('Payment initiated successfully. Please complete the payment on your phone.');
+        onPaymentSuccess();
+      } else {
+        toast.error(data.error || 'Failed to initiate payment. Please try again.');
+        onPaymentFailure();
+      }
+    } catch (error) {
+      toast.error('An error occurred while initiating payment.');
+      onPaymentFailure(); // Trigger failure handler
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+      <Toaster />
+      <div className="bg-white p-6 rounded-lg shadow-lg w-full md:w-1/3">
+        <h2 className="text-xl font-bold mb-4">M-Pesa Payment</h2>
+        <div className="mb-4">
+          <label htmlFor="phoneNumber" className="block mb-1">Phone Number</label>
+          <input
+            type="text"
+            id="phoneNumber"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            className="border rounded w-full py-2 px-3"
+            placeholder="254XXXXXXXXX"
+          />
+        </div>
+        <div className="mb-4">
+          <p className="text-lg font-semibold">Amount: KSh {amount.toFixed(2)}</p>
+          <p className="text-lg font-semibold">Booking ID: {bookingId}</p>
+        </div>
+        <div className="flex justify-between">
+          <button type="button" onClick={onClose} className="text-gray-600 hover:text-gray-800">Cancel</button>
+          <button
+            type="button"
+            onClick={handlePayment}
+            className={`bg-blue-500 text-white px-4 py-2 rounded ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Processing...' : 'Pay via M-Pesa'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MpesaPaymentModal;
+on this booking controller 
+import { Context } from 'hono';
+import { createBookingService, getAllVehiclesWithBookingsService } from './booking.service';
+import db from '../drizzle/db';
+import { bookingsSeatsTable, bookingTable ,vehicleTable } from '../drizzle/schema';
+import { eq, desc,and } from "drizzle-orm";
+
+// Helper function to validate and parse dates
+const parseValidDate = (date: any): Date | null => {
+    if (!date) return null;
+    const parsedDate = new Date(date);
+    return isNaN(parsedDate.getTime()) ? null : parsedDate;
+};
+
+// ✅ Create Booking Controller
+export const createBookingController = async (c: Context) => {
+    try {
+        const {
+            user_id,
+            vehicle_id,
+            seat_numbers,
+            booking_date,
+            departure_date,
+            departure,
+            destination,
+            estimated_arrival,
+            price,
+            total_price,
+        }: {
+            user_id: number;
+            vehicle_id: string;
+            seat_numbers: string[];
+            booking_date: string;
+            departure_date: string;
+            departure: string;
+            destination: string;
+            estimated_arrival: string | null;
+            price: string;
+            total_price: string;
+        } = await c.req.json();
+
+        console.log("📌 Vehicle ID:", vehicle_id);
+
+        if (!user_id || !vehicle_id || !seat_numbers.length || !price || !total_price || !booking_date || !departure_date) {
+            return c.json({ message: "Missing required booking details." }, 400);
+        }
+
+        // ✅ Fetch departure_time from vehicleTable
+        const vehicle = await db.query.vehicleTable.findFirst({
+            where: eq(vehicleTable.registration_number, vehicle_id),
+            columns: { departure_time: true },
+        });
+
+        if (!vehicle?.departure_time) {
+            return c.json({ message: "Vehicle departure time not found." }, 404);
+        }
+
+        // ✅ Convert dates
+        const formattedBookingDate = parseValidDate(booking_date);
+        const formattedDepartureDate = parseValidDate(departure_date);
+
+        if (!formattedBookingDate || !formattedDepartureDate) {
+            return c.json({ message: "Invalid date format." }, 400);
+        }
+
+        // ✅ Convert seat numbers to seat IDs
+        const seat_ids = seat_numbers.map((seat) => parseInt(seat.replace("S", ""), 10));
+
+        // ✅ Ensure total_price is correct
+        const calculatedTotalPrice = seat_ids.length * parseFloat(price);
+        if (parseFloat(total_price) !== calculatedTotalPrice) {
+            return c.json({ message: "Total price mismatch." }, 400);
+        }
+
+        // ✅ Create booking (Without departure_time)
+        const bookingId = await createBookingService({
+            user_id,
+            vehicle_id,
+            booking_date: formattedBookingDate,
+            departure_date: formattedDepartureDate,
+            departure_time: vehicle.departure_time, // ✅ Use fetched departure_time
+            departure,
+            destination,
+            estimated_arrival,
+            price,
+            total_price: calculatedTotalPrice.toString(),
+            seat_numbers,
+        });
+
+        return c.json({ message: "Booking created successfully!", booking_id: bookingId }, 201);
+    } catch (error) {
+        console.error("Error creating booking:", error);
+        return c.json({ message: "Internal server error." }, 500);
+    }
+};
+
+
+
+export const getBookedSeatsController = async (c: Context) => {
+  try {
+    const vehicle_id = c.req.query("vehicle_id");
+
+    if (!vehicle_id) {
+      return c.json({ message: "Missing vehicle_id." }, 400);
+    }
+
+    const bookedSeats = await db.query.bookingsSeatsTable.findMany({
+      where: and(
+        eq(bookingsSeatsTable.vehicle_id, vehicle_id),
+        // Only include seats from confirmed bookings
+        eq(bookingTable.booking_status, 'confirmed')
+      ),
+      columns: { seat_id: true }
+    });
+
+    return c.json({ booked_seats: bookedSeats.map(bs => `S${bs.seat_id}`) }, 200);
+  } catch (error) {
+    console.error("Error retrieving booked seats:", error);
+    return c.json({ message: "Internal server error" }, 500);
+  }
+};
+
+
+// ✅ Fetch All Vehicles With Bookings (Departure Date & Time)
+export const getAllVehiclesWithBookingsController = async (c: Context) => {
+    try {
+        const vehiclesWithBookings = await getAllVehiclesWithBookingsService();
+        return c.json(vehiclesWithBookings, 200);
+    } catch (error) {
+        console.error("Error fetching vehicles with bookings:", error);
+        return c.json({ message: "Internal server error" }, 500);
+    }
+};
+
+// ✅ Fetch All Bookings
+import { sql } from "drizzle-orm"; // ✅ Use raw SQL aggregation
+
+
+export const getAllBookingsController = async (c: Context) => {
+    try {
+        const bookings = await db
+            .select({
+                booking_id: bookingTable.booking_id,
+                user_id: bookingTable.user_id,
+                vehicle_id: bookingTable.vehicle_id,
+                departure_date: bookingTable.departure_date,
+                departure_time: vehicleTable.departure_time, // ✅ Fix: Now vehicleTable is joined
+                departure: bookingTable.departure,
+                destination: bookingTable.destination,
+                total_price: bookingTable.total_price,
+                booking_status: bookingTable.booking_status,
+                booking_date: bookingTable.booking_date,
+                seat_ids: sql<string>`COALESCE(STRING_AGG(${bookingsSeatsTable.seat_id}::TEXT, ','), 'N/A')`.as("seat_ids"),
+            })
+            .from(bookingTable)
+            .leftJoin(vehicleTable, eq(bookingTable.vehicle_id, vehicleTable.registration_number)) // ✅ Add this join
+            .leftJoin(bookingsSeatsTable, eq(bookingTable.booking_id, bookingsSeatsTable.booking_id))
+            .groupBy(bookingTable.booking_id, vehicleTable.departure_time) // ✅ Group by departure_time to avoid aggregation issues
+            .execute();
+
+        return c.json(bookings, 200);
+    } catch (error) {
+        console.error("Error fetching bookings:", error);
+        return c.json({ message: "Internal server error" }, 500);
+    }
+};
+
+
+export const getBookingsByUserIdController = async (c: Context) => {
+    try {
+        const user_id = parseInt(c.req.param("user_id")); // Extract user_id from URL params
+
+        if (isNaN(user_id)) {
+            return c.json({ message: "Invalid user ID." }, 400);
+        }
+
+        const userBookings = await db
+            .select({
+                booking_id: bookingTable.booking_id,
+                user_id: bookingTable.user_id,
+                vehicle_id: bookingTable.vehicle_id,
+                booking_date: bookingTable.booking_date,
+                departure: bookingTable.departure,
+                destination: bookingTable.destination,
+                total_price: bookingTable.total_price,
+                departure_date: bookingTable.departure_date,
+                estimated_arrival: bookingTable.estimated_arrival,
+                price: bookingTable.price,
+                booking_status: bookingTable.booking_status,
+                is_active: bookingTable.is_active,
+                departure_time: vehicleTable.departure_time,
+            })
+            .from(bookingTable)
+            .leftJoin(vehicleTable, eq(bookingTable.vehicle_id, vehicleTable.registration_number))
+            .where(eq(bookingTable.user_id, user_id));
+
+        return c.json(userBookings, 200); // Return JSON response
+    } catch (error) {
+        console.error("Error fetching user bookings:", error);
+        return c.json({ message: "Internal server error." }, 500);
+    }
+};
+
+
+
+// ✅ Confirm Booking Controller
+export const confirmBookingController = async (c: Context) => {
+    try {
+        const { booking_id }: { booking_id: number } = await c.req.json();
+
+        if (!booking_id) {
+            return c.json({ message: "Booking ID is required." }, 400);
+        }
+
+        // ✅ Check if the booking exists
+        const existingBooking = await db.query.bookingTable.findFirst({
+            where: eq(bookingTable.booking_id, booking_id),
+        });
+
+        if (!existingBooking) {
+            return c.json({ message: "Booking not found." }, 404);
+        }
+
+        if (existingBooking.booking_status === "confirmed" || existingBooking.booking_status === "completed") {
+            return c.json({ message: "Booking is already confirmed or completed." }, 200);
+        }
+
+        // ✅ Update the booking status to "confirmed"
+        await db.update(bookingTable)
+            .set({ booking_status: "confirmed" })
+            .where(eq(bookingTable.booking_id, booking_id));
+
+        return c.json({ message: "Booking confirmed successfully.", success: true }, 200);
+    } catch (error) {
+        console.error("Error confirming booking:", error);
+        return c.json({ message: "Internal server error" }, 500);
+    }
+};
+modify it so that payment status will be fetched and displayed on my bookings.tsx
+import { useGetUserBookingQuery, useUpdateBookingVehicleMutation } from "../../../../features/booking/bookingAPI";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../../app/store";
+import { format } from "date-fns";
+import { toast } from "sonner";
+
+function MyBookings() {
+  const user = useSelector((state: RootState) => state.user);
+  const userId = user.user?.user_id ?? 0; 
+
+  const { data: booking, error, isLoading, refetch } = useGetUserBookingQuery(userId);
+  const [updateBooking] = useUpdateBookingVehicleMutation();
+
+  const formatDate = (isoDate: string | number | Date | null | undefined) => {
+    if (!isoDate) return "N/A"; // Handle missing dates
+    const date = new Date(isoDate);
+    return isNaN(date.getTime()) ? "Invalid Date" : format(date, "MM/dd/yyyy HH:mm:ss");
+  };
+
+  const handleCancelBooking = async (bookingId: number) => {
+    try {
+      await updateBooking({
+        booking_id: bookingId,
+        booking_status: "cancelled",
+      }).unwrap();
+      toast.success("Booking cancelled successfully");
+      refetch(); // Refresh the data
+    } catch (error) {
+      toast.error("Failed to cancel booking");
+      console.error("Error:", error);
+    }
+  };
+
+  return (
+    <div className="bg-slate-200 min-h-screen">
+      <div className="mx-auto bg-slate-200 w-full rounded-md mb-5 border-2">
+        <h2 className="text-center text-xl p-2 rounded-t-md text-webcolor font-bold">My Booking History</h2>
+
+        {/* Loading State */}
+        {isLoading && <div className="text-center text-gray-600">Loading...</div>}
+
+        {/* Error State */}
+        {error && <div className="text-center text-red-500">Error loading bookings</div>}
+
+        {/* No Booking Found State */}
+        {!isLoading && !error && (!booking || booking.length === 0) && (
+          <div className="text-center text-gray-600">No bookings found</div>
+        )}
+
+        <div className="overflow-x-auto">
+          <table className="table-auto w-full">
+            <thead>
+              <tr className="bg-slate-700">
+                <th className="px-4 py-2 text-left text-text-light">Booking ID</th>
+                <th className="px-4 py-2 text-left text-text-light">Vehicle ID</th>
+                <th className="px-4 py-2 text-left text-text-light">User ID</th>
+                <th className="px-4 py-2 text-left text-text-light">Seats ID</th>
+                <th className="px-4 py-2 text-left text-text-light">Booking Date</th>
+                <th className="px-4 py-2 text-left text-text-light">Return Date</th>
+                <th className="px-4 py-2 text-left text-text-light">Total Amount</th>
+                <th className="px-4 py-2 text-left text-text-light">Booking Status</th>
+                <th className="px-4 py-2 text-left text-text-light">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(booking || []).map((booking) => (
+                <tr key={booking.booking_id} className="border-b border-slate-600">
+                  <td className="px-4 py-2">{booking.booking_id}</td>
+                  <td className="px-4 py-2">{booking.vehicle_id}</td>
+                  <td className="px-4 py-2">{booking.user_id}</td>
+                  <td className="px-4 py-2">{booking.seat_ids}</td>
+                  <td className="px-4 py-2">{formatDate(booking.booking_date)}</td>
+                  <td className="px-4 py-2">
+                    {booking.vehicle ? formatDate(booking.vehicle.departure_time) : "N/A"}
+                  </td>
+                  <td className="px-4 py-2">{booking.total_price}</td>
+                  <td className="px-4 py-2">{booking.booking_status}</td>
+                  <td className="px-4 py-2">
+                    {booking.booking_status === "pending" && (
+                      <button
+                        onClick={() => handleCancelBooking(booking.booking_id)}
+                        className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default MyBookings;
+
+and he cancel booking should be working well and explain how it should be working and tell me where specifically im i supposed to input other codes
+
+======================================================================================================================================================
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { format } from 'date-fns';

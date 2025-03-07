@@ -31,6 +31,7 @@ export interface Tbooking {
   booking_status: string;
   is_active: string;
   seat_ids: number;
+  payment_status:string;
   payments: Payment[];
 }
 
