@@ -1,0 +1,600 @@
+// mpesa service
+
+import { Hono, Context } from "hono";
+import dotenv from "dotenv";
+import { MiddlewareHandler } from "hono";
+import db from "../drizzle/db";
+import { paymentsTable ,bookingsSeatsTable,bookingTable} from "../drizzle/schema";
+import { eq } from "drizzle-orm";
+
+// Load environment variables
+dotenv.config();
+
+// Log environment variable to the terminal
+console.log(`MPESA_ENV: ${process.env.MPESA_ENV}`);
+
+
+
+
+const app = new Hono();
+
+// Ensure MPESA_ENV is set
+const MPESA_ENV = process.env.MPESA_ENV?.trim();
+if (!MPESA_ENV) {
+  throw new Error("MPESA_ENV is not set. Please check your .env file.");
+}
+ 
+// M-Pesa Configuration
+const mpesa = {
+  businessShortCode: process.env.MPESA_BUSINESS_SHORTCODE || "174379",
+  passKey: process.env.MPESA_PASSKEY || "default_passkey",
+  consumerKey: process.env.MPESA_CONSUMER_KEY || "default_consumer_key",
+  consumerSecret: process.env.MPESA_CONSUMER_SECRET || "default_consumer_secret",
+  callBackURL: process.env.MPESA_CALLBACK_URL || "default_callback_url",
+  partyB: process.env.MPESA_PARTY_B || "174379",
+  tokenUrl: `https://${MPESA_ENV}.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials`,
+  stkUrl: `https://${MPESA_ENV}.safaricom.co.ke/mpesa/stkpush/v1/processrequest`,
+};
+
+console.log("M-Pesa Configuration:", mpesa);
+
+interface MpesaResponse {
+  MerchantRequestID?: string;
+  CheckoutRequestID?: string;
+  ResponseCode?: string;
+  ResponseDescription?: string;
+  CustomerMessage?: string;
+  errorCode?: string;
+  errorMessage?: string;
+  MpesaReceiptNumber?: string;
+}
+
+// ✅ Function to Generate M-Pesa OAuth Token
+const getMpesaToken = async (): Promise<string> => {
+  const auth = Buffer.from(
+    `${mpesa.consumerKey}:${mpesa.consumerSecret}`
+  ).toString("base64");
+
+  const response = await fetch(mpesa.tokenUrl, {
+    method: "GET",
+    headers: { Authorization: `Basic ${auth}` },
+  });
+
+  if (!response.ok)
+    throw new Error(`M-Pesa Token Error: ${response.statusText}`);
+
+  const data = (await response.json()) as { access_token: string };
+  return data.access_token;
+};
+
+
+
+export const stkPush = async (c: Context) => {
+  try {
+    const { phone_number, amount, booking_id } = await c.req.json();
+
+    // Trim and validate phone number
+    const trimmedPhone = phone_number.trim();
+    if (!/^254\d{9}$/.test(trimmedPhone)) {
+      return c.json({ error: "Invalid phone format. Use 254XXXXXXXXX." }, 400);
+    }
+    if (amount <= 0) {
+      return c.json({ error: "Amount must be greater than zero." }, 400);
+    }
+
+    // Generate OAuth token
+    const token = await getMpesaToken();
+
+    // Generate timestamp and password
+    const timestamp = new Date()
+      .toISOString()
+      .replace(/[^0-9]/g, "")
+      .slice(0, 14);
+    const password = Buffer.from(
+      `${mpesa.businessShortCode}${mpesa.passKey}${timestamp}`
+    ).toString("base64");
+
+    // Prepare payload
+    const payload = {
+      BusinessShortCode: mpesa.businessShortCode,
+      Password: password,
+      Timestamp: timestamp,
+      TransactionType: "CustomerPayBillOnline",
+      Amount: amount,
+      PartyA: trimmedPhone,
+      PartyB: mpesa.partyB,
+      PhoneNumber: trimmedPhone,
+      CallBackURL: mpesa.callBackURL,
+      AccountReference: `Booking_${booking_id}`,
+      TransactionDesc: "Payment for services",
+    };
+
+    // Send request to M-Pesa API
+    const response = await fetch(mpesa.stkUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorResponse = await response.text();
+      throw new Error(`M-Pesa STK Push Failed: ${errorResponse}`);
+    }
+
+    const result = (await response.json()) as MpesaResponse;
+
+    // Ensure CheckoutRequestID is present
+    if (!result.CheckoutRequestID) {
+      throw new Error("CheckoutRequestID is missing in the STK Push response");
+    }
+
+    // Store the payment record with status 'pending' and CheckoutRequestID
+    await db.insert(paymentsTable).values({
+      booking_id: Number(booking_id),
+      amount: String(amount),
+      transaction_reference: result.CheckoutRequestID,
+      payment_status: "pending",
+      phone_number: trimmedPhone,
+      mpesa_receipt_number: "", // Will be updated in the callback
+      payment_method: "M-Pesa",
+      payment_date: new Date(),
+    });
+
+    // Return the CheckoutRequestID immediately
+    return c.json({
+      message: "STK push initiated successfully",
+      data: {
+        MerchantRequestID: result.MerchantRequestID,
+        CheckoutRequestID: result.CheckoutRequestID,
+        ResponseCode: result.ResponseCode,
+        ResponseDescription: result.ResponseDescription,
+        CustomerMessage: result.CustomerMessage,
+      },
+    });
+
+  } catch (error: any) {
+    console.error("STK Push Error:", error);
+    return c.json({ error: error.message }, 500);
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export const mpesaCallback: MiddlewareHandler = async (c: Context) => {
+  try {
+    const body = await c.req.json();
+    console.log("M-Pesa Callback received:", JSON.stringify(body, null, 2));
+    console.log("Received callback payload:", JSON.stringify(body, null, 2));
+    const stkCallback = body.Body?.stkCallback;
+
+    if (!stkCallback) {
+      console.error("Invalid callback structure: Missing stkCallback");
+      return c.json({ ResultCode: 1, ResultDesc: "Invalid callback structure" }, 400);
+    }
+    
+    if (!stkCallback.CheckoutRequestID) {
+      console.error("CheckoutRequestID is missing in the callback");
+      return c.json({ ResultCode: 1, ResultDesc: "CheckoutRequestID is required" }, 400);
+    }
+    
+    if (stkCallback.ResultCode === undefined) {
+      console.error("ResultCode is missing in the callback");
+      return c.json({ ResultCode: 1, ResultDesc: "ResultCode is required" }, 400);
+    }
+    const {
+      MerchantRequestID,
+      CheckoutRequestID,
+      ResultCode,
+      ResultDesc,
+      CallbackMetadata,
+    } = stkCallback;
+
+    // Ensure CheckoutRequestID is available
+    if (!CheckoutRequestID) {
+      console.error("CheckoutRequestID is missing in the callback");
+      return c.json({ ResultCode: 1, ResultDesc: "CheckoutRequestID is required" }, 400);
+    }
+
+    // Check if the payment has already been processed
+    const existingPayment = await db.query.paymentsTable.findFirst({
+      where: eq(paymentsTable.transaction_reference, CheckoutRequestID),
+    });
+
+    if (!existingPayment) {
+      console.error("Payment not found for CheckoutRequestID:", CheckoutRequestID);
+      return c.json({ ResultCode: 1, ResultDesc: "Payment not found" }, 404);
+    }
+
+    if (existingPayment.payment_status !== "pending") {
+      console.log("Payment already processed:", CheckoutRequestID);
+      return c.json({ ResultCode: 0, ResultDesc: "Payment already processed" }, 200);
+    }
+
+    // Determine transaction status based on ResultCode
+    const paymentStatus = ResultCode === 0 ? "completed" : "failed";
+    let MpesaReceiptNumber = "";
+
+    // Extract MpesaReceiptNumber from CallbackMetadata (if available)
+    if (ResultCode === 0 && CallbackMetadata?.Item) {
+      const receiptItem = CallbackMetadata.Item.find(
+        (item: { Name: string; Value: string }) => item.Name === "MpesaReceiptNumber"
+      );
+      if (receiptItem) {
+        MpesaReceiptNumber = receiptItem.Value;
+      } else {
+        console.error("MpesaReceiptNumber not found in CallbackMetadata");
+      }
+    }
+
+    // If payment failed, rollback booking and seats, but keep booking status pending
+    if (paymentStatus === "failed") {
+      await db.delete(bookingsSeatsTable).where(eq(bookingsSeatsTable.booking_id, existingPayment.booking_id));
+      await db.delete(bookingTable).where(eq(bookingTable.booking_id, existingPayment.booking_id));
+
+      // Update payment status to failed
+      await db.update(paymentsTable)
+        .set({ payment_status: "failed" })
+        .where(eq(paymentsTable.payment_id, existingPayment.payment_id));
+
+      console.log("Payment failed. Booking and associated seats rolled back.");
+      return c.json({ ResultCode: 1, ResultDesc: "Payment failed. Booking rolled back." }, 200);
+    }
+
+    // If payment is successful, update payment status and store receipt number
+    await db.update(paymentsTable)
+      .set({ 
+        payment_status: "completed", 
+        mpesa_receipt_number: MpesaReceiptNumber 
+      })
+      .where(eq(paymentsTable.payment_id, existingPayment.payment_id));
+      console.log("Payment updated successfully:", MpesaReceiptNumber);
+
+    // Update booking status to confirmed
+    await db.update(bookingTable)
+      .set({ booking_status: "confirmed" })
+      .where(eq(bookingTable.booking_id, existingPayment.booking_id));
+
+    console.log(
+      `Payment status updated to ${paymentStatus}. Reference: ${MpesaReceiptNumber || CheckoutRequestID}`
+    );
+
+    // Return success response to M-Pesa
+    return c.json({
+      ResultCode: 0,
+      ResultDesc: "Callback processed successfully",
+    });
+  } catch (error) {
+    console.error("Error processing M-Pesa callback:", error);
+    return c.json({ ResultCode: 1, ResultDesc: "Internal server error" }, 500);
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ✅ Function to Initiate M-Pesa Payment (Can Be Used Independently)
+export const initiateMpesaPayment = async (
+  phone_number: string,
+  amount: number,
+  booking_id: number
+): Promise<MpesaResponse & { CheckoutRequestID: string }> => {
+  const token = await getMpesaToken();
+  const timestamp = new Date()
+    .toISOString()
+    .replace(/[^0-9]/g, "")
+    .slice(0, 14);
+  const password = Buffer.from(
+    `${mpesa.businessShortCode}${mpesa.passKey}${timestamp}`
+  ).toString("base64");
+
+  const payload = {
+    BusinessShortCode: mpesa.businessShortCode,
+    Password: password,
+    Timestamp: timestamp,
+    TransactionType: "CustomerPayBillOnline",
+    Amount: amount,
+    PartyA: phone_number,
+    PartyB: mpesa.partyB,
+    PhoneNumber: phone_number,
+    CallBackURL: mpesa.callBackURL,
+    AccountReference: `Booking_${booking_id}`, // Use booking_id as the reference
+    TransactionDesc: "Payment for booking",
+  };
+
+  const response = await fetch(mpesa.stkUrl, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errorResponse = await response.text();
+    console.error("M-Pesa STK Push Failed:", errorResponse);
+    throw new Error(`M-Pesa STK Push Failed: ${errorResponse}`);
+  }
+
+
+  const responseData = (await response.json()) as MpesaResponse;
+
+  // Ensure CheckoutRequestID is defined
+  if (!responseData.CheckoutRequestID) {
+    throw new Error("CheckoutRequestID is missing in the STK Push response");
+  }
+
+  const checkoutRequestID: string = responseData.CheckoutRequestID;
+
+  // Save the payment record in the paymentsTable
+  try {
+    await db.insert(paymentsTable).values({
+      booking_id,
+      amount: amount.toString(), // Convert to string to match the schema
+      payment_method: "M-Pesa",
+      payment_status: "pending", // Default status
+      transaction_reference: checkoutRequestID, // Use CheckoutRequestID from STK Push response
+      phone_number: phone_number, // Add phone number from the request
+      payment_date: new Date(), // Use current timestamp
+    });
+
+    console.log("Payment record created with status: pending");
+  } catch (error) {
+    console.error("Failed to create payment record:", error);
+    throw new Error("Failed to create payment record");
+  }
+
+  return {
+    ...responseData,
+    CheckoutRequestID: checkoutRequestID,
+  };
+};
+
+
+
+
+
+================================================================================================================
+
+// export default MpesaPaymentModal;
+import { useState } from "react";
+import { Toaster, toast } from "sonner";
+
+interface MpesaPaymentModalProps {
+  bookingId: number;
+  amount: number;
+  onClose: () => void;
+  onPaymentSuccess: () => void;
+  onPaymentFailure: () => void;
+}
+
+const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
+  bookingId,
+  amount,
+  onClose,
+  onPaymentSuccess,
+  onPaymentFailure,
+}) => {
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handlePayment = async () => {
+    if (!phoneNumber || phoneNumber.length !== 12 || !phoneNumber.startsWith("254")) {
+      toast.error("Please enter a valid phone number starting with 254.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    toast.info("Initiating payment...");
+
+    try {
+      // Call the STK Push endpoint
+      const response = await fetch("https://backenc-automated-psvbs-deployment.onrender.com/mpesa/stkpush", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phone_number: phoneNumber,
+          amount,
+          booking_id: bookingId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success("Payment initiated successfully. Please complete the payment on your phone.");
+
+        // Extract CheckoutRequestID from the STK Push response
+        const checkoutRequestID = data.data.CheckoutRequestID;
+
+        if (!checkoutRequestID) {
+          toast.error("Failed to retrieve CheckoutRequestID.");
+          onPaymentFailure();
+          return;
+        }
+
+        // Start polling immediately for payment status
+        const pollPaymentStatus = async () => {
+          try {
+            const statusResponse = await fetch(
+              `https://backenc-automated-psvbs-deployment.onrender.com/payment-status?checkout_request_id=${checkoutRequestID}`
+            );
+            const statusData = await statusResponse.json();
+
+            if (statusData.payment_status === "completed") {
+              toast.success("Payment confirmed successfully!");
+              onPaymentSuccess(); // Trigger success handler
+            } else if (statusData.payment_status === "failed") {
+              toast.error("Payment failed. Please try again.");
+              onPaymentFailure(); // Trigger failure handler
+            } else {
+              // Continue polling if payment is still pending
+              setTimeout(pollPaymentStatus, 3000); // Poll every 3 seconds
+            }
+          } catch (error) {
+            console.error("Error polling payment status:", error);
+            toast.error("An error occurred while confirming payment.");
+            onPaymentFailure(); // Trigger failure handler
+          }
+        };
+
+        // Start polling
+        pollPaymentStatus();
+      } else {
+        toast.error(data.error || "Failed to initiate payment. Please try again.");
+        onPaymentFailure();
+      }
+    } catch (error) {
+      toast.error("An error occurred while initiating payment.");
+      onPaymentFailure(); // Trigger failure handler
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+      <Toaster />
+      <div className="bg-white p-6 rounded-lg shadow-lg w-full md:w-1/3">
+        <h2 className="text-xl font-bold mb-4">M-Pesa Payment</h2>
+        <div className="mb-4">
+          <label htmlFor="phoneNumber" className="block mb-1">Phone Number</label>
+          <input
+            type="text"
+            id="phoneNumber"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            className="border rounded w-full py-2 px-3"
+            placeholder="254XXXXXXXXX"
+          />
+        </div>
+        <div className="mb-4">
+          <p className="text-lg font-semibold">Amount: KSh {amount.toFixed(2)}</p>
+          <p className="text-lg font-semibold">Booking ID: {bookingId}</p>
+        </div>
+        <div className="flex justify-between">
+          <button type="button" onClick={onClose} className="text-gray-600 hover:text-gray-800">Cancel</button>
+          <button
+            type="button"
+            onClick={handlePayment}
+            className={`bg-blue-500 text-white px-4 py-2 rounded ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Processing..." : "Pay via M-Pesa"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MpesaPaymentModal;
