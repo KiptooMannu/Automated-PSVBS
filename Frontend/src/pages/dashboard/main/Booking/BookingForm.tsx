@@ -9,7 +9,7 @@ const BookingForm: React.FC = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [isMapSeatModalOpen, setIsMapSeatModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
-const vehiclesPerPage = 3; // 3x2 layout
+const vehiclesPerPage = 6; // 3x2 layout
 
 // Pagination handlers
 const nextPage = () => {

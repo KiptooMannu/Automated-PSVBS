@@ -67,7 +67,7 @@ const VehiclesPage: React.FC = () => {
                     <p><span className="font-medium">Registration:</span> {vehicle.registration_number}</p>
                     <p><span className="font-medium">Capacity:</span> {vehicle.capacity}</p>
                     <p><span className="font-medium">Location:</span> {vehicle.current_location}</p>
-                    <p><span className="font-medium">Cost:</span> ${vehicle.cost}</p>
+                    <p><span className="font-medium">Cost:</span> ksh {vehicle.cost}</p>
                     <p><span className="font-medium">License Plate:</span> {vehicle.license_plate}</p>
                     <p><span className="font-medium">Type:</span> {vehicle.vehicle_type}</p>
                   </div>

@@ -26,7 +26,7 @@ export const drawerData: DrawerData[] = [
     },
     {
         id: 2,
-        name: 'Booking Now',
+        name: 'Book Now ✔ ',
         icon: Book,
         link: 'booking_form',
         adminOnly: false

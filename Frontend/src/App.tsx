@@ -12,9 +12,9 @@ import AllBookings from './pages/dashboard/main/Booking/AllBookings';
 import MyBookings from './pages/dashboard/main/Booking/MyBookings';
 import Tickets from './pages/dashboard/main/Tickets/MyTickets';
 import VehiclesPage from './pages/dashboard/main/Vehicles/VehiclesPage';
-import PaymentFailed from './pages/dashboard/main/Payments/PaymentFailed';
-import SuccessPayment from './pages/dashboard/main/Payments/PaymentSuccess';
-import Payment from './pages/dashboard/main/Payments/Payments';
+// import PaymentFailed from './pages/dashboard/main/Payments/PaymentFailed';
+// import SuccessPayment from './pages/dashboard/main/Payments/PaymentSuccess';
+// import Payment from './pages/dashboard/main/Payments/Payments';
 import AllTickets from './pages/dashboard/main/Tickets/AllTickets';
 import Analytics from './pages/dashboard/main/Analytics/Analytics';
 import AboutSection from './components/About/About';
@@ -130,26 +130,26 @@ function App() {
         path: 'vehicles',
         element: <VehiclesPage />
       },
-      {
-        path: 'payment_failed',
-        element: <PaymentFailed/>
-      },
-      {
-        path: 'payment_success',
-        element: <SuccessPayment/>
-      },
-      {
-        path: 'payments',
-        element: <Payment />
-      },
-      {
-        path: 'payment-success',
-        element: <SuccessPayment />
-      },
-      {
-        path: 'payment-canceled',
-        element: <PaymentFailed />
-      },
+      // {
+      //   path: 'payment_failed',
+      //   element: <PaymentFailed/>
+      // },
+      // {
+      //   path: 'payment_success',
+      //   element: <SuccessPayment/>
+      // },
+      // {
+      //   path: 'payments',
+      //   element: <Payment />
+      // },
+      // {
+      //   path: 'payment-success',
+      //   element: <SuccessPayment />
+      // },
+      // {
+      //   path: 'payment-canceled',
+      //   element: <PaymentFailed />
+      // },
       {
         path: 'tickets',
         element: <Tickets ticket_id={6}  />
