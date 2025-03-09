@@ -8,7 +8,7 @@ function AllBookings() {
   console.log("All Bookings:", allBookings);
 
   const formatDate = (isoDate: string | number | Date) =>
-    format(new Date(isoDate), "MM/dd/yyyy HH:mm:ss");
+    format(new Date(isoDate), "MM/dd/yyyy ");
 
   return (
     <div className="bg-gray-50 min-h-screen p-8">
@@ -39,7 +39,7 @@ function AllBookings() {
                   <th className="px-6 py-4 text-left text-sm font-medium uppercase">Seat ID</th>
                   <th className="px-6 py-4 text-left text-sm font-medium uppercase">Departure</th>
                   <th className="px-6 py-4 text-left text-sm font-medium uppercase">Destination</th>
-                  <th className="px-6 py-4 text-left text-sm font-medium uppercase">Departure Date</th>
+                  <th className="px-6 py-4 text-left text-sm font-medium uppercase">Departure Date & Time</th>
                   <th className="px-6 py-4 text-left text-sm font-medium uppercase">Booking Status</th>
                   <th className="px-6 py-4 text-left text-sm font-medium uppercase">Payment Status</th>
                 </tr>
@@ -54,7 +54,9 @@ function AllBookings() {
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">{booking.departure}</td>
                     <td className="px-6 py-4 text-sm text-gray-700">{booking.destination}</td>
-                    <td className="px-6 py-4 text-sm text-gray-700">{formatDate(booking.departure_date)}</td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      {formatDate(booking.departure_date)} {booking.departure_time && `at ${booking.departure_time}`}
+                    </td>
                     <td className="px-6 py-4 text-sm">
                       <span
                         className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${

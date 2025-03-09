@@ -5,6 +5,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useUpdateVehicleMutation, Vehicle } from '../../../../features/vehicles/vehicleAPI';
 import { Toaster, toast } from 'sonner';
 import axios from 'axios';
+// import { set } from 'date-fns';
 
 interface EditVehicleModalProps {
   vehicle: Vehicle;
@@ -19,6 +20,7 @@ const EditVehicleSchema = yup.object().shape({
   vehicle_type: yup.string().required('Vehicle type is required'),
   current_location: yup.string().required('Current location is required'),
   destination: yup.string().required('Destination is required'),
+  departure_time: yup.string().required('Departure time is required'),
   departure: yup.string().required('Departure location is required'),
   cost: yup.number().typeError('cost must be a number'),
   image_url: yup.mixed().notRequired(), // Optional image
@@ -44,6 +46,7 @@ const EditVehicleModal: React.FC<EditVehicleModalProps> = ({ vehicle, onClose })
       setValue('current_location', vehicle.current_location || '');
       setValue('destination', vehicle.destination || '');
       setValue('departure', vehicle.departure || '');
+      setValue('departure_time', vehicle.departure_time || '');
       setImagePreview(vehicle.image_url || null);
     }
   }, [vehicle, setValue]);
@@ -138,7 +141,7 @@ const EditVehicleModal: React.FC<EditVehicleModalProps> = ({ vehicle, onClose })
         <h2 className="text-xl font-bold mb-4">Edit Vehicle</h2>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Fields */}
-          {(['registration_number', 'vehicle_name','current_location', 'license_plate', 'capacity', 'vehicle_type', 'departure','destination', 'cost'] as const).map((field) => (
+          {(['registration_number', 'vehicle_name','current_location', 'license_plate', 'capacity', 'vehicle_type', 'departure', 'departure_time','destination', 'cost'] as const).map((field) => (
             <div key={field} className="form-control lg:mr-8">
               <input
                 id={field}

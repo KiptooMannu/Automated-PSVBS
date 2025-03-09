@@ -24,7 +24,7 @@ function MyBookings() {
   const formatDate = (isoDate: string | number | Date | null | undefined) => {
     if (!isoDate) return "N/A";
     const date = new Date(isoDate);
-    return isNaN(date.getTime()) ? "Invalid Date" : format(date, "MM/dd/yyyy HH:mm:ss");
+    return isNaN(date.getTime()) ? "Invalid Date" : format(date, "MM/dd/yyyy ");
   };
 
   // Function to get seat_ids for a specific booking_id
