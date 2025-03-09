@@ -52,13 +52,13 @@ export const drawerData: DrawerData[] = [
         link: 'vehicles',
         adminOnly: true
     },
-    {
-        id: 6,
-        name: 'Payments',
-        icon: CreditCard,
-        link: 'payments',
-        adminOnly: true
-    },
+    // {
+    //     id: 6,
+    //     name: 'Payments',
+    //     icon: CreditCard,
+    //     link: 'payments',
+    //     adminOnly: true
+    // },
     {
         id: 7,
         name: 'Tickets',

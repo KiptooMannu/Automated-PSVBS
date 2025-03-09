@@ -23,6 +23,7 @@ export interface Tbooking {
   booking_date: string;
   vehicle?: Vehicle; 
   departure: string;
+  departure_time:string;
   destination: string;
   total_price: number;
   departure_date: string;

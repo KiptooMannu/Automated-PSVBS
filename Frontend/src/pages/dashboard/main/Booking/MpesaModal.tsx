@@ -1,5 +1,3 @@
-
-// export default MpesaPaymentModal;
 import { useState } from "react";
 import { Toaster, toast } from "sonner";
 
@@ -99,7 +97,9 @@ const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <Toaster />
+      {/* Configure Toaster to display messages at the top-right */}
+      <Toaster position="top-right" richColors />
+
       <div className="bg-white p-6 rounded-lg shadow-lg w-full md:w-1/3">
         <h2 className="text-xl font-bold mb-4">M-Pesa Payment</h2>
         <div className="mb-4">
