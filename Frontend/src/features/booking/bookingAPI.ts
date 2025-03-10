@@ -28,6 +28,8 @@ export interface Tbooking {
   total_price: number;
   departure_date: string;
   estimated_arrival: string;
+  mpesa_receipt_number:string;
+  payment_method:string;
   price: number;
   booking_status: string;
   is_active: string;

@@ -4,7 +4,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../app/store";
 import { logOut } from "../../features/users/userSlice";
 import { usersAPI } from "../../features/users/usersAPI";
-import usericon from '../../assets/usericon.png'
+import usericon from "../../assets/usericon.png";
+import { FaHome, FaUser, FaSignInAlt, FaSignOutAlt, FaInfoCircle, FaComments, FaEnvelope, FaBus } from "react-icons/fa";
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
@@ -23,74 +24,66 @@ const Navbar: React.FC = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
-
-
-
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
       const profileDropdown = document.getElementById("profile-dropdown");
       const profileButton = document.getElementById("profile-btn");
-  
+
       const authDropdown = document.getElementById("auth-dropdown");
       const authButton = document.getElementById("auth-btn");
-  
+
       // Close Profile Dropdown if clicked outside
       if (
-        profileDropdown && !profileDropdown.contains(event.target as Node) &&
-        profileButton && !profileButton.contains(event.target as Node)
+        profileDropdown &&
+        !profileDropdown.contains(event.target as Node) &&
+        profileButton &&
+        !profileButton.contains(event.target as Node)
       ) {
         setIsProfileOpen(false);
       }
-  
+
       // Close Auth Dropdown if clicked outside
       if (
-        authDropdown && !authDropdown.contains(event.target as Node) &&
-        authButton && !authButton.contains(event.target as Node)
+        authDropdown &&
+        !authDropdown.contains(event.target as Node) &&
+        authButton &&
+        !authButton.contains(event.target as Node)
       ) {
         setIsDropdownOpen(false);
       }
     };
-  
+
     // Add event listener when dropdowns are open
     if (isProfileOpen || isDropdownOpen) {
       document.addEventListener("click", handleOutsideClick);
     } else {
       document.removeEventListener("click", handleOutsideClick);
     }
-  
+
     return () => document.removeEventListener("click", handleOutsideClick);
   }, [isProfileOpen, isDropdownOpen]);
-  
-  
+
   const toggleProfile = (event: React.MouseEvent) => {
-    event.stopPropagation(); // ✅ Prevents immediate closing when clicked
+    event.stopPropagation();
     setIsProfileOpen((prev) => !prev);
   };
-  
 
-
-
-
-
-
-
-  
   const handleLogout = () => {
-    dispatch(logOut());  // ✅ Clears Redux user state
-    localStorage.removeItem("user"); // ✅ Remove user from local storage
+    dispatch(logOut());
+    localStorage.removeItem("user");
     navigate("/login");
   };
 
-  
   return (
-    <div className="navbar bg-slate-50 text-black shadow-md h-16 px-4 md:px-12 relative">
+    <div className="navbar bg-white text-black shadow-md h-16 px-4 md:px-12 relative">
       <div className="flex justify-between items-center w-full mx-auto">
         {/* Title */}
         <Link
           to="/"
-          className="text-2xl font-bold text-slate-900 hover:text-gray-700 transition-colors duration-300"
+          className="text-2xl font-bold text-slate-900 hover:text-gray-700 transition-colors duration-300 flex items-center gap-2"
         >
-          Automated Seat Reservation System
+          <FaBus className="text-blue-600" />
+          <span>Automated Public Service Vehicle Seat Booking System</span>
         </Link>
 
         {/* Navigation Links */}
@@ -98,89 +91,122 @@ const Navbar: React.FC = () => {
           {/* Desktop Links */}
           <ul className="hidden lg:flex items-center space-x-6 text-base">
             <li>
-              <Link to="/" className="hover:text-gray-700 transition-colors duration-300">
-                Home
+              <Link to="/" className="hover:text-gray-700 transition-colors duration-300 flex items-center gap-2">
+                <FaHome />
+                <span>Home</span>
               </Link>
             </li>
 
             <li>
               <Link
                 to="/dashboard/booking_form"
-                className="hover:text-gray-700 transition-colors duration-300"
+                className="hover:text-gray-700 transition-colors duration-300 flex items-center gap-2"
               >
-                Dashboard
+                <FaUser />
+                <span>Dashboard</span>
               </Link>
             </li>
-    
+
             <li>
-  <Link to="/about" className="hover:text-gray-700 transition-colors duration-300">
-    About
-  </Link>
-</li>
-<li>
-  <Link to="/testimonials" className="hover:text-gray-700 transition-colors duration-300">
-    Testimonials
-  </Link>
-</li>
-<li>
-  <Link to="/contact" className="hover:text-gray-700 transition-colors duration-300">
-    Contact
-  </Link>
-</li>
-{!userData ? (
-  <li className="relative">
-    {/* Auth Icon Button */}
-    <button id="auth-btn" onClick={() => setIsDropdownOpen((prev) => !prev)} className="flex items-center">
-      <img src={usericon} alt="Auth" className="w-8 h-8 rounded-full cursor-pointer border border-gray-300" />
-    </button>
+              <Link to="/about" className="hover:text-gray-700 transition-colors duration-300 flex items-center gap-2">
+                <FaInfoCircle />
+                <span>About</span>
+              </Link>
+            </li>
 
-    {/* Auth Dropdown */}
-    {isDropdownOpen && (
-      <div
-        id="auth-dropdown"
-        className="absolute top-full right-0 mt-2 w-40 bg-white border border-gray-300 rounded-lg shadow-lg p-2 z-50"
-      >
-        <Link
-          to="/register"
-          className="block px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-md"
-          onClick={() => setIsDropdownOpen(false)}
-        >
-          Register
-        </Link>
-        <Link
-          to="/login"
-          className="block px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-md"
-          onClick={() => setIsDropdownOpen(false)}
-        >
-          Login
-        </Link>
-      </div>
-    )}
-  </li>
-) : (
-  <li className="relative">
-    {/* Profile Icon */}
-    <button id="profile-btn" onClick={toggleProfile} className="flex items-center">
-      <img src={userData?.image_url || usericon} alt="Profile" className="w-8 h-8 rounded-full cursor-pointer border border-gray-300" />
-    </button>
+            <li>
+              <Link
+                to="/testimonials"
+                className="hover:text-gray-700 transition-colors duration-300 flex items-center gap-2"
+              >
+                <FaComments />
+                <span>Testimonials</span>
+              </Link>
+            </li>
 
-    {/* Profile Dropdown */}
-    {isProfileOpen && (
-      <div
-        id="profile-dropdown"
-        className="absolute top-full right-0 mt-2 w-40 bg-white border border-gray-300 rounded-lg shadow-lg p-2 z-50"
-      >
-        <Link to="/dashboard/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-md" onClick={() => setIsProfileOpen(false)}>
-          View Profile
-        </Link>
-        <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-200 rounded-md">
-          Logout
-        </button>
-      </div>
-    )}
-  </li>
-)}
+            <li>
+              <Link to="/contact" className="hover:text-gray-700 transition-colors duration-300 flex items-center gap-2">
+                <FaEnvelope />
+                <span>Contact</span>
+              </Link>
+            </li>
 
+            {!userData ? (
+              <li className="relative">
+                {/* Auth Icon Button */}
+                <button
+                  id="auth-btn"
+                  onClick={() => setIsDropdownOpen((prev) => !prev)}
+                  className="flex items-center"
+                >
+                  <img
+                    src={usericon}
+                    alt="Auth"
+                    className="w-8 h-8 rounded-full cursor-pointer border border-gray-300"
+                  />
+                </button>
+
+                {/* Auth Dropdown */}
+                {isDropdownOpen && (
+                  <div
+                    id="auth-dropdown"
+                    className="absolute top-full right-0 mt-2 w-40 bg-white border border-gray-300 rounded-lg shadow-lg p-2 z-50"
+                  >
+                    <Link
+                      to="/register"
+                      className="flex px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-md items-center gap-2"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <FaUser />
+                      <span>Register</span>
+                    </Link>
+                    <Link
+                      to="/login"
+                      className="flex px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-md items-center gap-2"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <FaSignInAlt />
+                      <span>Login</span>
+                    </Link>
+                  </div>
+                )}
+              </li>
+            ) : (
+              <li className="relative">
+                {/* Profile Icon */}
+                <button id="profile-btn" onClick={toggleProfile} className="flex items-center">
+                  <img
+                    src={userData?.image_url || usericon}
+                    alt="Profile"
+                    className="w-8 h-8 rounded-full cursor-pointer border border-gray-300"
+                  />
+                </button>
+
+                {/* Profile Dropdown */}
+                {isProfileOpen && (
+                  <div
+                    id="profile-dropdown"
+                    className="absolute top-full right-0 mt-2 w-40 bg-white border border-gray-300 rounded-lg shadow-lg p-2 z-50"
+                  >
+                    <Link
+                      to="/dashboard/profile"
+                      className="flex px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-md items-center gap-2"
+                      onClick={() => setIsProfileOpen(false)}
+                    >
+                      <FaUser />
+                      <span>Profile</span>
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="flex w-full text-left px-4 py-2 text-red-600 hover:bg-gray-200 rounded-md items-center gap-2"
+                    >
+                      <FaSignOutAlt />
+                      <span>Logout</span>
+                    </button>
+                  </div>
+                )}
+              </li>
+            )}
           </ul>
 
           {/* Mobile Menu Button */}
