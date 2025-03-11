@@ -1,4 +1,3 @@
-
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Navbar from './components/Navbar/Navbar';
 import ErrorPage from './pages/ErrorPage';
@@ -12,19 +11,14 @@ import AllBookings from './pages/dashboard/main/Booking/AllBookings';
 import MyBookings from './pages/dashboard/main/Booking/MyBookings';
 import Tickets from './pages/dashboard/main/Tickets/MyTickets';
 import VehiclesPage from './pages/dashboard/main/Vehicles/VehiclesPage';
-// import PaymentFailed from './pages/dashboard/main/Payments/PaymentFailed';
-// import SuccessPayment from './pages/dashboard/main/Payments/PaymentSuccess';
-// import Payment from './pages/dashboard/main/Payments/Payments';
 import AllTickets from './pages/dashboard/main/Tickets/AllTickets';
 import Analytics from './pages/dashboard/main/Analytics/Analytics';
 import AboutSection from './components/About/About';
 import Contact from './components/Contact/Contact';
 import Testimonial from './components/Testimonial/Testimonial';
-// import ChangePasswordModal from './components/ChangePassword';
 import Login from './pages/auth/Login';
 import VerificationNotice from './pages/auth/VerificationNotice';
 import VerifyAccountPage from './pages/auth/VerifyAccountPage';
-
 
 function App() {
   const router = createBrowserRouter([
@@ -53,11 +47,6 @@ function App() {
       element: <Register />,
       errorElement: <ErrorPage />
     },
-    // {
-    //   path: '/change-password',
-    //   element: <ChangePasswordModal />,
-    //   errorElement: <ErrorPage />
-    // },
     {
       path: '/verification-notice',
       element: <VerificationNotice />,
@@ -68,7 +57,6 @@ function App() {
       element: <VerifyAccountPage />,
       errorElement: <ErrorPage />
     },
-
     {
       path: "/about",
       element: (
@@ -99,76 +87,53 @@ function App() {
         </>
       ),
     },
-
     // DASHBOARD ROUTES
-  {
-    path: 'dashboard',
-    element: <Dashboard />,
-    errorElement: <ErrorPage />,
-    children: [
-      {
-        path: 'profile',
-        element: <Profile />
-      },
-      {
-        path: 'book_now',
-        element: <Profile />
-      },
-      {
-        path: 'booking_form',
-        element: <BookingForm />
-      },
-      {
-        path: 'view_all_bookings',
-        element: <AllBookings />
-      },
-      {
-        path: 'my_bookings',
-        element: <MyBookings />
-      },
-      {
-        path: 'vehicles',
-        element: <VehiclesPage />
-      },
-      // {
-      //   path: 'payment_failed',
-      //   element: <PaymentFailed/>
-      // },
-      // {
-      //   path: 'payment_success',
-      //   element: <SuccessPayment/>
-      // },
-      // {
-      //   path: 'payments',
-      //   element: <Payment />
-      // },
-      // {
-      //   path: 'payment-success',
-      //   element: <SuccessPayment />
-      // },
-      // {
-      //   path: 'payment-canceled',
-      //   element: <PaymentFailed />
-      // },
-      {
-        path: 'tickets',
-        element: <Tickets ticket_id={6}  />
-      },
-      {
-        path: 'all_tickets',
-        element: <AllTickets />
-      },
-      {
-        path: 'analytics',
-        element: <Analytics />
-      },
+    {
+      path: 'dashboard',
+      element: <Dashboard />,
+      errorElement: <ErrorPage />,
+      children: [
+        {
+          path: 'profile',
+          element: <Profile />
+        },
+        {
+          path: 'book_now',
+          element: <Profile />
+        },
+        {
+          path: 'booking_form',
+          element: <BookingForm />
+        },
+        {
+          path: 'view_all_bookings',
+          element: <AllBookings />
+        },
+        {
+          path: 'my_bookings',
+          element: <MyBookings />
+        },
+        {
+          path: 'vehicles',
+          element: <VehiclesPage />
+        },
+        {
+          path: 'tickets',
+          element: <Tickets ticket_id={6} />
+        },
+        {
+          path: 'all_tickets',
+          element: <AllTickets />
+        },
+        {
+          path: 'analytics',
+          element: <Analytics />
+        },
+      ]
+    }
+  ]);
 
-      
-    ]
-  }
-  ])
-
-  return <RouterProvider router={router} />
+  return <RouterProvider router={router} />;
 }
 
-export default App
+export default App;

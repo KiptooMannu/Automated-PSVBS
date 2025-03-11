@@ -2,13 +2,13 @@ import Footer from "../../components/Footer/Footer";
 import Navbar from "../../components/Navbar/Navbar";
 import { Outlet } from "react-router-dom";
 import Drawer from "./aside/Drawer";
-// import Container from "../../components/Container/Container";
+import ProtectedRoute from "../../pages/auth/Protectedroute";
 
 const Dashboard = () => {
   return (
     <>
       <Navbar />
-      {/* <Container className="flex flex-col min-h-screen bg-gray-800 text-neutral-200 mb-"> */}
+      <ProtectedRoute>
         <div className="flex flex-row flex-grow">
           <div className="hidden md:block min-w-fit bg-base-200">
             <Drawer />
@@ -17,7 +17,7 @@ const Dashboard = () => {
             <Outlet />
           </div>
         </div>
-      {/* </Container> */}
+      </ProtectedRoute>
       <Footer />
     </>
   );

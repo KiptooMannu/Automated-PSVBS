@@ -5,7 +5,16 @@ import { RootState } from "../../app/store";
 import { logOut } from "../../features/users/userSlice";
 import { usersAPI } from "../../features/users/usersAPI";
 import usericon from "../../assets/usericon.png";
-import { FaHome, FaUser, FaSignInAlt, FaSignOutAlt, FaInfoCircle, FaComments, FaEnvelope, FaBus } from "react-icons/fa";
+import {
+  FaHome,
+  FaUser,
+  FaSignInAlt,
+  FaSignOutAlt,
+  FaInfoCircle,
+  FaComments,
+  FaEnvelope,
+  FaBus,
+} from "react-icons/fa";
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
@@ -13,22 +22,26 @@ const Navbar: React.FC = () => {
   const user = useSelector((state: RootState) => state.user);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const userId = typeof user?.user?.user_id === "number" ? user?.user?.user_id : undefined;
+  // Fetch user data if the user is logged in
+  const userId = typeof user?.user?.user_id === "number" ? user.user.user_id : undefined;
   const { data: userData } = usersAPI.useGetUserByIdQuery(userId as number, {
     skip: !userId,
   });
 
-  const toggleDropdown = (event: React.MouseEvent) => {
-    event.stopPropagation();
-    setIsDropdownOpen(!isDropdownOpen);
+  // Handle logout
+  const handleLogout = () => {
+    dispatch(logOut());
+    localStorage.removeItem("user");
+    navigate("/login");
   };
 
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
       const profileDropdown = document.getElementById("profile-dropdown");
       const profileButton = document.getElementById("profile-btn");
-
       const authDropdown = document.getElementById("auth-dropdown");
       const authButton = document.getElementById("auth-btn");
 
@@ -51,27 +64,34 @@ const Navbar: React.FC = () => {
       ) {
         setIsDropdownOpen(false);
       }
+
+      // Close Mobile Menu if clicked outside
+      const mobileMenu = document.getElementById("mobile-menu");
+      const mobileMenuButton = document.getElementById("mobile-menu-button");
+      if (
+        mobileMenu &&
+        !mobileMenu.contains(event.target as Node) &&
+        mobileMenuButton &&
+        !mobileMenuButton.contains(event.target as Node)
+      ) {
+        setIsMobileMenuOpen(false);
+      }
     };
 
-    // Add event listener when dropdowns are open
-    if (isProfileOpen || isDropdownOpen) {
+    // Add event listener when dropdowns or mobile menu are open
+    if (isProfileOpen || isDropdownOpen || isMobileMenuOpen) {
       document.addEventListener("click", handleOutsideClick);
-    } else {
-      document.removeEventListener("click", handleOutsideClick);
     }
 
-    return () => document.removeEventListener("click", handleOutsideClick);
-  }, [isProfileOpen, isDropdownOpen]);
+    // Cleanup event listener
+    return () => {
+      document.removeEventListener("click", handleOutsideClick);
+    };
+  }, [isProfileOpen, isDropdownOpen, isMobileMenuOpen]);
 
-  const toggleProfile = (event: React.MouseEvent) => {
-    event.stopPropagation();
-    setIsProfileOpen((prev) => !prev);
-  };
-
-  const handleLogout = () => {
-    dispatch(logOut());
-    localStorage.removeItem("user");
-    navigate("/login");
+  // Function to close the mobile menu when a link is clicked
+  const handleMobileMenuLinkClick = () => {
+    setIsMobileMenuOpen(false);
   };
 
   return (
@@ -83,7 +103,8 @@ const Navbar: React.FC = () => {
           className="text-2xl font-bold text-slate-900 hover:text-gray-700 transition-colors duration-300 flex items-center gap-2"
         >
           <FaBus className="text-blue-600" />
-          <span>Automated Public Service Vehicle Seat Booking System</span>
+          <span className="hidden md:inline">Automated Public Service Vehicle Seat Booking System</span>
+          <span className="md:hidden">APSV SBS</span> {/* Shortened title for mobile */}
         </Link>
 
         {/* Navigation Links */}
@@ -131,7 +152,7 @@ const Navbar: React.FC = () => {
               </Link>
             </li>
 
-            {!userData ? (
+            {!user.user ? (
               <li className="relative">
                 {/* Auth Icon Button */}
                 <button
@@ -174,7 +195,11 @@ const Navbar: React.FC = () => {
             ) : (
               <li className="relative">
                 {/* Profile Icon */}
-                <button id="profile-btn" onClick={toggleProfile} className="flex items-center">
+                <button
+                  id="profile-btn"
+                  onClick={() => setIsProfileOpen((prev) => !prev)}
+                  className="flex items-center"
+                >
                   <img
                     src={userData?.image_url || usericon}
                     alt="Profile"
@@ -211,13 +236,14 @@ const Navbar: React.FC = () => {
 
           {/* Mobile Menu Button */}
           <button
+            id="mobile-menu-button"
             type="button"
-            onClick={toggleDropdown}
+            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
             className="btn btn-circle lg:hidden"
             title="Toggle Menu"
           >
             <svg
-              className={`swap-off fill-current ${isDropdownOpen ? "hidden" : "block"}`}
+              className={`swap-off fill-current ${isMobileMenuOpen ? "hidden" : "block"}`}
               xmlns="http://www.w3.org/2000/svg"
               width="32"
               height="32"
@@ -226,7 +252,7 @@ const Navbar: React.FC = () => {
               <path d="M64,384H448V341.33H64Zm0-106.67H448V234.67H64ZM64,128v42.67H448V128Z" />
             </svg>
             <svg
-              className={`swap-on fill-current ${isDropdownOpen ? "block" : "hidden"}`}
+              className={`swap-on fill-current ${isMobileMenuOpen ? "block" : "hidden"}`}
               xmlns="http://www.w3.org/2000/svg"
               width="32"
               height="32"
@@ -237,6 +263,91 @@ const Navbar: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div id="mobile-menu" className="lg:hidden absolute top-16 left-0 w-full bg-white shadow-md z-40">
+          <ul className="flex flex-col space-y-4 p-4">
+            <li>
+              <Link
+                to="/"
+                className="hover:text-gray-700 transition-colors duration-300 flex items-center gap-2 text-sm"
+                onClick={handleMobileMenuLinkClick}
+              >
+                <FaHome />
+                <span>Home</span>
+              </Link>
+            </li>
+
+            <li>
+              <Link
+                to="/dashboard/booking_form"
+                className="hover:text-gray-700 transition-colors duration-300 flex items-center gap-2 text-sm"
+                onClick={handleMobileMenuLinkClick}
+              >
+                <FaUser />
+                <span>Dashboard</span>
+              </Link>
+            </li>
+
+            <li>
+              <Link
+                to="/about"
+                className="hover:text-gray-700 transition-colors duration-300 flex items-center gap-2 text-sm"
+                onClick={handleMobileMenuLinkClick}
+              >
+                <FaInfoCircle />
+                <span>About</span>
+              </Link>
+            </li>
+
+            <li>
+              <Link
+                to="/testimonials"
+                className="hover:text-gray-700 transition-colors duration-300 flex items-center gap-2 text-sm"
+                onClick={handleMobileMenuLinkClick}
+              >
+                <FaComments />
+                <span>Testimonials</span>
+              </Link>
+            </li>
+
+            <li>
+              <Link
+                to="/contact"
+                className="hover:text-gray-700 transition-colors duration-300 flex items-center gap-2 text-sm"
+                onClick={handleMobileMenuLinkClick}
+              >
+                <FaEnvelope />
+                <span>Contact</span>
+              </Link>
+            </li>
+
+            {!user.user ? (
+              <li>
+                <Link
+                  to="/login"
+                  className="flex px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-md items-center gap-2 text-sm"
+                  onClick={handleMobileMenuLinkClick}
+                >
+                  <FaSignInAlt />
+                  <span>Login</span>
+                </Link>
+              </li>
+            ) : (
+              <li>
+                <button
+                  onClick={handleLogout}
+                  className="flex w-full text-left px-4 py-2 text-red-600 hover:bg-gray-200 rounded-md items-center gap-2 text-sm"
+                >
+                  <FaSignOutAlt />
+                  <span>Logout</span>
+                </button>
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
     </div>
   );
 };

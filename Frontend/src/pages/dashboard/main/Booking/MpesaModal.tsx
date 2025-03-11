@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Toaster, toast } from "sonner";
+import { useNavigate } from "react-router-dom"; // Import useNavigate for redirection
 
 interface MpesaPaymentModalProps {
   bookingId: number;
@@ -18,6 +19,7 @@ const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
 }) => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate(); // Hook for navigation
 
   const handlePayment = async () => {
     if (!phoneNumber || phoneNumber.length !== 12 || !phoneNumber.startsWith("254")) {
@@ -67,9 +69,11 @@ const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
             if (statusData.payment_status === "completed") {
               toast.success("Payment confirmed successfully!");
               onPaymentSuccess(); // Trigger success handler
+              navigate("/my_bookings"); // Redirect to mybookings.tsx
             } else if (statusData.payment_status === "failed") {
               toast.error("Payment failed. Please try again.");
               onPaymentFailure(); // Trigger failure handler
+              navigate("/my_bookings"); // Redirect to mybookings.tsx
             } else {
               // Continue polling if payment is still pending
               setTimeout(pollPaymentStatus, 3000); // Poll every 3 seconds
@@ -78,6 +82,7 @@ const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
             console.error("Error polling payment status:", error);
             toast.error("An error occurred while confirming payment.");
             onPaymentFailure(); // Trigger failure handler
+            navigate("/my_bookings"); // Redirect to mybookings.tsx
           }
         };
 
@@ -86,10 +91,12 @@ const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
       } else {
         toast.error(data.error || "Failed to initiate payment. Please try again.");
         onPaymentFailure();
+        navigate("/my_bookings"); // Redirect to mybookings.tsx
       }
     } catch (error) {
       toast.error("An error occurred while initiating payment.");
       onPaymentFailure(); // Trigger failure handler
+      navigate("/my_bookings"); // Redirect to mybookings.tsx
     } finally {
       setIsSubmitting(false);
     }

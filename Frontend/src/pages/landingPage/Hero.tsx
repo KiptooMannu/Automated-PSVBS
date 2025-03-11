@@ -37,11 +37,11 @@ const Hero = () => {
                     <h1 className="mb-6 mt-4 text-3xl lg:text-5xl font-bold text-white text-shadow-lg">
     Welcome to {' '}
     <span className="text-webcolor">
-        Automated PSV
+    Automated Public Service Vehicle 
     </span>
     <br />
     <span className="text-webcolor">
-        Seat Reservation System
+    Seat Booking System
     </span>
     {name && (
         <span className="block text-xl mt-2">
