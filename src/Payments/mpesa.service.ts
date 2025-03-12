@@ -306,7 +306,36 @@ export const mpesaCallback: MiddlewareHandler = async (c: Context) => {
 };
 
 
-
+// Payment status endpoint
+export const getPaymentStatus: MiddlewareHandler = async (c: Context) => {
+  try {
+    const checkoutRequestId = c.req.query('checkout_request_id');
+    
+    if (!checkoutRequestId) {
+      return c.json({ error: "CheckoutRequestID is required" }, 400);
+    }
+    
+    // Query the database for the payment with this checkout request ID
+    const payment = await db.query.paymentsTable.findFirst({
+      where: eq(paymentsTable.transaction_reference, checkoutRequestId),
+    });
+    
+    if (!payment) {
+      return c.json({ error: "Payment not found" }, 404);
+    }
+    
+    return c.json({
+      payment_id: payment.payment_id,
+      booking_id: payment.booking_id,
+      payment_status: payment.payment_status,
+      transaction_reference: payment.transaction_reference,
+      mpesa_receipt_number: payment.mpesa_receipt_number
+    });
+  } catch (error: any) {
+    console.error("Error fetching payment status:", error);
+    return c.json({ error: error.message || "Internal server error" }, 500);
+  }
+};
 
 
 

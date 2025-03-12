@@ -1,4 +1,4 @@
-
+//payment controller
 import { Context } from "hono";
 import {
   getAllPaymentsService,

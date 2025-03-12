@@ -6,7 +6,7 @@ import {
   updatePaymentController,
   deletePaymentController,
 } from "./Payment.Controller";
-import { stkPush, mpesaCallback } from "./mpesa.service"; 
+import { stkPush, mpesaCallback, getPaymentStatus} from "./mpesa.service"; 
 
 export const paymentRouter = new Hono();
 
@@ -16,6 +16,7 @@ paymentRouter.get("/payments/:id", getPaymentByIdController);
 paymentRouter.post("/payments", createPaymentController); 
 paymentRouter.put("/payments/:id", updatePaymentController); 
 paymentRouter.delete("/payments/:id", deletePaymentController); 
+paymentRouter.get("/payment-status", getPaymentStatus);
 
 
 paymentRouter.post("/mpesa/stkpush", stkPush); 
