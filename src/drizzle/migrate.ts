@@ -18,11 +18,7 @@ async function migration() {
     try {
         await client.connect();
 
-        // Step 1: Drop departure_time from bookings table if it exists
-        await db.execute(sql`
-            ALTER TABLE bookings
-            DROP COLUMN IF EXISTS departure_time;
-        `);
+       
 
         // Step 2: Add departure_time to vehicles table with the same type as it was in bookings
         await db.execute(sql`
@@ -30,7 +26,43 @@ async function migration() {
             ADD COLUMN IF NOT EXISTS departure_time VARCHAR;
         `);
 
-        // Step 3: Create payments table with unique constraint on transaction_reference
+        // Step 3: Create routes table
+        await db.execute(sql`
+            CREATE TABLE IF NOT EXISTS routes (
+                route_id SERIAL PRIMARY KEY,
+                departure VARCHAR(255) NOT NULL,
+                destination VARCHAR(255) NOT NULL,
+                distance INTEGER,
+                duration INTEGER NOT NULL,
+                created_at TIMESTAMP DEFAULT NOW(),
+                updated_at TIMESTAMP DEFAULT NOW()
+            );
+        `);
+
+        // Step 4: Create schedule table
+        await db.execute(sql`
+            CREATE TABLE IF NOT EXISTS schedule (
+                schedule_id SERIAL PRIMARY KEY,
+                route_id INTEGER NOT NULL REFERENCES routes(route_id) ON DELETE CASCADE,
+                departure_time VARCHAR NOT NULL,
+                frequency INTEGER,
+                created_at TIMESTAMP DEFAULT NOW(),
+                updated_at TIMESTAMP DEFAULT NOW()
+            );
+        `);
+
+        // Step 5: Add route_id and schedule_id columns to vehicles table
+        await db.execute(sql`
+            ALTER TABLE vehicles
+            ADD COLUMN IF NOT EXISTS route_id INTEGER REFERENCES routes(route_id) ON DELETE SET NULL;
+        `);
+
+        await db.execute(sql`
+            ALTER TABLE vehicles
+            ADD COLUMN IF NOT EXISTS schedule_id INTEGER REFERENCES schedule(schedule_id) ON DELETE SET NULL;
+        `);
+
+        // Step 6: Create payments table with unique constraint on transaction_reference
         await db.execute(sql`
             CREATE TABLE IF NOT EXISTS payments (
                 payment_id SERIAL PRIMARY KEY,
@@ -48,16 +80,9 @@ async function migration() {
             );
         `);
 
-        // Step 4: Ensure mpesa_receipt_number column exists in payments table
-        await db.execute(sql`
-            ALTER TABLE payments
-            ADD COLUMN IF NOT EXISTS mpesa_receipt_number VARCHAR(255);
-        `);
+      
 
-        // Step 5: Add index on booking_id in payments table
-        await db.execute(sql`
-            CREATE INDEX IF NOT EXISTS booking_id_idx ON payments(booking_id);
-        `);
+      
 
         console.log('======== Migrations completed successfully ========');
     } catch (err: unknown) {

@@ -1,0 +1,1064 @@
+import { 
+  pgTable, 
+  pgEnum, 
+  serial, 
+  varchar, 
+  timestamp, 
+  boolean, 
+  text, 
+  integer, 
+  numeric, 
+  index 
+} from "drizzle-orm/pg-core";
+
+// Enums
+export const roleEnum = pgEnum("user_type", ["user", "admin", "super_admin", "disabled"]);
+export const bookingStatusEnum = pgEnum("booking_status", ["pending", "confirmed", "completed", "cancelled"]);
+export const ticketStatusEnum = pgEnum("ticket_status", ["paid", "failed", "refunded"]);
+export const paymentStatusEnum = pgEnum("payment_status", ["pending", "completed", "failed", "refunded"]);
+
+
+
+// Contact Messages Table
+export const contactsTable = pgTable("contacts", {
+  contact_id: serial("contact_id").primaryKey(),
+  user_id: integer("user_id").references(() => userTable.user_id, { onDelete: "cascade" }), // Optional, for logged-in users
+  full_name: varchar("full_name", { length: 255 }).notNull(), // Name of sender
+  email: varchar("email", { length: 255 }).notNull(), // Email of sender
+  subject: varchar("subject", { length: 255 }).notNull(), // Contact subject
+  message: text("message").notNull(), // Message content
+  is_resolved: boolean("is_resolved").default(false), // Flag to track resolved/unresolved messages
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+// Auth Table
+export const authTable = pgTable("auth", {
+  auth_id: serial("auth_id").primaryKey(),
+  user_id: integer("user_id").notNull().references(() => userTable.user_id, { onDelete: "cascade" }),
+  username: varchar("username", { length: 255 }).unique(),
+  password_hash: varchar("password_hash", { length: 255 }).notNull(),
+  role: roleEnum("role").default("user"), // e.g., 'user', 'admin'
+  verification_token: varchar("verification_token", { length: 255 }),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+  is_deleted: boolean("is_deleted").default(false),
+});
+// Users Table
+export const userTable = pgTable("users", {
+  user_id: serial("user_id").primaryKey(),
+  first_name: varchar("first_name"),
+  last_name: varchar("last_name"),
+  email: varchar("email").notNull().unique(),
+  phone_number: varchar("phone_number"),
+  password: varchar("password", { length: 255 }).notNull(),
+  image_url: varchar("image_url", { length: 255 }),
+  isVerified: boolean("is_verified").default(false),
+  role: roleEnum("role").default("user"), // e.g., 'user', 'admin'
+  verification_token: varchar("verification_token", { length: 255 }), // For email verification
+  verification_token_expires_at: timestamp('verification_token_expires_at', { mode: 'date' }),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+  is_deleted: boolean("is_deleted").default(false),
+});
+
+// Vehicles Table
+export const vehicleTable = pgTable("vehicles", {
+  registration_number: varchar("registration_number").primaryKey(),
+  vehicle_name: varchar("vehicle_name", { length: 100 }).notNull(),
+  license_plate: varchar("license_plate", { length: 20 }).notNull().unique(),
+  capacity: integer("capacity").notNull(),
+  vehicle_type: varchar("vehicle_type", { length: 50 }).notNull(),
+  cost:integer("cost").notNull(),
+  model_year: integer("model_year"),
+  current_location: varchar("current_location", { length: 255 }).notNull(),
+  departure: varchar("departure").notNull(),
+  departure_time: varchar("departure_time").notNull(), // Added here
+  destination: varchar("destination").notNull(),
+  is_active: boolean("is_active").default(true),
+  image_url: varchar("image_url", { length: 255 }),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+  is_deleted: boolean("is_deleted").default(false),
+
+  route_id: integer("route_id").references(() => routesTable.route_id, { onDelete: "set null" }), // Link to routes
+  schedule_id: integer("schedule_id").references(() => scheduleTable.schedule_id, { onDelete: "set null" }), // Link to schedules
+
+});
+
+
+export const ticketTable = pgTable("tickets", {
+  ticket_id: serial("ticket_id").primaryKey(),
+  user_id: integer("user_id").notNull().references(() => userTable.user_id, { onDelete: "cascade" }),
+  subject: varchar("subject").notNull(),
+  description: text("description").notNull(),
+  status: ticketStatusEnum("ticket_status").default("paid"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+// export const paymentsTable = pgTable("payments", {
+//   payment_id: serial("payment_id").primaryKey(),
+//   booking_id: integer("booking_id")
+//     .notNull()
+//     .references(() => bookingTable.booking_id, { onDelete: "cascade" }),
+//   amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+//   payment_method: varchar("payment_method", { length: 50 }).notNull(),
+//   payment_status: paymentStatusEnum("payment_status").default("pending"),
+//   transaction_reference: varchar("transaction_reference", { length: 255 }).notNull().unique(),
+//   payment_date: timestamp("payment_date").defaultNow(),
+//   phone_number: varchar("phone_number", { length: 20 }).notNull(), // ✅ Add this line
+//   ticket_id: integer("ticket_id")
+//     .references(() => ticketTable.ticket_id, { onDelete: "cascade" }),
+//   created_at: timestamp("created_at").defaultNow(),
+//   updated_at: timestamp("updated_at").defaultNow(),
+// }, (table) => ({
+//   bookingIndex: index("booking_id_idx").on(table.booking_id), // ✅ Correct way to add an index
+// }));
+export const paymentsTable = pgTable(
+  "payments",
+  {
+    payment_id: serial("payment_id").primaryKey(),
+    booking_id: integer("booking_id")
+      .notNull()
+      .references(() => bookingTable.booking_id, { onDelete: "cascade" }),
+    amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+    payment_method: varchar("payment_method", { length: 50 }).notNull(),
+    payment_status: paymentStatusEnum("payment_status").default("pending"),
+    transaction_reference: varchar("transaction_reference", { length: 255 })
+      .notNull()
+      .unique(), // Ensure transaction_reference is unique
+    payment_date: timestamp("payment_date").defaultNow(),
+    phone_number: varchar("phone_number", { length: 20 }).notNull(),
+    ticket_id: integer("ticket_id")
+      .references(() => ticketTable.ticket_id, { onDelete: "cascade" }),
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+    mpesa_receipt_number: text("mpesa_receipt_number"),
+  },
+  (table) => ({
+    bookingIndex: index("booking_id_idx").on(table.booking_id),
+  })
+);
+
+export const bookingTable = pgTable("bookings", {
+  booking_id: serial("booking_id").primaryKey(),
+  user_id: integer("user_id").notNull()
+    .references(() => userTable.user_id, { onDelete: "cascade" }),
+    vehicle_id: varchar("vehicle_id").notNull()
+    .references(() => vehicleTable.registration_number, { onDelete: "cascade" }),    
+  departure_date: timestamp("departure_date").notNull(),
+  departure: varchar("departure"),
+  destination: varchar("destination"),
+  estimated_arrival: varchar("estimated_arrival"),
+  price: numeric("price", { precision: 10, scale: 2 }).notNull(),
+  total_price: numeric("total_price", { precision: 10, scale: 2 }).notNull(),
+  booking_status: bookingStatusEnum("booking_status").default("pending"),
+  booking_date: timestamp("booking_date").defaultNow(),
+  is_active: boolean("is_active").default(true),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  userIndex: index("user_id_idx").on(table.user_id), 
+}));
+
+
+// 🚀 3️⃣ Bookings Seats Table (Tracks seat selection per booking)
+export const bookingsSeatsTable = pgTable("bookings_seats", {
+  booking_seat_id: serial("booking_seat_id").primaryKey(),
+  booking_id: integer("booking_id").notNull().references(() => bookingTable.booking_id, { onDelete: "cascade" }),
+  seat_id: integer("seat_id").notNull(), // ✅ Seat ID is stored, NOT seat number
+  vehicle_id: varchar("vehicle_id").notNull(), // ✅ Ensures seat is linked to a specific vehicle
+}, (table) => ({
+  uniqueBookingSeat: { unique: [table.booking_id, table.seat_id, table.vehicle_id] } // ✅ Allows the same seat to be used in different vehicles
+}));
+
+
+
+
+export const routesTable = pgTable("routes", {
+  route_id: serial("route_id").primaryKey(),
+  departure: varchar("departure", { length: 255 }).notNull(),
+  destination: varchar("destination", { length: 255 }).notNull(),
+  distance: integer("distance"), // in kilometers
+  duration: integer("duration").notNull(), // in hours (ensure it's not nullable)
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+
+
+export const scheduleTable = pgTable("schedule", {
+  schedule_id: serial("schedule_id").primaryKey(),
+  route_id: integer("route_id").notNull().references(() => routesTable.route_id, { onDelete: "cascade" }),
+  departure_time: varchar("departure_time").notNull(), // e.g., "06:00 AM"
+  frequency: integer("frequency"), // in hours
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+
+
+
+
+
+// Define types for insertion and selection
+export type TIUsers = typeof userTable.$inferInsert;
+export type TSUsers = typeof userTable.$inferSelect;
+
+export type TIBookings = typeof bookingTable.$inferInsert;
+export type TSBookings = typeof bookingTable.$inferSelect;
+
+export type TIVehicles = typeof vehicleTable.$inferInsert;
+export type TSVehicles = typeof vehicleTable.$inferSelect;
+
+export type TITickets = typeof ticketTable.$inferInsert;
+export type TSTickets = typeof ticketTable.$inferSelect;
+
+export type TIPayments = typeof paymentsTable.$inferInsert;
+export type TSPayments = typeof paymentsTable.$inferSelect;
+
+export type TIAuth = typeof authTable.$inferInsert;
+export type TSAuth = typeof authTable.$inferSelect;
+
+export type TIBookingSeat = typeof bookingsSeatsTable.$inferInsert;
+export type TSBookingSeat = typeof bookingsSeatsTable.$inferSelect;
+
+export type TIContact = typeof contactsTable.$inferInsert;
+export type TSContact = typeof contactsTable.$inferSelect;
+
+
+
+
+import dotenv from "dotenv";
+dotenv.config(); // Load environment variables from .env file
+
+import { v2 as cloudinary } from "cloudinary"; // Import Cloudinary SDK
+import { faker } from "@faker-js/faker";
+import db from "./db";
+import { routesTable, scheduleTable, vehicleTable } from "./schema";
+import { generateDepartureTimes } from "../utils/Generateschedules";
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME, // Your Cloudinary cloud name
+  api_key: process.env.CLOUDINARY_API_KEY, // Your Cloudinary API key
+  api_secret: process.env.CLOUDINARY_API_SECRET, // Your Cloudinary API secret
+});
+
+// List of real locations (cities, towns, etc.)
+const locations = [
+  "Nairobi", "Mombasa", "Kisumu", "Eldoret", "Nakuru", "Thika", "Malindi", "Kakamega", 
+  "Kitale", "Naivasha", "Nyeri", "Lamu", "Busia", "Lodwar", "Narok", "Embu", "Meru", 
+  "Turkana", "Marsabit", "Kisii", "Isiolo", "Machakos", "Kiambu", "Garissa", "Wajir", 
+  "Mandera", "Homa Bay", "Bungoma", "Voi", "Kitui", "Kericho", "Nyahururu", "Nanyuki", 
+  "Ruiru", "Thika", "Kikuyu", "Limuru", "Athi River", "Karuri", "Ngong", "Kajiado", 
+  "Molo", "Eldama Ravine", "Narok", "Sotik", "Bomet", "Keroka", "Nyamira", "Migori", 
+  "Awendo", "Rongo", "Oyugis", "Kendu Bay", "Siaya", "Ugunja", "Bondo", "Yala", 
+  "Mbita", "Suba", "Rusinga", "Mfangano", "Kapsabet", "Iten", "Kabarnet", "Marigat", 
+  "Eldoret", "Burnt Forest", "Kapsowar", "Cheptongei", "Kapsokwony", "Kimilili", 
+  "Webuye", "Bungoma", "Malaba", "Busia", "Mumias", "Butere", "Kakamega", "Vihiga", 
+  "Luanda", "Mbale", "Chavakali", "Hamisi", "Serem", "Tiriki", "Sabatia", "Emuhaya", 
+  "Kaimosi", "Cheptais", "Kapsokwony", "Kimilili", "Webuye", "Bungoma", "Malaba", 
+  "Busia", "Mumias", "Butere", "Kakamega", "Vihiga", "Luanda", "Mbale", "Chavakali", 
+  "Hamisi", "Serem", "Tiriki", "Sabatia", "Emuhaya", "Kaimosi", "Cheptais"
+];
+
+// List of real vehicle brands and models
+const vehicleBrands = ["Toyota", "Ford", "Nissan", "Mercedes", "Volkswagen", "BMW", "Audi", "Subaru"];
+const vehicleModels = ["Corolla", "Camry", "Ranger", "X-Trail", "C-Class", "Golf", "X5", "A4", "Outback"];
+
+// Generate unique routes
+const generateRoutes = (numRoutes: number) => {
+  const routes = [];
+  const usedPairs = new Set();
+
+  while (routes.length < numRoutes) {
+    const departure = faker.helpers.arrayElement(locations);
+    const destination = faker.helpers.arrayElement(locations);
+
+    if (departure !== destination && !usedPairs.has(`${departure}-${destination}`)) {
+      usedPairs.add(`${departure}-${destination}`);
+
+      routes.push({
+        departure,
+        destination,
+        distance: faker.number.int({ min: 50, max: 1000 }),
+        duration: faker.number.int({ min: 1, max: 12 }),
+      });
+    }
+  }
+
+  return routes;
+};
+
+// Generate random car image URL using Cloudinary
+const generateRandomCarImageUrl = (uniqueId: number) => {
+  return cloudinary.url("cars", {
+    transformation: [
+      { width: 200, height: 300, crop: "fill" },
+      { effect: "grayscale" }, // Optional: Apply effects
+    ],
+    secure: true, // Use HTTPS
+    sign_url: true, // Sign the URL for added security
+  });
+};
+
+// Generate unique and realistic vehicle names
+const generateVehicleName = () => {
+  const brand = faker.helpers.arrayElement(vehicleBrands);
+  const model = faker.helpers.arrayElement(vehicleModels);
+  return `${brand} ${model}`;
+};
+
+const seedRoutes = async () => {
+  const routes = generateRoutes(50000); // Generate 50,000 unique routes
+  await db.insert(routesTable).values(routes);
+  console.log("Seeded routes table.");
+};
+
+const seedSchedules = async () => {
+  const routes = await db.query.routesTable.findMany();
+  const schedules = [];
+
+  for (const route of routes) {
+    const departureTimes = generateDepartureTimes("06:00", "22:00", route.duration);
+    for (const time of departureTimes) {
+      schedules.push({
+        route_id: route.route_id,
+        departure_time: time,
+        frequency: route.duration,
+      });
+    }
+  }
+
+  await db.insert(scheduleTable).values(schedules);
+  console.log("Seeded schedules table.");
+};
+
+const seedVehicles = async () => {
+  const routes = await db.query.routesTable.findMany();
+  const schedules = await db.query.scheduleTable.findMany();
+
+  const vehicles = [];
+  const numberOfVehicles = 400; // Number of vehicles to seed
+
+  // Add a vehicle that matches all filter criteria
+  vehicles.push({
+    registration_number: "KABC 123",
+    vehicle_name: "Toyota Corolla",
+    license_plate: "KABC 123",
+    capacity: 25,
+    vehicle_type: "SUV",
+    cost: 2500,
+    model_year: 2020,
+    current_location: "Nairobi",
+    departure: "Nairobi",
+    departure_time: "08:00",
+    destination: "Mombasa",
+    route_id: routes[0].route_id,
+    schedule_id: schedules[0].schedule_id,
+    image_url: generateRandomCarImageUrl(0),
+  });
+
+  for (let i = 1; i <= numberOfVehicles; i++) {
+    // Assign vehicles to routes in both directions
+    const route1 = routes[i % routes.length]; // Forward route (e.g., Nairobi to Thika)
+    const route2 = routes.find(
+      (r) => r.departure === route1.destination && r.destination === route1.departure
+    ); // Reverse route (e.g., Thika to Nairobi)
+
+    const schedule1 = schedules[i % schedules.length];
+    const schedule2 = schedules.find((s) => s.route_id === route2?.route_id);
+
+    // Add vehicle for forward route
+    vehicles.push({
+      registration_number: `K${String.fromCharCode(65 + (i % 26))}${String.fromCharCode(65 + ((i + 7) % 26))}${String.fromCharCode(65 + ((i + 14) % 26))} ${i}`,
+      vehicle_name: generateVehicleName(),
+      license_plate: `K${String.fromCharCode(65 + (i % 26))}${String.fromCharCode(65 + ((i + 7) % 26))}${String.fromCharCode(65 + ((i + 14) % 26))} ${i}`,
+      capacity: 20 + (i % 10),
+      vehicle_type: i % 4 === 0 ? "Bus" : i % 4 === 1 ? "Van" : i % 4 === 2 ? "MiniBus" : "SUV",
+      cost: 800 + (i % 15) * 100,
+      model_year: 2018 + (i % 7),
+      current_location: route1.departure,
+      departure: route1.departure,
+      departure_time: schedule1.departure_time,
+      destination: route1.destination,
+      route_id: route1.route_id,
+      schedule_id: schedule1.schedule_id,
+      image_url: generateRandomCarImageUrl(i),
+    });
+
+    // Add vehicle for reverse route (if it exists)
+    if (route2 && schedule2) {
+      vehicles.push({
+        registration_number: `K${String.fromCharCode(65 + (i % 26))}${String.fromCharCode(65 + ((i + 7) % 26))}${String.fromCharCode(65 + ((i + 14) % 26))} ${i + 1}`,
+        vehicle_name: generateVehicleName(),
+        license_plate: `K${String.fromCharCode(65 + (i % 26))}${String.fromCharCode(65 + ((i + 7) % 26))}${String.fromCharCode(65 + ((i + 14) % 26))} ${i + 1}`,
+        capacity: 20 + ((i + 1) % 10),
+        vehicle_type: (i + 1) % 4 === 0 ? "Bus" : (i + 1) % 4 === 1 ? "Van" : (i + 1) % 4 === 2 ? "MiniBus" : "SUV",
+        cost: 800 + ((i + 1) % 15) * 100,
+        model_year: 2018 + ((i + 1) % 7),
+        current_location: route2.departure,
+        departure: route2.departure,
+        departure_time: schedule2.departure_time,
+        destination: route2.destination,
+        route_id: route2.route_id,
+        schedule_id: schedule2.schedule_id,
+        image_url: generateRandomCarImageUrl(i + 1),
+      });
+    }
+  }
+
+  await db.insert(vehicleTable).values(vehicles);
+  console.log("Seeded vehicles table.");
+};
+
+
+
+
+import dotenv from "dotenv";
+dotenv.config(); // Load environment variables from .env file
+
+import { v2 as cloudinary } from "cloudinary"; // Import Cloudinary SDK
+import { faker } from "@faker-js/faker";
+import db from "./db";
+import { routesTable, scheduleTable, vehicleTable } from "./schema";
+import { generateDepartureTimes } from "../utils/Generateschedules";
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME, // Your Cloudinary cloud name
+  api_key: process.env.CLOUDINARY_API_KEY, // Your Cloudinary API key
+  api_secret: process.env.CLOUDINARY_API_SECRET, // Your Cloudinary API secret
+});
+
+// List of real locations (cities, towns, etc.)
+const locations = [
+  "Nairobi", "Mombasa", "Kisumu", "Eldoret", "Nakuru", "Thika", "Malindi", "Kakamega", 
+  "Kitale", "Naivasha", "Nyeri", "Lamu", "Busia", "Lodwar", "Narok", "Embu", "Meru", 
+  "Turkana", "Marsabit", "Kisii", "Isiolo", "Machakos", "Kiambu", "Garissa", "Wajir", 
+  "Mandera", "Homa Bay", "Bungoma", "Voi", "Kitui", "Kericho", "Nyahururu", "Nanyuki", 
+  "Ruiru", "Thika", "Kikuyu", "Limuru", "Athi River", "Karuri", "Ngong", "Kajiado", 
+  "Molo", "Eldama Ravine", "Narok", "Sotik", "Bomet", "Keroka", "Nyamira", "Migori", 
+  "Awendo", "Rongo", "Oyugis", "Kendu Bay", "Siaya", "Ugunja", "Bondo", "Yala", 
+  "Mbita", "Suba", "Rusinga", "Mfangano", "Kapsabet", "Iten", "Kabarnet", "Marigat", 
+  "Eldoret", "Burnt Forest", "Kapsowar", "Cheptongei", "Kapsokwony", "Kimilili", 
+  "Webuye", "Bungoma", "Malaba", "Busia", "Mumias", "Butere", "Kakamega", "Vihiga", 
+  "Luanda", "Mbale", "Chavakali", "Hamisi", "Serem", "Tiriki", "Sabatia", "Emuhaya", 
+  "Kaimosi", "Cheptais", "Kapsokwony", "Kimilili", "Webuye", "Bungoma", "Malaba", 
+  "Busia", "Mumias", "Butere", "Kakamega", "Vihiga", "Luanda", "Mbale", "Chavakali", 
+  "Hamisi", "Serem", "Tiriki", "Sabatia", "Emuhaya", "Kaimosi", "Cheptais"
+];
+
+// List of real vehicle brands and models
+const vehicleBrands = ["Toyota", "Ford", "Nissan", "Mercedes", "Volkswagen", "BMW", "Audi", "Subaru"];
+const vehicleModels = ["Corolla", "Camry", "Ranger", "X-Trail", "C-Class", "Golf", "X5", "A4", "Outback"];
+
+// Generate unique routes
+const generateRoutes = (numRoutes: number) => {
+  const routes = [];
+  const usedPairs = new Set();
+
+  while (routes.length < numRoutes) {
+    const departure = faker.helpers.arrayElement(locations);
+    const destination = faker.helpers.arrayElement(locations);
+
+    if (departure !== destination && !usedPairs.has(`${departure}-${destination}`)) {
+      usedPairs.add(`${departure}-${destination}`);
+
+      routes.push({
+        departure,
+        destination,
+        distance: faker.number.int({ min: 50, max: 1000 }),
+        duration: faker.number.int({ min: 1, max: 12 }),
+      });
+    }
+  }
+
+  return routes;
+};
+
+// Generate random car image URL using Cloudinary
+const generateRandomCarImageUrl = (uniqueId: number) => {
+  return cloudinary.url("cars", {
+    transformation: [
+      { width: 200, height: 300, crop: "fill" },
+      { effect: "grayscale" }, // Optional: Apply effects
+    ],
+    secure: true, // Use HTTPS
+    sign_url: true, // Sign the URL for added security
+  });
+};
+
+// Generate unique and realistic vehicle names
+const generateVehicleName = () => {
+  const brand = faker.helpers.arrayElement(vehicleBrands);
+  const model = faker.helpers.arrayElement(vehicleModels);
+  return `${brand} ${model}`;
+};
+
+const seedRoutes = async () => {
+  try {
+    const routes = generateRoutes(50000); // Generate 50,000 unique routes
+    await db.insert(routesTable).values(routes);
+    console.log("✅ Seeded routes table successfully!");
+  } catch (error) {
+    console.error("❌ Error seeding routes table:", error);
+    throw error; // Re-throw to stop the seeding process
+  }
+};
+
+const seedSchedules = async () => {
+  try {
+    const routes = await db.query.routesTable.findMany();
+    const schedules = [];
+
+    for (const route of routes) {
+      const departureTimes = generateDepartureTimes("06:00", "22:00", route.duration);
+      for (const time of departureTimes) {
+        schedules.push({
+          route_id: route.route_id,
+          departure_time: time,
+          frequency: route.duration,
+        });
+      }
+    }
+
+    await db.insert(scheduleTable).values(schedules);
+    console.log("✅ Seeded schedules table successfully!");
+  } catch (error) {
+    console.error("❌ Error seeding schedules table:", error);
+    throw error; // Re-throw to stop the seeding process
+  }
+};
+
+const seedVehicles = async () => {
+  try {
+    const routes = await db.query.routesTable.findMany();
+    const schedules = await db.query.scheduleTable.findMany();
+
+    const vehicles = [];
+    const numberOfVehicles = 400; // Number of vehicles to seed
+
+    // Add a vehicle that matches all filter criteria
+    vehicles.push({
+      registration_number: "KABC 123",
+      vehicle_name: "Toyota Corolla",
+      license_plate: "KABC 123",
+      capacity: 25,
+      vehicle_type: "SUV",
+      cost: 2500,
+      model_year: 2020,
+      current_location: "Nairobi",
+      departure: "Nairobi",
+      departure_time: "08:00",
+      destination: "Mombasa",
+      route_id: routes[0].route_id,
+      schedule_id: schedules[0].schedule_id,
+      image_url: generateRandomCarImageUrl(0),
+    });
+
+    for (let i = 1; i <= numberOfVehicles; i++) {
+      // Assign vehicles to routes in both directions
+      const route1 = routes[i % routes.length]; // Forward route (e.g., Nairobi to Thika)
+      const route2 = routes.find(
+        (r) => r.departure === route1.destination && r.destination === route1.departure
+      ); // Reverse route (e.g., Thika to Nairobi)
+
+      const schedule1 = schedules[i % schedules.length];
+      const schedule2 = schedules.find((s) => s.route_id === route2?.route_id);
+
+      // Add vehicle for forward route
+      vehicles.push({
+        registration_number: `K${String.fromCharCode(65 + (i % 26))}${String.fromCharCode(65 + ((i + 7) % 26))}${String.fromCharCode(65 + ((i + 14) % 26))} ${i}`,
+        vehicle_name: generateVehicleName(),
+        license_plate: `K${String.fromCharCode(65 + (i % 26))}${String.fromCharCode(65 + ((i + 7) % 26))}${String.fromCharCode(65 + ((i + 14) % 26))} ${i}`,
+        capacity: 20 + (i % 10),
+        vehicle_type: i % 4 === 0 ? "Bus" : i % 4 === 1 ? "Van" : i % 4 === 2 ? "MiniBus" : "SUV",
+        cost: 800 + (i % 15) * 100,
+        model_year: 2018 + (i % 7),
+        current_location: route1.departure,
+        departure: route1.departure,
+        departure_time: schedule1.departure_time,
+        destination: route1.destination,
+        route_id: route1.route_id,
+        schedule_id: schedule1.schedule_id,
+        image_url: generateRandomCarImageUrl(i),
+      });
+
+      // Add vehicle for reverse route (if it exists)
+      if (route2 && schedule2) {
+        vehicles.push({
+          registration_number: `K${String.fromCharCode(65 + (i % 26))}${String.fromCharCode(65 + ((i + 7) % 26))}${String.fromCharCode(65 + ((i + 14) % 26))} ${i + 1}`,
+          vehicle_name: generateVehicleName(),
+          license_plate: `K${String.fromCharCode(65 + (i % 26))}${String.fromCharCode(65 + ((i + 7) % 26))}${String.fromCharCode(65 + ((i + 14) % 26))} ${i + 1}`,
+          capacity: 20 + ((i + 1) % 10),
+          vehicle_type: (i + 1) % 4 === 0 ? "Bus" : (i + 1) % 4 === 1 ? "Van" : (i + 1) % 4 === 2 ? "MiniBus" : "SUV",
+          cost: 800 + ((i + 1) % 15) * 100,
+          model_year: 2018 + ((i + 1) % 7),
+          current_location: route2.departure,
+          departure: route2.departure,
+          departure_time: schedule2.departure_time,
+          destination: route2.destination,
+          route_id: route2.route_id,
+          schedule_id: schedule2.schedule_id,
+          image_url: generateRandomCarImageUrl(i + 1),
+        });
+      }
+    }
+
+    await db.insert(vehicleTable).values(vehicles);
+    console.log("✅ Seeded vehicles table successfully!");
+  } catch (error) {
+    console.error("❌ Error seeding vehicles table:", error);
+    throw error; // Re-throw to stop the seeding process
+  }
+};
+
+const clearDatabase = async () => {
+  try {
+    console.log("🧹 Clearing existing data...");
+
+    // Delete all rows from the tables
+    await db.delete(vehicleTable).execute();
+    await db.delete(scheduleTable).execute();
+    await db.delete(routesTable).execute();
+
+    console.log("✅ Database cleared successfully!");
+  } catch (error) {
+    console.error("❌ Error clearing database:", error);
+    throw error; // Re-throw to stop the seeding process
+  }
+};
+
+const seedDatabase = async () => {
+  try {
+    console.log("🚀 Starting database seeding...");
+
+    // Clear existing data
+    await clearDatabase();
+
+    // Seed fresh data
+    await seedRoutes();
+    await seedSchedules();
+    await seedVehicles();
+
+    console.log("🎉 Database seeded successfully!");
+  } catch (error) {
+    console.error("❌ Error seeding database:", error);
+  } finally {
+    process.exit(0); // Exit the process after seeding
+  }
+};
+
+seedDatabase();
+
+
+
+
+
+import db from "./db";
+import { routesTable, scheduleTable, vehicleTable } from "./schema";
+import { generateDepartureTimes } from "../utils/Generateschedules";
+
+const seedRoutes = async () => {
+  const routes = [
+    { departure: "Nairobi", destination: "Mombasa", distance: 500, duration: 8 },
+    { departure: "Nairobi", destination: "Kisumu", distance: 300, duration: 5 },
+    { departure: "Nairobi", destination: "Eldoret", distance: 350, duration: 6 },
+    { departure: "Nairobi", destination: "Nakuru", distance: 150, duration: 3 },
+    { departure: "Nairobi", destination: "Thika", distance: 50, duration: 1 },
+    { departure: "Mombasa", destination: "Kisumu", distance: 800, duration: 12 },
+    { departure: "Eldoret", destination: "Nakuru", distance: 200, duration: 4 },
+    { departure: "Kisumu", destination: "Thika", distance: 400, duration: 7 },
+    { departure: "Nakuru", destination: "Mombasa", distance: 600, duration: 9 },
+    { departure: "Thika", destination: "Eldoret", distance: 380, duration: 6 },
+    { departure: "Mombasa", destination: "Malindi", distance: 120, duration: 2 },
+    { departure: "Kisumu", destination: "Kakamega", distance: 50, duration: 1 },
+    { departure: "Eldoret", destination: "Kitale", distance: 80, duration: 1},
+    { departure: "Nakuru", destination: "Naivasha", distance: 60, duration: 1 },
+    { departure: "Thika", destination: "Nyeri", distance: 100, duration: 2 },
+    { departure: "Malindi", destination: "Lamu", distance: 240, duration: 4 },
+    { departure: "Kakamega", destination: "Busia", distance: 90, duration: 1 },
+    { departure: "Kitale", destination: "Lodwar", distance: 350, duration: 6 },
+    { departure: "Naivasha", destination: "Narok", distance: 120, duration: 2 },
+    { departure: "Nyeri", destination: "Embu", distance: 70, duration: 1 },
+    { departure: "Lodwar", destination: "Turkana", distance: 150, duration: 3},
+    { departure: "Narok", destination: "Maasai Mara", distance: 100, duration: 2},
+    { departure: "Embu", destination: "Meru", distance: 90, duration: 1},
+    { departure: "Turkana", destination: "Marsabit", distance: 200, duration: 4},
+    { departure: "Maasai Mara", destination: "Kisii", distance: 250, duration: 5},
+    { departure: "Meru", destination: "Isiolo", distance: 120, duration: 2},
+
+    // Add more routes as needed
+  ];
+
+  await db.insert(routesTable).values(routes);
+};
+
+const seedSchedules = async () => {
+  const routes = await db.query.routesTable.findMany();
+  const schedules = [];
+
+  for (const route of routes) {
+    const departureTimes = generateDepartureTimes("06:00", "22:00", route.duration);
+    for (const time of departureTimes) {
+      schedules.push({
+        route_id: route.route_id,
+        departure_time: time,
+        frequency: route.duration,
+      });
+    }
+  }
+
+  await db.insert(scheduleTable).values(schedules);
+};
+
+const seedVehicles = async () => {
+  const routes = await db.query.routesTable.findMany();
+  const schedules = await db.query.scheduleTable.findMany();
+
+  const vehicles = [];
+  const numberOfVehicles = 400; // Increased number of vehicles
+
+  for (let i = 1; i <= numberOfVehicles; i++) {
+    const route = routes[i % routes.length]; // Cycle through routes
+    const schedule = schedules[i % schedules.length]; // Cycle through schedules
+
+    vehicles.push({
+      registration_number: `K${String.fromCharCode(65 + (i % 26))}${String.fromCharCode(65 + ((i + 7) % 26))}${String.fromCharCode(65 + ((i+14)%26))} ${i}`, // e.g., KAAA 1, KBBB 2, etc.
+      vehicle_name: `Vehicle ${i}`,
+      license_plate: `K${String.fromCharCode(65 + (i % 26))}${String.fromCharCode(65 + ((i + 7) % 26))}${String.fromCharCode(65 + ((i+14)%26))} ${i}`,
+      capacity: 20 + (i % 10), //vary capacity
+      vehicle_type: i % 4 === 0 ? "Bus" : i % 4 === 1 ? "Van" : i % 4 === 2 ? "MiniBus" : "SUV", //Add SUV
+      cost: 800 + (i % 15) * 100, // Vary cost more
+      model_year: 2018 + (i % 7), // Vary model year more
+      current_location: route.departure,
+      departure: route.departure,
+      departure_time: schedule.departure_time,
+      destination: route.destination,
+      route_id: route.route_id,
+      schedule_id: schedule.schedule_id,
+      image_url: `https://res.cloudinary.com/dl3ovuqjn/image/upload/v1741950532/ieqzvtktnrq7fidhu2dr.jpg`,
+    });
+  }
+
+  await db.insert(vehicleTable).values(vehicles);
+};
+
+const seedDatabase = async () => {
+  await seedRoutes();
+  await seedSchedules();
+  await seedVehicles();
+  console.log("Database seeded successfully!");
+};
+
+seedDatabase().catch((error) => {
+  console.error("Error seeding database:", error);
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import dotenv from "dotenv";
+dotenv.config(); // Load environment variables from .env file
+
+import { v2 as cloudinary } from "cloudinary"; // Import Cloudinary SDK
+import { faker } from "@faker-js/faker";
+import db from "./db";
+import { routesTable, scheduleTable, vehicleTable } from "./schema";
+import { generateDepartureTimes } from "../utils/Generateschedules";
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME, // Your Cloudinary cloud name
+  api_key: process.env.CLOUDINARY_API_KEY, // Your Cloudinary API key
+  api_secret: process.env.CLOUDINARY_API_SECRET, // Your Cloudinary API secret
+});
+
+// List of real locations (cities, towns, etc.)
+const locations = [
+  "Nairobi", "Mombasa", "Kisumu", "Eldoret", "Nakuru", "Thika", "Malindi", "Kakamega", 
+  "Kitale", "Naivasha", "Nyeri", "Lamu", "Busia", "Lodwar", "Narok", "Embu", "Meru", 
+  "Turkana", "Marsabit", "Kisii", "Isiolo", "Machakos", "Kiambu", "Garissa", "Wajir", 
+  "Mandera", "Homa Bay", "Bungoma", "Voi", "Kitui", "Kericho", "Nyahururu", "Nanyuki", 
+  "Ruiru", "Thika", "Kikuyu", "Limuru", "Athi River", "Karuri", "Ngong", "Kajiado", 
+  "Molo", "Eldama Ravine", "Narok", "Sotik", "Bomet", "Keroka", "Nyamira", "Migori", 
+  "Awendo", "Rongo", "Oyugis", "Kendu Bay", "Siaya", "Ugunja", "Bondo", "Yala", 
+  "Mbita", "Suba", "Rusinga", "Mfangano", "Kapsabet", "Iten", "Kabarnet", "Marigat", 
+  "Eldoret", "Burnt Forest", "Kapsowar", "Cheptongei", "Kapsokwony", "Kimilili", 
+  "Webuye", "Bungoma", "Malaba", "Busia", "Mumias", "Butere", "Kakamega", "Vihiga", 
+  "Luanda", "Mbale", "Chavakali", "Hamisi", "Serem", "Tiriki", "Sabatia", "Emuhaya", 
+  "Kaimosi", "Cheptais", "Kapsokwony", "Kimilili", "Webuye", "Bungoma", "Malaba", 
+  "Busia", "Mumias", "Butere", "Kakamega", "Vihiga", "Luanda", "Mbale", "Chavakali", 
+  "Hamisi", "Serem", "Tiriki", "Sabatia", "Emuhaya", "Kaimosi", "Cheptais"
+];
+
+// List of real vehicle brands and models
+const vehicleBrands = ["Toyota", "Ford", "Nissan", "Mercedes", "Volkswagen", "BMW", "Audi", "Subaru"];
+const vehicleModels = ["Corolla", "Camry", "Ranger", "X-Trail", "C-Class", "Golf", "X5", "A4", "Outback"];
+
+// Generate unique routes
+const generateRoutes = (numRoutes: number) => {
+  const routes = [];
+  const usedPairs = new Set();
+
+  while (routes.length < numRoutes) {
+    const departure = faker.helpers.arrayElement(locations);
+    const destination = faker.helpers.arrayElement(locations);
+
+    if (departure !== destination && !usedPairs.has(`${departure}-${destination}`)) {
+      usedPairs.add(`${departure}-${destination}`);
+
+      routes.push({
+        departure,
+        destination,
+        distance: faker.number.int({ min: 50, max: 1000 }),
+        duration: faker.number.int({ min: 1, max: 12 }),
+      });
+    }
+  }
+
+  return routes;
+};
+
+// Generate random car image URL using Cloudinary
+const generateRandomCarImageUrl = (uniqueId: number) => {
+  return cloudinary.url("cars", {
+    transformation: [
+      { width: 200, height: 300, crop: "fill" },
+      { effect: "grayscale" }, // Optional: Apply effects
+    ],
+    secure: true, // Use HTTPS
+    sign_url: true, // Sign the URL for added security
+  });
+};
+
+// Generate unique and realistic vehicle names
+const generateVehicleName = () => {
+  const brand = faker.helpers.arrayElement(vehicleBrands);
+  const model = faker.helpers.arrayElement(vehicleModels);
+  return `${brand} ${model}`;
+};
+
+const seedRoutes = async () => {
+  try {
+    console.log("🌱 Seeding routes table...");
+    const routes = generateRoutes(10); // Generate 10 unique routes (reduced from 50,000)
+
+    // Batch insert routes (e.g., 10 at a time)
+    const batchSize = 10;
+    for (let i = 0; i < routes.length; i += batchSize) {
+      const batch = routes.slice(i, i + batchSize);
+      await db.insert(routesTable).values(batch).execute();
+      console.log(`✅ Inserted ${i + batch.length} routes...`);
+    }
+
+    console.log("✅ Seeded routes table successfully!");
+  } catch (error) {
+    console.error("❌ Error seeding routes table:", error);
+    throw error; // Re-throw to stop the seeding process
+  }
+};
+
+const seedSchedules = async () => {
+  try {
+    console.log("🌱 Seeding schedules table...");
+    const routes = await db.query.routesTable.findMany();
+    const schedules = [];
+
+    for (const route of routes) {
+      const departureTimes = generateDepartureTimes("06:00", "22:00", route.duration);
+      for (const time of departureTimes) {
+        schedules.push({
+          route_id: route.route_id,
+          departure_time: time,
+          frequency: route.duration,
+        });
+      }
+    }
+
+    // Batch insert schedules (e.g., 10 at a time)
+    const batchSize = 10;
+    for (let i = 0; i < schedules.length; i += batchSize) {
+      const batch = schedules.slice(i, i + batchSize);
+      await db.insert(scheduleTable).values(batch).execute();
+      console.log(`✅ Inserted ${i + batch.length} schedules...`);
+    }
+
+    console.log("✅ Seeded schedules table successfully!");
+  } catch (error) {
+    console.error("❌ Error seeding schedules table:", error);
+    throw error; // Re-throw to stop the seeding process
+  }
+};
+
+const seedVehicles = async () => {
+  try {
+    console.log("🌱 Seeding vehicles table...");
+    const routes = await db.query.routesTable.findMany();
+    const schedules = await db.query.scheduleTable.findMany();
+
+    const vehicles = [];
+    const numberOfVehicles = 10; // Number of vehicles to seed (reduced from 400)
+
+    // Add a vehicle that matches all filter criteria
+    vehicles.push({
+      registration_number: "KABC 123",
+      vehicle_name: "Toyota Corolla",
+      license_plate: "KABC 123",
+      capacity: 25,
+      vehicle_type: "SUV",
+      cost: 2500,
+      model_year: 2020,
+      current_location: "Nairobi",
+      departure: "Nairobi",
+      departure_time: "08:00",
+      destination: "Mombasa",
+      route_id: routes[0].route_id,
+      schedule_id: schedules[0].schedule_id,
+      image_url: generateRandomCarImageUrl(0),
+    });
+
+    for (let i = 1; i <= numberOfVehicles; i++) {
+      // Assign vehicles to routes in both directions
+      const route1 = routes[i % routes.length]; // Forward route (e.g., Nairobi to Thika)
+      const route2 = routes.find(
+        (r) => r.departure === route1.destination && r.destination === route1.departure
+      ); // Reverse route (e.g., Thika to Nairobi)
+
+      const schedule1 = schedules[i % schedules.length];
+      const schedule2 = schedules.find((s) => s.route_id === route2?.route_id);
+
+      // Add vehicle for forward route
+      vehicles.push({
+        registration_number: `K${String.fromCharCode(65 + (i % 26))}${String.fromCharCode(65 + ((i + 7) % 26))}${String.fromCharCode(65 + ((i + 14) % 26))} ${i}`,
+        vehicle_name: generateVehicleName(),
+        license_plate: `K${String.fromCharCode(65 + (i % 26))}${String.fromCharCode(65 + ((i + 7) % 26))}${String.fromCharCode(65 + ((i + 14) % 26))} ${i}`,
+        capacity: 20 + (i % 10),
+        vehicle_type: i % 4 === 0 ? "Bus" : i % 4 === 1 ? "Van" : i % 4 === 2 ? "MiniBus" : "SUV",
+        cost: 800 + (i % 15) * 100,
+        model_year: 2018 + (i % 7),
+        current_location: route1.departure,
+        departure: route1.departure,
+        departure_time: schedule1.departure_time,
+        destination: route1.destination,
+        route_id: route1.route_id,
+        schedule_id: schedule1.schedule_id,
+        image_url: generateRandomCarImageUrl(i),
+      });
+
+      // Add vehicle for reverse route (if it exists)
+      if (route2 && schedule2) {
+        vehicles.push({
+          registration_number: `K${String.fromCharCode(65 + (i % 26))}${String.fromCharCode(65 + ((i + 7) % 26))}${String.fromCharCode(65 + ((i + 14) % 26))} ${i + 1}`,
+          vehicle_name: generateVehicleName(),
+          license_plate: `K${String.fromCharCode(65 + (i % 26))}${String.fromCharCode(65 + ((i + 7) % 26))}${String.fromCharCode(65 + ((i + 14) % 26))} ${i + 1}`,
+          capacity: 20 + ((i + 1) % 10),
+          vehicle_type: (i + 1) % 4 === 0 ? "Bus" : (i + 1) % 4 === 1 ? "Van" : (i + 1) % 4 === 2 ? "MiniBus" : "SUV",
+          cost: 800 + ((i + 1) % 15) * 100,
+          model_year: 2018 + ((i + 1) % 7),
+          current_location: route2.departure,
+          departure: route2.departure,
+          departure_time: schedule2.departure_time,
+          destination: route2.destination,
+          route_id: route2.route_id,
+          schedule_id: schedule2.schedule_id,
+          image_url: generateRandomCarImageUrl(i + 1),
+        });
+      }
+    }
+
+    // Batch insert vehicles (e.g., 10 at a time)
+    const batchSize = 10;
+    for (let i = 0; i < vehicles.length; i += batchSize) {
+      const batch = vehicles.slice(i, i + batchSize);
+      await db.insert(vehicleTable).values(batch).execute();
+      console.log(`✅ Inserted ${i + batch.length} vehicles...`);
+    }
+
+    console.log("✅ Seeded vehicles table successfully!");
+  } catch (error) {
+    console.error("❌ Error seeding vehicles table:", error);
+    throw error; // Re-throw to stop the seeding process
+  }
+};
+
+const clearDatabase = async () => {
+  try {
+    console.log("🧹 Clearing existing data...");
+
+    // Delete all rows from the tables
+    await db.delete(vehicleTable).execute();
+    await db.delete(scheduleTable).execute();
+    await db.delete(routesTable).execute();
+
+    console.log("✅ Database cleared successfully!");
+  } catch (error) {
+    console.error("❌ Error clearing database:", error);
+    throw error; // Re-throw to stop the seeding process
+  }
+};
+
+const seedDatabase = async () => {
+  try {
+    console.log("🚀 Starting database seeding...");
+
+    // Clear existing data
+    await clearDatabase();
+
+    // Seed fresh data
+    await seedRoutes();
+    await seedSchedules();
+    await seedVehicles();
+
+    console.log("🎉 Database seeded successfully!");
+  } catch (error) {
+    console.error("❌ Error seeding database:", error);
+  } finally {
+    process.exit(0); // Exit the process after seeding
+  }
+};
+
+seedDatabase();

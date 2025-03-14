@@ -11,7 +11,8 @@
     "gen": "drizzle-kit generate",
     "migrate": " tsx src/drizzle/migrate.ts",
     "studio": "drizzle-kit studio",
-    "push": " drizzle-kit generate && tsx src/drizzle/migrate.ts"
+    "push": " drizzle-kit generate && tsx src/drizzle/migrate.ts",
+    "seed": "tsx src/drizzle/seed.ts"
   },
   "keywords": [],
   "author": "Gideon Ngetich",
@@ -21,6 +22,7 @@
     "@neondatabase/serverless": "^0.10.4",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.6.0",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.37.0",
     "hono": "^4.6.12",
@@ -30,6 +32,7 @@
     "nodemailer": "^6.9.16",
     "react-toastify": "^11.0.3",
     "stripe": "^17.4.0",
+    "unsplash-js": "^7.0.19",
     "zod": "^3.24.1"
   },
   "devDependencies": {

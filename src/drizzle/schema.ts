@@ -17,8 +17,6 @@ export const bookingStatusEnum = pgEnum("booking_status", ["pending", "confirmed
 export const ticketStatusEnum = pgEnum("ticket_status", ["paid", "failed", "refunded"]);
 export const paymentStatusEnum = pgEnum("payment_status", ["pending", "completed", "failed", "refunded"]);
 
-
-
 // Contact Messages Table
 export const contactsTable = pgTable("contacts", {
   contact_id: serial("contact_id").primaryKey(),
@@ -44,6 +42,7 @@ export const authTable = pgTable("auth", {
   updated_at: timestamp("updated_at").defaultNow(),
   is_deleted: boolean("is_deleted").default(false),
 });
+
 // Users Table
 export const userTable = pgTable("users", {
   user_id: serial("user_id").primaryKey(),
@@ -62,6 +61,27 @@ export const userTable = pgTable("users", {
   is_deleted: boolean("is_deleted").default(false),
 });
 
+// Routes Table
+export const routesTable = pgTable("routes", {
+  route_id: serial("route_id").primaryKey(),
+  departure: varchar("departure", { length: 255 }).notNull(),
+  destination: varchar("destination", { length: 255 }).notNull(),
+  distance: integer("distance"), // in kilometers
+  duration: integer("duration").notNull(), // in hours (ensure it's not nullable)
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+// Schedule Table
+export const scheduleTable = pgTable("schedule", {
+  schedule_id: serial("schedule_id").primaryKey(),
+  route_id: integer("route_id").notNull().references(() => routesTable.route_id, { onDelete: "cascade" }),
+  departure_time: varchar("departure_time").notNull(), // e.g., "06:00 AM"
+  frequency: integer("frequency"), // in hours
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
 // Vehicles Table
 export const vehicleTable = pgTable("vehicles", {
   registration_number: varchar("registration_number").primaryKey(),
@@ -69,7 +89,7 @@ export const vehicleTable = pgTable("vehicles", {
   license_plate: varchar("license_plate", { length: 20 }).notNull().unique(),
   capacity: integer("capacity").notNull(),
   vehicle_type: varchar("vehicle_type", { length: 50 }).notNull(),
-  cost:integer("cost").notNull(),
+  cost: integer("cost").notNull(),
   model_year: integer("model_year"),
   current_location: varchar("current_location", { length: 255 }).notNull(),
   departure: varchar("departure").notNull(),
@@ -80,10 +100,11 @@ export const vehicleTable = pgTable("vehicles", {
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
   is_deleted: boolean("is_deleted").default(false),
-
+  route_id: integer("route_id").references(() => routesTable.route_id, { onDelete: "set null" }), // Link to routes
+  schedule_id: integer("schedule_id").references(() => scheduleTable.schedule_id, { onDelete: "set null" }), // Link to schedules
 });
 
-
+// Ticket Table
 export const ticketTable = pgTable("tickets", {
   ticket_id: serial("ticket_id").primaryKey(),
   user_id: integer("user_id").notNull().references(() => userTable.user_id, { onDelete: "cascade" }),
@@ -94,24 +115,7 @@ export const ticketTable = pgTable("tickets", {
   updated_at: timestamp("updated_at").defaultNow(),
 });
 
-// export const paymentsTable = pgTable("payments", {
-//   payment_id: serial("payment_id").primaryKey(),
-//   booking_id: integer("booking_id")
-//     .notNull()
-//     .references(() => bookingTable.booking_id, { onDelete: "cascade" }),
-//   amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
-//   payment_method: varchar("payment_method", { length: 50 }).notNull(),
-//   payment_status: paymentStatusEnum("payment_status").default("pending"),
-//   transaction_reference: varchar("transaction_reference", { length: 255 }).notNull().unique(),
-//   payment_date: timestamp("payment_date").defaultNow(),
-//   phone_number: varchar("phone_number", { length: 20 }).notNull(), // ✅ Add this line
-//   ticket_id: integer("ticket_id")
-//     .references(() => ticketTable.ticket_id, { onDelete: "cascade" }),
-//   created_at: timestamp("created_at").defaultNow(),
-//   updated_at: timestamp("updated_at").defaultNow(),
-// }, (table) => ({
-//   bookingIndex: index("booking_id_idx").on(table.booking_id), // ✅ Correct way to add an index
-// }));
+// Payments Table
 export const paymentsTable = pgTable(
   "payments",
   {
@@ -138,11 +142,12 @@ export const paymentsTable = pgTable(
   })
 );
 
+// Bookings Table
 export const bookingTable = pgTable("bookings", {
   booking_id: serial("booking_id").primaryKey(),
   user_id: integer("user_id").notNull()
     .references(() => userTable.user_id, { onDelete: "cascade" }),
-    vehicle_id: varchar("vehicle_id").notNull()
+  vehicle_id: varchar("vehicle_id").notNull()
     .references(() => vehicleTable.registration_number, { onDelete: "cascade" }),    
   departure_date: timestamp("departure_date").notNull(),
   departure: varchar("departure"),
@@ -159,8 +164,7 @@ export const bookingTable = pgTable("bookings", {
   userIndex: index("user_id_idx").on(table.user_id), 
 }));
 
-
-// 🚀 3️⃣ Bookings Seats Table (Tracks seat selection per booking)
+// Bookings Seats Table
 export const bookingsSeatsTable = pgTable("bookings_seats", {
   booking_seat_id: serial("booking_seat_id").primaryKey(),
   booking_id: integer("booking_id").notNull().references(() => bookingTable.booking_id, { onDelete: "cascade" }),
@@ -194,4 +198,3 @@ export type TSBookingSeat = typeof bookingsSeatsTable.$inferSelect;
 
 export type TIContact = typeof contactsTable.$inferInsert;
 export type TSContact = typeof contactsTable.$inferSelect;
-

@@ -5,14 +5,13 @@ import { cors } from "hono/cors";
 import { readFile } from "fs/promises";
 import assert from "assert";
 import { userAuthRouter } from "./auth/auth.router";
-import paymentRouter from "./Payments/Payment.Router"; // ✅ Now includes M-Pesa routes
+import paymentRouter from "./Payments/Payment.Router";
 import TicketingRouter from "./Ticketing/Ticketing.Router";
 import bookingRouter from "./bookings/booking.router";
 import vehicleRouter from "./vehicle/vehicle.routes";
-// import seatRouter from "./seat/seat.route";
 import contactRoutes from "./Contact/Contact.Router";
-
-
+import routerRouter from "./Routes/Routes.Router"; // Add this
+import scheduleRouter from "./Schedules/Schedules.router"; // Add this
 
 // Initialize Hono app
 const app = new Hono();
@@ -22,15 +21,15 @@ app.use(cors({
   allowHeaders: ['Content-Type', 'Authorization']
 }));
 
-
 // Register all routes
 app.route("/", userAuthRouter);
 app.route("/", bookingRouter);
-app.route("/", paymentRouter); // ✅ Handles both payments & M-Pesa
+app.route("/", paymentRouter);
 app.route("/", TicketingRouter);
 app.route("/", vehicleRouter);
-// app.route("/", seatRouter);
 app.route("/", contactRoutes);
+app.route("/routes", routerRouter); // Add this
+app.route("/schedules", scheduleRouter); // Add this
 
 // Default route
 app.get("/", async (c) => {

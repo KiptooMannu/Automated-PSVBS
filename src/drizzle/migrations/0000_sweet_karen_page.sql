@@ -67,6 +67,25 @@ CREATE TABLE IF NOT EXISTS "payments" (
 	CONSTRAINT "payments_transaction_reference_unique" UNIQUE("transaction_reference")
 );
 --> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "routes" (
+	"route_id" serial PRIMARY KEY NOT NULL,
+	"departure" varchar(255) NOT NULL,
+	"destination" varchar(255) NOT NULL,
+	"distance" integer,
+	"duration" integer NOT NULL,
+	"created_at" timestamp DEFAULT now(),
+	"updated_at" timestamp DEFAULT now()
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "schedule" (
+	"schedule_id" serial PRIMARY KEY NOT NULL,
+	"route_id" integer NOT NULL,
+	"departure_time" varchar NOT NULL,
+	"frequency" integer,
+	"created_at" timestamp DEFAULT now(),
+	"updated_at" timestamp DEFAULT now()
+);
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "tickets" (
 	"ticket_id" serial PRIMARY KEY NOT NULL,
 	"user_id" integer NOT NULL,
@@ -112,6 +131,8 @@ CREATE TABLE IF NOT EXISTS "vehicles" (
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
 	"is_deleted" boolean DEFAULT false,
+	"route_id" integer,
+	"schedule_id" integer,
 	CONSTRAINT "vehicles_license_plate_unique" UNIQUE("license_plate")
 );
 --> statement-breakpoint
@@ -158,7 +179,25 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
+ ALTER TABLE "schedule" ADD CONSTRAINT "schedule_route_id_routes_route_id_fk" FOREIGN KEY ("route_id") REFERENCES "public"."routes"("route_id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
  ALTER TABLE "tickets" ADD CONSTRAINT "tickets_user_id_users_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("user_id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "vehicles" ADD CONSTRAINT "vehicles_route_id_routes_route_id_fk" FOREIGN KEY ("route_id") REFERENCES "public"."routes"("route_id") ON DELETE set null ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "vehicles" ADD CONSTRAINT "vehicles_schedule_id_schedule_schedule_id_fk" FOREIGN KEY ("schedule_id") REFERENCES "public"."schedule"("schedule_id") ON DELETE set null ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
